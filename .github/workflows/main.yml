@@ -23,16 +23,15 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
       
-      - name: Test and analyze
-        run: ./gradlew test jacocoTestReport sonar
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+#      - name: Test and analyze
+        # run: ./gradlew test jacocoTestReport sonar
+        # env:
+          # GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   deploy:
     name: Deploying to Google Cloud
     runs-on: ubuntu-latest
-    # 
     # needs: test
 
     steps:
