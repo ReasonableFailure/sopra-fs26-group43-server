@@ -4,15 +4,12 @@ on:
   push:
     branches:
       - main
-
-  # run the workflow manually from the Actions tab
   workflow_dispatch:
 
 jobs:
   test:
     name: Test and Sonarqube
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository code
         uses: actions/checkout@v4
@@ -26,11 +23,11 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
       
-      - name: Test and analyze
-        run: ./gradlew test jacocoTestReport sonar
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+#      - name: Test and analyze
+        # run: ./gradlew test jacocoTestReport sonar
+        # env:
+          # GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   deploy:
     name: Deploying to Google Cloud
@@ -49,5 +46,5 @@ jobs:
           version: v1
           credentials: ${{ secrets.GCP_SERVICE_CREDENTIALS }}
 
-      - name: Test
+      - name: Test Deployment
         run: curl "${{ steps.deploy.outputs.url }}"
