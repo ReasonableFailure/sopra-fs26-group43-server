@@ -4,8 +4,8 @@ import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
 import ch.uzh.ifi.hase.soprafs26.entity.User;
-import ch.uzh.ifi.hase.soprafs26.rest.dto.UserGetDTO;
-import ch.uzh.ifi.hase.soprafs26.rest.dto.UserPostDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.userdto.UserGetDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.userdto.UserPostDTO;
 
 /**
  * DTOMapper
