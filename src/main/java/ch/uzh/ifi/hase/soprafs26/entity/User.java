@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 
 import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -21,6 +22,7 @@ import java.util.Date;
 @Table(name = "users")
 public class User implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     @Id
