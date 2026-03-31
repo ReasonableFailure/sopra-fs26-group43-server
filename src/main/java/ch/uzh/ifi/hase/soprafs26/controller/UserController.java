@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.rest.userdto.UserGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.userdto.UserPostDTO;
-import ch.uzh.ifi.hase.soprafs26.rest.mapper.DTOMapper;
+import ch.uzh.ifi.hase.soprafs26.rest.mapper.UserDTOMapper;
 import ch.uzh.ifi.hase.soprafs26.service.UserService;
 
 import java.util.ArrayList;
@@ -35,12 +35,12 @@ public class UserController {
 	@ResponseBody
 	public UserGetDTO createUser(@RequestBody UserPostDTO userPostDTO) {
 		// convert API user to internal representation
-		User userInput = DTOMapper.INSTANCE.convertUserPostDTOtoEntity(userPostDTO);
+		User userInput = UserDTOMapper.INSTANCE.convertUserPostDTOtoEntity(userPostDTO);
 
 		// create user
 		User createdUser = userService.createUser(userInput);
 		// convert internal representation of user back to API
-		return DTOMapper.INSTANCE.convertEntityToUserGetDTO(createdUser);
+		return UserDTOMapper.INSTANCE.convertEntityToUserGetDTO(createdUser);
 	}
 
     @GetMapping("/users/{userid}")
@@ -48,13 +48,13 @@ public class UserController {
     @ResponseBody
     public UserGetDTO retrieveUser(@PathVariable Long userid, @RequestHeader("Authorization") String token){
         User user = userService.getProfile(userid,token);
-        return DTOMapper.INSTANCE.convertEntityToUserGetDTO(user);
+        return UserDTOMapper.INSTANCE.convertEntityToUserGetDTO(user);
     }
 
     @PutMapping("/users/{userid}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void updateUser(@PathVariable Long userid, @RequestHeader("Authorization") String token, @RequestBody UserPutDTO userPutDTO){
-        User holdsUpdateData = DTOMapper.INSTANCE.convertUserPutDTOtoEntity(userPutDTO);
+        User holdsUpdateData = UserDTOMapper.INSTANCE.convertUserPutDTOtoEntity(userPutDTO);
         userService.updateProfile(token, userid, holdsUpdateData);
     }
 
@@ -62,9 +62,9 @@ public class UserController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public UserGetDTO loginUser(@RequestBody UserLoginDTO userLoginDTO){
-        User toLogin = DTOMapper.INSTANCE.convertUserLoginDTOtoEntity(userLoginDTO);
+        User toLogin = UserDTOMapper.INSTANCE.convertUserLoginDTOtoEntity(userLoginDTO);
         User user = userService.loginUser(toLogin);
-        return DTOMapper.INSTANCE.convertEntityToUserGetDTO(user);
+        return UserDTOMapper.INSTANCE.convertEntityToUserGetDTO(user);
     }
 
     @PostMapping("/logout/{userid}")
@@ -83,7 +83,7 @@ public class UserController {
 
         // convert each user to the API representation
         for (User user : users) {
-            userGetDTOs.add(DTOMapper.INSTANCE.convertEntityToUserGetDTO(user));
+            userGetDTOs.add(UserDTOMapper.INSTANCE.convertEntityToUserGetDTO(user));
         }
         return userGetDTOs;
     }
