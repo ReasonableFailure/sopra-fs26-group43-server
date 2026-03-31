@@ -49,13 +49,15 @@ public class UserController {
     @ResponseBody
     public UserGetDTO retrieveUser(@PathVariable Long userid, @RequestHeader("Authorization") String token){
         //TODO: implement this stub
-        return new UserGetDTO();
+        User user = new User();
+        return DTOMapper.INSTANCE.convertEntityToUserGetDTO(user);
     }
 
     @PutMapping("/users/{userid}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void updateUser(@PathVariable Long userid, @RequestHeader("Authorization") String token, @RequestBody UserPutDTO userPutDTO){
         //TODO: implement this stub
+        User holdsUpdateData = DTOMapper.INSTANCE.convertUserPutDTOtoEntity(userPutDTO);
         return;
     }
 
@@ -64,7 +66,9 @@ public class UserController {
     @ResponseBody
     public UserGetDTO loginUser(@RequestBody UserLoginDTO userLoginDTO){
         //TODO: implement this stub
-        return new UserGetDTO();
+        User toLogin = DTOMapper.INSTANCE.convertUserLoginDTOtoEntity(userLoginDTO);
+        User user = new User();
+        return DTOMapper.INSTANCE.convertEntityToUserGetDTO(user);
     }
 
     @PostMapping("/logout/{userid}")
