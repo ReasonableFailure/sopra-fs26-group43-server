@@ -15,7 +15,6 @@ import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -37,16 +36,49 @@ public class UserService {
 		this.userRepository = userRepository;
 	}
 
-	public List<User> getUsers() {
+	public List<User> getUsers(String token) {
+        if(!checkIfValidToken(token)){
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("Invalid Token"));
+        }
 		return this.userRepository.findAll();
 	}
 
+    public User getProfile(Long idToBeFound, String authToken){
+        if(!checkIfValidToken(authToken)){
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("Unauthorized access to this resource"));
+        }
+        User found = userRepository.findById(idToBeFound).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User with id %d not found", idToBeFound)));
+        return found;
+    }
+
+    public User createUser(User newUser) {
+        if(!isValidProfileData(newUser.getUsername(),newUser.getPassword())){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Invalid username or password"));
+        }
+        if(!checkIfUsernameTaken(newUser.getUsername())){
+            throw new ResponseStatusException(HttpStatus.CONFLICT, String.format("Username already taken"));
+        }
+        newUser.setToken(UUID.randomUUID().toString());
+        newUser.setStatus(UserStatus.ONLINE);
+        newUser.setCreationDate(new Date());
+        newUser.setPlaying(false);
+        // saves the given entity but data is only persisted in the database once
+        // flush() is called
+        newUser = userRepository.save(newUser);
+        userRepository.flush();
+        log.debug("Created Information for User: {}", newUser);
+        return newUser;
+    }
+
     public User loginUser(User user){
-        checkIfUserExistsByName(user.getUsername());
-        checkCredentials(user);
-        if(checkIfAlreadyLoggedIn(user)){
-            return userRepository.findByUsername(user.getUsername());
-            //throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("The user %s is already logged in.", user.getUsername()));
+        if(!isValidProfileData(user.getUsername(),user.getPassword())){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Invalid username or password"));
+        }
+        if(!checkPwd(user.getUsername(),user.getPassword())){
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("Invalid token"));
+        }
+        if(!checkIfUserExistsByID(user.getId())){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User with id %d not found", user.getId()));
         }
         User fromStore = userRepository.findByUsername(user.getUsername());
         fromStore.setToken(UUID.randomUUID().toString());
@@ -57,109 +89,88 @@ public class UserService {
     }
 
     public void logoutUser(Long ID, String token){
-        if(!checkIfUserExistsByID(ID)){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("The user with ID %d cannot be found.", ID));
+        //200, 401, 404
+        if(!checkIfValidToken(token)){
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("Invalid token"));
         }
-        verifyToken(token);
-        User requestsLogout = userRepository.findById(ID).orElse(null);
-        requestsLogout.setToken(null);
+        if(!checkIfUserExistsByID(ID)){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User with id %d not found", ID));
+        }
+        User requestsLogout = userRepository.findByToken(token);
         requestsLogout.setStatus(UserStatus.OFFLINE);
+        requestsLogout.setToken(null);
+        requestsLogout.setPlaying(false);
         requestsLogout = userRepository.save(requestsLogout);
         userRepository.flush();
     }
 
-    public void updateProfile(Long userID, String token, UserPutDTO userPutDTO) {
-        verifyToken(token);
-        User byID = userRepository.findById(userID).orElse(null);
-        if(!checkIfUserExistsByID(userID)){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User with ID %d cannot be found", userID));
+    public void updateProfile(String token, Long id, User holdsUpdate) {
+        if(!checkIfValidToken(token)){
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("Invalid token"));
         }
-        User byToken = userRepository.findByToken(token);
-
-        if(!(byID.equals(byToken))){
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,String.format("User %s may not edit other user %s", byID.getUsername(), byToken.getUsername()));
+        if(!checkIfUserExistsByID(id)){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User with id %d not found", id));
         }
-        System.out.println(byID);
-        byID.setPassword(userPutDTO.getNewPassword());
-        logoutUser(byID.getId(), byID.getToken());
-        log.debug("Changed assword of User: {}", byID);
-    }
-
-    public User createUser(User newUser) {
-
-        if(!checkIfUserCanBeCreated(newUser)){
-            String baseErrorMessage = "The %s provided %s not unique. Therefore, the user could not be created!";
-            throw new ResponseStatusException(HttpStatus.CONFLICT, String.format(baseErrorMessage, "username", "is"));
-        }
-        newUser.setToken(UUID.randomUUID().toString());
-        newUser.setStatus(UserStatus.ONLINE);
-        newUser.setCreationDate(new Date());
-        // saves the given entity but data is only persisted in the database once
-        // flush() is called
-        newUser = userRepository.save(newUser);
-        userRepository.flush();
-
-        log.debug("Created Information for User: {}", newUser);
-        return newUser;
-    }
-
-    /**
-     * This is a helper method that will check the uniqueness criteria of the
-     * username and the Id
-     * defined in the User entity. The method will do nothing if the input is unique
-     * and throw an error otherwise.
-     *
-     * @param userToBeCreated
-     * @throws org.springframework.web.server.ResponseStatusException
-     * @see User
-     * throws 400
-     */
-    private boolean checkIfUserCanBeCreated(User userToBeCreated) {
-        User userByUsername = userRepository.findByUsername(userToBeCreated.getUsername());
-        return userByUsername == null;
-
-    }
-
-    private User checkIfUserExistsByName(String name){
-        User user = userRepository.findByUsername(name);
-        if (user==null){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("The user %s cannot be found.", user.getUsername()));
-        }
-        return user;
-    }
-
-    private User checkIfUserExistsByID(Long ID){
-       return userRepository.findById(ID).orElseThrow(new ResponseStatusException(HttpStatus.));
-    }
-
-    private void checkCredentials(User requestsAuth){
-        //check if credentials exists
-        //throws 400
-        checkIfUserExistsByName(requestsAuth.getUsername());
-        User userByUsername = userRepository.findByUsername(requestsAuth.getUsername());
-        //check is credentials are correct
-        //throws 403
-        if(!userByUsername.getPassword().equals(requestsAuth.getPassword())){
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "The password you entered was wrong!");
+        if(!isValidProfileData(holdsUpdate.getUsername(),holdsUpdate.getPassword())){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Invalid username or password"));
         }
     }
 
-    private boolean checkIfAlreadyLoggedIn(User user){
-        User byName = userRepository.findByUsername(user.getUsername());
-        String token = byName.getToken();
-        UserStatus status = byName.getStatus();
-        if(token != null && status == UserStatus.ONLINE){
+    /*List of Failure conditions:
+    * Invalid profile input data || Done
+    * wrong password Done
+    * username already exists Done
+    * unauthorised token |||| Done
+    * userid does not exist |||| Done
+    * invalid data in update Done
+    * */
+
+    private boolean isValidProfileData(String uname, String pwd){
+        //TODO: in future: enforce pwd rules?
+        boolean isValid = true;
+        if(uname.isEmpty() || pwd.isEmpty()){
+            //fields may not be empty
+            isValid = false;
+        }
+        if(uname == null || pwd == null){
+            //fields must exist
+            isValid = false;
+        }
+        if(uname.isBlank() || pwd.isBlank()){
+            //fields may not be just whitespace
+            isValid = false;
+        }
+        if(!checkIfUsernameTaken(uname)){
+            isValid = false;
+        }
+        return isValid;
+    }
+
+    private boolean checkIfUsernameTaken(String uname){
+        User foundByUname = userRepository.findByUsername(uname);
+        if (foundByUname == null) {
+            return false;
+        }
+        return true;
+    }
+    /*
+    * pre-condition: user must exist*/
+    private boolean checkPwd(String uname, String pwd){
+        User foundByUname = userRepository.findByUsername(uname);
+        if (foundByUname.getPassword().equals(pwd)){
             return true;
         }
         return false;
     }
 
-    //This is enough, since tokens are unique and only exist when the user is logged in
-    public void verifyToken(String token){
-        User byToken = userRepository.findByToken(token);
-        if(byToken == null){
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,"This action is not authorized!");
-        }
+    private boolean checkIfUserExistsByID(Long ID){
+        User foundById = userRepository.findById(ID).orElse(null);
+        return foundById != null;
+    }
+
+    private boolean checkIfValidToken(String token){
+        User foundByToken = userRepository.findByToken(token);
+        return  foundByToken.getToken() != null;
     }
 
 }
