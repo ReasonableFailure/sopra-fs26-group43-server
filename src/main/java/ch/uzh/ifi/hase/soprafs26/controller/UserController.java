@@ -2,7 +2,6 @@ package ch.uzh.ifi.hase.soprafs26.controller;
 
 import ch.uzh.ifi.hase.soprafs26.rest.userdto.UserLoginDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.userdto.UserPutDTO;
-import org.osgi.annotation.bundle.Header;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -48,15 +47,15 @@ public class UserController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public UserGetDTO retrieveUser(@PathVariable Long userid, @RequestHeader("Authorization") String token){
-        User user = userService.retrieveProfile(userid,token);
+        User user = userService.getProfile(userid,token);
         return DTOMapper.INSTANCE.convertEntityToUserGetDTO(user);
     }
 
     @PutMapping("/users/{userid}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void updateUser(@PathVariable Long userid, @RequestHeader("Authorization") String token, @RequestBody UserPutDTO userPutDTO){
-        //TODO: implement this stub
         User holdsUpdateData = DTOMapper.INSTANCE.convertUserPutDTOtoEntity(userPutDTO);
+        userService.updateProfile(token, userid, holdsUpdateData);
         return;
     }
 
@@ -64,25 +63,24 @@ public class UserController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public UserGetDTO loginUser(@RequestBody UserLoginDTO userLoginDTO){
-        //TODO: implement this stub
         User toLogin = DTOMapper.INSTANCE.convertUserLoginDTOtoEntity(userLoginDTO);
-        User user = new User();
+        User user = userService.loginUser(toLogin);
         return DTOMapper.INSTANCE.convertEntityToUserGetDTO(user);
     }
 
     @PostMapping("/logout/{userid}")
     @ResponseStatus(HttpStatus.OK)
     public void logout(@PathVariable Long userid, @RequestHeader("Authorization") String token){
-        //TODO: implement this stub
+        userService.logoutUser(userid,token);
         return;
     }
 
     @GetMapping("/users")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public List<UserGetDTO> getAllUsers() {
+    public List<UserGetDTO> getAllUsers(@RequestHeader("Authorization") String token) {
         // fetch all users in the internal representation
-        List<User> users = userService.getUsers();
+        List<User> users = userService.getUsers(token);
         List<UserGetDTO> userGetDTOs = new ArrayList<>();
 
         // convert each user to the API representation
