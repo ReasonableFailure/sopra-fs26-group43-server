@@ -113,6 +113,12 @@ public class UserService {
         if(!isValidProfileData(holdsUpdate.getUsername(),holdsUpdate.getPassword())){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Invalid username or password"));
         }
+        User toBeModified = userRepository.findById(id).get();
+        toBeModified.setUsername(holdsUpdate.getUsername());
+        toBeModified.setPassword(holdsUpdate.getPassword());
+        toBeModified.setBio(holdsUpdate.getBio());
+        userRepository.save(toBeModified);
+        userRepository.flush();
     }
 
     /*List of Failure conditions:
