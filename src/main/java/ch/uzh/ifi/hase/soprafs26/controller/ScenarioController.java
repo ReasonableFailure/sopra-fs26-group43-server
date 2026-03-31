@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.*;
 
 import ch.uzh.ifi.hase.soprafs26.entity.Scenario;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioGetDTO;
-import ch.uzh.ifi.hase.soprafs26.rest.mapper.DTOMapper;
+import ch.uzh.ifi.hase.soprafs26.rest.mapper.ScenarioDTOMapper;
 import ch.uzh.ifi.hase.soprafs26.service.ScenarioService;
 
 import java.util.ArrayList;
@@ -30,7 +30,7 @@ public class ScenarioController {
 
         // convert each scenario to the API representation
         for (Scenario scenario : scenarios) {
-            scenarioGetDTOs.add(DTOMapper.INSTANCE.convertEntityToScenarioGetDTO(scenario));
+            scenarioGetDTOs.add(ScenarioDTOMapper.INSTANCE.convertEntityToScenarioGetDTO(scenario));
         }
         return scenarioGetDTOs;
     }
