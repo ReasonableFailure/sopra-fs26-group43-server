@@ -48,8 +48,7 @@ public class UserController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public UserGetDTO retrieveUser(@PathVariable Long userid, @RequestHeader("Authorization") String token){
-        //TODO: implement this stub
-        User user = new User();
+        User user = userService.retrieveProfile(userid,token);
         return DTOMapper.INSTANCE.convertEntityToUserGetDTO(user);
     }
 
