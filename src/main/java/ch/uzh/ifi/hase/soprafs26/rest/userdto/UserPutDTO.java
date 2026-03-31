@@ -5,6 +5,7 @@ public class UserPutDTO {
     private String username;
     private String bio;
 
+
     public String getPassword() {
         return password;
     }

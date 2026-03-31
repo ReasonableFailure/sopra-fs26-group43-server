@@ -1,6 +1,7 @@
 package ch.uzh.ifi.hase.soprafs26.rest.userdto;
 
 import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
+import java.util.Date;
 
 public class UserGetDTO {
 
@@ -9,6 +10,26 @@ public class UserGetDTO {
 	private String username;
 	private UserStatus status;
     private boolean isPlaying;
+    private String bio;
+    private Date creationDate;
+
+    public Date getCreationDate() {
+        return creationDate;
+    }
+
+    public void setCreationDate(Date creationDate) {
+        this.creationDate = creationDate;
+    }
+
+
+    public String getBio() {
+        return bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
+    }
+
 
 	public Long getId() {
 		return id;
