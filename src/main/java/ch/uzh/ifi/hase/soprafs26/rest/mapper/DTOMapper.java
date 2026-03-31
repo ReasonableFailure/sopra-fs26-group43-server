@@ -9,8 +9,7 @@ import org.mapstruct.factory.Mappers;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.rest.userdto.UserGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.userdto.UserPostDTO;
-import ch.uzh.ifi.hase.soprafs26.entity.Scenario;
-import ch.uzh.ifi.hase.soprafs26.rest.dto.ScenarioGetDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioGetDTO;
 
 /**
  * DTOMapper
