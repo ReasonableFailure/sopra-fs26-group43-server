@@ -10,12 +10,36 @@ public class Scenario implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
     private Long id;
+    @Column(nullable = false)
     private boolean isActive;
+    @Column(nullable = true)
     private String description;
+    @Column(nullable = true)
     private String title;
+    @Column(nullable = false)
     private int day;
+    @Column(nullable = true)
     private int exchangeRate;
+    @Column(nullable = true)
     private List<Player> players;
+    @Column(nullable = true)
+    private List<Cabinet> cabinets;
+
+    public List<Player> getPlayers() {
+        return players;
+    }
+
+    public void setPlayers(List<Player> players) {
+        this.players = players;
+    }
+
+    public List<Cabinet> getCabinets() {
+        return cabinets;
+    }
+
+    public void setCabinets(List<Cabinet> cabinets) {
+        this.cabinets = cabinets;
+    }
 
     public Long getId() {
         return id;
@@ -32,8 +56,6 @@ public class Scenario implements Serializable {
     public void setActive(boolean active) {
         isActive = active;
     }
-
-
 
     public String getDescription() {
         return description;
