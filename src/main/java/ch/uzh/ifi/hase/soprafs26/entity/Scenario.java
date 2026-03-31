@@ -10,6 +10,7 @@ public class Scenario implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
     private Long id;
+
     @Column(nullable = false)
     private boolean isActive;
     @Column(nullable = true)
@@ -17,9 +18,9 @@ public class Scenario implements Serializable {
     @Column(nullable = true)
     private String title;
     @Column(nullable = false)
-    private int day;
+    private int day = 0;
     @Column(nullable = true)
-    private int exchangeRate;
+    private int exchangeRate = 10;
     @Column(nullable = true)
     private List<Player> players;
     @Column(nullable = true)
