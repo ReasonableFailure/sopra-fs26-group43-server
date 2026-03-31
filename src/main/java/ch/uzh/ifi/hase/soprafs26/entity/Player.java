@@ -6,7 +6,6 @@ abstract public class Player {
     @Id
     private Long id;
 
-
     private User user;
 
     public User getUser() {
