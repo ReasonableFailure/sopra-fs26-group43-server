@@ -1,6 +1,6 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
-import ch.uzh.ifi.hase.soprafs26.rest.userdto.UserPutDTO;
+//import ch.uzh.ifi.hase.soprafs26.rest.userdto.UserPutDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -47,8 +47,7 @@ public class UserService {
         if(!checkIfValidToken(authToken)){
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("Unauthorized access to this resource"));
         }
-        User found = userRepository.findById(idToBeFound).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User with id %d not found", idToBeFound)));
-        return found;
+        return userRepository.findById(idToBeFound).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User with id %d not found", idToBeFound)));
     }
 
     public User createUser(User newUser) {
@@ -100,7 +99,7 @@ public class UserService {
         requestsLogout.setStatus(UserStatus.OFFLINE);
         requestsLogout.setToken(null);
         requestsLogout.setPlaying(false);
-        requestsLogout = userRepository.save(requestsLogout);
+        userRepository.save(requestsLogout);
         userRepository.flush();
     }
 

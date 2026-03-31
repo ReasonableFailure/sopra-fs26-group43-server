@@ -56,7 +56,6 @@ public class UserController {
     public void updateUser(@PathVariable Long userid, @RequestHeader("Authorization") String token, @RequestBody UserPutDTO userPutDTO){
         User holdsUpdateData = DTOMapper.INSTANCE.convertUserPutDTOtoEntity(userPutDTO);
         userService.updateProfile(token, userid, holdsUpdateData);
-        return;
     }
 
     @PostMapping("/login")
@@ -72,7 +71,6 @@ public class UserController {
     @ResponseStatus(HttpStatus.OK)
     public void logout(@PathVariable Long userid, @RequestHeader("Authorization") String token){
         userService.logoutUser(userid,token);
-        return;
     }
 
     @GetMapping("/users")
