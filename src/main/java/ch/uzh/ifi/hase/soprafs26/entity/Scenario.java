@@ -1,34 +1,46 @@
 package ch.uzh.ifi.hase.soprafs26.entity;
-
-import jakarta.persistence.*;
+import  jakarta.persistence.*;
 import java.io.Serializable;
+import java.util.*;
 
 @Entity
 @Table(name = "scenarios")
 public class Scenario implements Serializable {
-
-    private static final long serialVersionUID = 1L;
-
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(nullable = false)
     private Long id;
 
     @Column(nullable = false)
-    private String title;
-
-    @Column
+    private boolean isActive;
+    @Column(nullable = true)
     private String description;
-
-    @Column(nullable = false)
-    private Boolean isActive = false;
-
+    @Column(nullable = true)
+    private String title;
     @Column(nullable = false)
     private int day = 0;
-
-    @Column(nullable = false)
+    @Column(nullable = true)
     private int exchangeRate = 10;
+    @Column(nullable = true)
+    private List<Player> players;
+    @Column(nullable = true)
+    private List<Cabinet> cabinets;
 
-    // Getters and Setters
+    public List<Player> getPlayers() {
+        return players;
+    }
+
+    public void setPlayers(List<Player> players) {
+        this.players = players;
+    }
+
+    public List<Cabinet> getCabinets() {
+        return cabinets;
+    }
+
+    public void setCabinets(List<Cabinet> cabinets) {
+        this.cabinets = cabinets;
+    }
 
     public Long getId() {
         return id;
@@ -38,12 +50,12 @@ public class Scenario implements Serializable {
         this.id = id;
     }
 
-    public String getTitle() {
-        return title;
+    public boolean isActive() {
+        return isActive;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public void setActive(boolean active) {
+        isActive = active;
     }
 
     public String getDescription() {
@@ -54,12 +66,12 @@ public class Scenario implements Serializable {
         this.description = description;
     }
 
-    public Boolean getIsActive() {
-        return isActive;
+    public String getTitle() {
+        return title;
     }
 
-    public void setIsActive(Boolean isActive) {
-        this.isActive = isActive;
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     public int getDay() {
