@@ -8,6 +8,14 @@ abstract public class Player {
 
     private User user;
 
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public User getUser() {
         return user;
     }
@@ -15,7 +23,5 @@ abstract public class Player {
     public void setUser(User user) {
         this.user = user;
     }
-
-
 
 }
