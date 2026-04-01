@@ -1,8 +1,12 @@
 package ch.uzh.ifi.hase.soprafs26.rest.mapper;
+import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioDeleteDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioGetDTO;
 import ch.uzh.ifi.hase.soprafs26.entity.Scenario;
+import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioPostDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioPutDTO;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 @Mapper
 public interface ScenarioDTOMapper {
@@ -16,5 +20,7 @@ public interface ScenarioDTOMapper {
     @Mapping(source = "exchangeRate", target = "exchangeRate")
     ScenarioGetDTO convertEntityToScenarioGetDTO(Scenario scenario);
 
+    Scenario convertScenarioPostDTOtoEntity(ScenarioPostDTO scenarioPostDTO);
 
+    Scenario convertScenarioPutDTOtoEntity(ScenarioPutDTO scenarioPutDTO);
 }
