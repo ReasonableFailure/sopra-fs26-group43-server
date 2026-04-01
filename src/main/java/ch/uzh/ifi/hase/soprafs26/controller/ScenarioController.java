@@ -1,5 +1,6 @@
 package ch.uzh.ifi.hase.soprafs26.controller;
 
+import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioPostDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,4 +35,9 @@ public class ScenarioController {
         }
         return scenarioGetDTOs;
     }
+
+    public ScenarioGetDTO createScenario(@RequestBody ScenarioPostDTO scenarioPostDTO, @RequestHeader("Authorization") String token){
+        return new ScenarioGetDTO();
+    }
+
 }
