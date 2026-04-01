@@ -24,9 +24,9 @@ public class ScenarioController {
     @GetMapping("/scenarios")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public List<ScenarioGetDTO> getAllScenarios() {
+    public List<ScenarioGetDTO> getAllScenarios(@RequestHeader("Authorization") String token) {
         // fetch all scenarios in the internal representation
-        List<Scenario> scenarios = scenarioService.getScenarios();
+        List<Scenario> scenarios = scenarioService.getScenarios(token);
         List<ScenarioGetDTO> scenarioGetDTOs = new ArrayList<>();
 
         // convert each scenario to the API representation
