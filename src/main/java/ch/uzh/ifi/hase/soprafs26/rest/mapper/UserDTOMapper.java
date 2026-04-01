@@ -1,6 +1,5 @@
 package ch.uzh.ifi.hase.soprafs26.rest.mapper;
 
-import ch.uzh.ifi.hase.soprafs26.entity.Scenario;
 import ch.uzh.ifi.hase.soprafs26.rest.userdto.UserLoginDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.userdto.UserPutDTO;
 import org.mapstruct.*;
@@ -9,8 +8,6 @@ import org.mapstruct.factory.Mappers;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.rest.userdto.UserGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.userdto.UserPostDTO;
-import ch.uzh.ifi.hase.soprafs26.entity.Scenario;
-import ch.uzh.ifi.hase.soprafs26.rest.dto.ScenarioGetDTO;
 
 /**
  * DTOMapper
@@ -24,9 +21,9 @@ import ch.uzh.ifi.hase.soprafs26.rest.dto.ScenarioGetDTO;
  * creating information (POST).
  */
 @Mapper
-public interface DTOMapper {
+public interface UserDTOMapper {
 
-    DTOMapper INSTANCE = Mappers.getMapper(DTOMapper.class);
+    UserDTOMapper INSTANCE = Mappers.getMapper(UserDTOMapper.class);
 
     UserGetDTO convertEntityToUserGetDTO(User user);
 
@@ -36,12 +33,6 @@ public interface DTOMapper {
 
     User convertUserPutDTOtoEntity(UserPutDTO userPutDTO);
 
-    @Mapping(source = "id", target = "id")
-    @Mapping(source = "title", target = "title")
-    @Mapping(source = "description", target = "description")
-    @Mapping(source = "isActive", target = "isActive")
-    @Mapping(source = "day", target = "day")
-    @Mapping(source = "exchangeRate", target = "exchangeRate")
-    ScenarioGetDTO convertEntityToScenarioGetDTO(Scenario scenario);
+
 
 }

@@ -1,5 +1,6 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
+import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -20,12 +21,14 @@ public class ScenarioService {
     private final Logger log = LoggerFactory.getLogger(ScenarioService.class);
 
     private final ScenarioRepository scenarioRepository;
+    private final UserRepository userRepository;
 
-    public ScenarioService(@Qualifier("scenarioRepository") ScenarioRepository scenarioRepository) {
+    public ScenarioService(@Qualifier("scenarioRepository") ScenarioRepository scenarioRepository, @Qualifier("userRepository") UserRepository userRepository) {
         this.scenarioRepository = scenarioRepository;
+        this.userRepository = userRepository;
     }
 
-    public List<Scenario> getScenarios() {
+    public List<Scenario> getScenarios(String token) {
         return this.scenarioRepository.findAll();
     }
 }
