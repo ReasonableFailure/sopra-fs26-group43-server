@@ -36,7 +36,9 @@ public class DirectiveService {
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Scenario not found"));
 
-        Character creator = null;
+        if (postDTO.getCreatorId() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Creator ID missing");
+        }
 
         /*
         creator = characterRepository.findById(postDTO.getCreatorId())
@@ -44,12 +46,8 @@ public class DirectiveService {
                         HttpStatus.NOT_FOUND, "Character not found"));
         */
 
-        if (postDTO.getCreatorId() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Creator ID missing");
-        }
-
         // Temporary fallback (REMOVE later)
-        creator = new Character();
+        Character creator = new Character();
         creator.setId(postDTO.getCreatorId());
 
         Directive directive = DirectiveDTOMapper.INSTANCE.convertPostDTOToEntity(postDTO);
