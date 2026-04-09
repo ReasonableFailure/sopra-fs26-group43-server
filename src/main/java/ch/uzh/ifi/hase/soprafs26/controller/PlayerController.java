@@ -3,6 +3,7 @@ package ch.uzh.ifi.hase.soprafs26.controller;
 import ch.uzh.ifi.hase.soprafs26.entity.Player;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RoleGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RolePostDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RolePutDTO;
 import ch.uzh.ifi.hase.soprafs26.service.PlayerService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
