@@ -1,6 +1,7 @@
 package ch.uzh.ifi.hase.soprafs26.controller;
 
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioPostDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioPutDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,9 +36,21 @@ public class ScenarioController {
         }
         return scenarioGetDTOs;
     }
-
+    @PostMapping("/scenarios")
     public ScenarioGetDTO createScenario(@RequestBody ScenarioPostDTO scenarioPostDTO, @RequestHeader("Authorization") String token){
         return new ScenarioGetDTO();
     }
+
+    @GetMapping("/scenarios/{scenarioID}")
+    public ScenarioGetDTO getScenarioById(@RequestHeader("Authorization") String token, @PathVariable Long scenarioId){
+
+    }
+
+    @PutMapping("/scenarios/{scenarioId}")
+    public void updateScenario(@RequestHeader("Authorization") String token, @PathVariable Long scenarioId, @RequestBody ScenarioPutDTO scenarioPutDTO){
+
+    }
+    @DeleteMapping("/scenarios/{scenarioId}")
+    public void deleteScenario(@RequestHeader("Authorization") String token, @PathVariable Long scenarioId){}
 
 }

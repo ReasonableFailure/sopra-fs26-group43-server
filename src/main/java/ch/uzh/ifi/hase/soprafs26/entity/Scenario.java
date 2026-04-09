@@ -11,7 +11,7 @@ public class Scenario implements Serializable {
     @Column(nullable = false)
     private Long id;
     @Column(nullable = false)
-    private boolean isActive;
+    private boolean active;
     @Column(nullable = true)
     private String description;
     @Column(nullable = true)
@@ -22,8 +22,6 @@ public class Scenario implements Serializable {
     private int exchangeRate = 10;
     @Column(nullable = true)
     private List<Player> players;
-    @Column(nullable = true)
-    private List<Cabinet> cabinets;
 
     public List<Player> getPlayers() {
         return players;
@@ -31,14 +29,6 @@ public class Scenario implements Serializable {
 
     public void setPlayers(List<Player> players) {
         this.players = players;
-    }
-
-    public List<Cabinet> getCabinets() {
-        return cabinets;
-    }
-
-    public void setCabinets(List<Cabinet> cabinets) {
-        this.cabinets = cabinets;
     }
 
     public Long getId() {
@@ -49,12 +39,12 @@ public class Scenario implements Serializable {
         this.id = id;
     }
 
-    public boolean isActive() {
-        return isActive;
+    public boolean getActive() {
+        return active;
     }
 
     public void setActive(boolean active) {
-        isActive = active;
+        this.active = active;
     }
 
     public String getDescription() {
