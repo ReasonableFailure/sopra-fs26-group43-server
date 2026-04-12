@@ -11,6 +11,6 @@ import ch.uzh.ifi.hase.soprafs26.entity.Player;
 import java.util.Optional;
 
 @Repository("roleRepository")
-public interface RoleRepository extends JpaRepository<User, Long>{
+public interface RoleRepository extends JpaRepository<Player, Long>{
 
 }

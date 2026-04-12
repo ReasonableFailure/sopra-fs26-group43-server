@@ -1,6 +1,8 @@
 package ch.uzh.ifi.hase.soprafs26.controller;
 
 import ch.uzh.ifi.hase.soprafs26.entity.Player;
+import ch.uzh.ifi.hase.soprafs26.rest.mapper.PlayerDTOMapper;
+import ch.uzh.ifi.hase.soprafs26.rest.playerdto.PlayerPutDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RoleGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RolePostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RolePutDTO;
@@ -18,12 +20,16 @@ public class PlayerController {
     public PlayerController(PlayerService playerService) {
         this.playerService = playerService;
     }
+    @PutMapping("/player/{playerid}")
+    public void assignUsertoPlayer(@PathVariable Long playerId, @RequestBody PlayerPutDTO playerPutDTO,  @RequestHeader("Authorization") String token) {
+        playerService.updatePlayerAssociation(playerId,playerPutDTO,token);
+    }
 
     @PutMapping("/characters/{characterId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @ResponseBody
-    public void updateRole() {
-        //TODO: implement stub
+    public void updateRole(@RequestBody RolePutDTO rolePutDTO, @RequestHeader("Authorization") String token, @PathVariable Long characterId) {
+        playerService.updateRole(token);
     }
 
     @GetMapping("/characters/{characterId}")
