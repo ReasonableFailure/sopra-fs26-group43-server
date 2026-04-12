@@ -5,8 +5,8 @@ public class Cabinet {
     private Long id;
     private String cabinetName;
     private String cabinetDescription;
-    private List<Character> cabinetMembers;
-    public void addCharacter(Character character){
+    private List<Role> cabinetMembers;
+    public void addRole(Role character){
         cabinetMembers.add(character);
     }
 
@@ -34,11 +34,11 @@ public class Cabinet {
         this.cabinetDescription = cabinetDescription;
     }
 
-    public List<Character> getCabinetMembers() {
+    public List<Role> getCabinetMembers() {
         return cabinetMembers;
     }
 
-    public void setCabinetMembers(List<Character> cabinetMembers) {
+    public void setCabinetMembers(List<Role> cabinetMembers) {
         this.cabinetMembers = cabinetMembers;
     }
 }

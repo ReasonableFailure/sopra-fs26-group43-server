@@ -12,7 +12,7 @@ public class Directive extends Communication {
 
     @ManyToOne
     @JoinColumn(nullable = false)
-    private Character creator;
+    private Role creator;
 
     public CommsStatus getStatus() {
         return status;
@@ -22,11 +22,11 @@ public class Directive extends Communication {
         this.status = status;
     }
 
-    public Character getCreator() {
+    public Role getCreator() {
         return creator;
     }
 
-    public void setCreator(Character creator) {
+    public void setCreator(Role creator) {
         this.creator = creator;
     }
 }

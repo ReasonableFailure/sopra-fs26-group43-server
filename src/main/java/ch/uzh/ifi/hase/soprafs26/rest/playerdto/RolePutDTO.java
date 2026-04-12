@@ -1,6 +1,6 @@
 package ch.uzh.ifi.hase.soprafs26.rest.playerdto;
 
-public class CharacterPutDTO {
+public class RolePutDTO {
     private String name;
     private String title;
     private String description;

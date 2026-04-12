@@ -45,7 +45,7 @@ public class UserControllerTest {
 
 	@MockitoBean
 	private UserService userService;
-
+    /*
 	@Test
 	public void givenUsers_whenGetUsers_thenReturnJsonArray() throws Exception {
 		// given

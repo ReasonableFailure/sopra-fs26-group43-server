@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name="characters")
-public class Character extends Player{
+public class Role extends Player{
     private String name;
     private String title;
     private String description;

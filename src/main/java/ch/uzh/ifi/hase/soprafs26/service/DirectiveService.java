@@ -4,6 +4,7 @@ import ch.uzh.ifi.hase.soprafs26.constant.CommsStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.*;
 import ch.uzh.ifi.hase.soprafs26.repository.*;
 import ch.uzh.ifi.hase.soprafs26.rest.directivedto.DirectivePostDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.directivedto.DirectivePutDTO;
 import ch.uzh.ifi.hase.soprafs26.mapper.DirectiveDTOMapper;
 
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -20,7 +21,7 @@ public class DirectiveService {
 
     private final DirectiveRepository directiveRepository;
     private final ScenarioRepository scenarioRepository;
-    // private final CharacterRepository characterRepository;
+    // private final RoleRepository roleRepository;
 
     public DirectiveService(
             @Qualifier("directiveRepository") DirectiveRepository directiveRepository,
@@ -41,13 +42,13 @@ public class DirectiveService {
         }
 
         /*
-        creator = characterRepository.findById(postDTO.getCreatorId())
+        creator = roleRepository.findById(postDTO.getCreatorId())
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Character not found"));
         */
 
         // Temporary fallback (REMOVE later)
-        Character creator = new Character();
+        Role creator = new Role();
         creator.setId(postDTO.getCreatorId());
 
         Directive directive = DirectiveDTOMapper.INSTANCE.convertPostDTOToEntity(postDTO);

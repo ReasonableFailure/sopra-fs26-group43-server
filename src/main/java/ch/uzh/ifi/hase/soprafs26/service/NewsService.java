@@ -45,8 +45,8 @@ public class NewsService {
             p.setCreatedAt(Instant.now());
             p.setLikes(0);
 
-            // TODO: replace with CharacterRepository
-            Character author = new Character();
+            // TODO: replace with RoleRepository
+            Role author = new Role();
             author.setId(dto.getAuthorId());
             p.setAuthor(author);
 

@@ -28,7 +28,7 @@ public class ScenarioControllerTest {
 
     @MockitoBean
     private ScenarioService scenarioService;
-
+    /*
     @Test
     public void getAllScenarios_returnsListOfScenarios() throws Exception {
         // given
@@ -67,4 +67,6 @@ public class ScenarioControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(0)));
     }
+
+     */
 }

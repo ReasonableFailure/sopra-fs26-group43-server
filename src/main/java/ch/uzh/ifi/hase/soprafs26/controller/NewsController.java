@@ -1,6 +1,7 @@
 package ch.uzh.ifi.hase.soprafs26.controller;
 
 import ch.uzh.ifi.hase.soprafs26.entity.NewsStory;
+import ch.uzh.ifi.hase.soprafs26.entity.Pronouncement;
 import ch.uzh.ifi.hase.soprafs26.rest.newsdto.*;
 import ch.uzh.ifi.hase.soprafs26.service.NewsService;
 import ch.uzh.ifi.hase.soprafs26.mapper.NewsDTOMapper;

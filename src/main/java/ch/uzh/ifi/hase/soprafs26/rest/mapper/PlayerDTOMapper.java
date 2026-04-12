@@ -1,11 +1,12 @@
 package ch.uzh.ifi.hase.soprafs26.rest.mapper;
 
-import ch.uzh.ifi.hase.soprafs26.rest.playerdto.CharacterPutDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RolePutDTO;
+import ch.uzh.ifi.hase.soprafs26.entity.Role;
 import org.mapstruct.*;
 
 @Mapper
 public interface PlayerDTOMapper {
 
-    @Mapping(source = "id", target = "userId")
-    Character convertCharacterPutDTOtoEntity(CharacterPutDTO characterPutDTO);
+    @Mapping(source = "userId", target = "id")
+    Role convertRolePutDTOtoEntity(RolePutDTO rolePutDTO);
 }

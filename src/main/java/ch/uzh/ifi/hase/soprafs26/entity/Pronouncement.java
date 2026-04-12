@@ -7,16 +7,16 @@ public class Pronouncement extends NewsStory {
 
     @ManyToOne
     @JoinColumn(nullable = false)
-    private Character author;
+    private Role author;
 
     @Column(nullable = false)
     private int likes;
 
-    public Character getAuthor() {
+    public Role getAuthor() {
         return author;
     }
 
-    public void setAuthor(Character author) {
+    public void setAuthor(Role author) {
         this.author = author;
     }
 

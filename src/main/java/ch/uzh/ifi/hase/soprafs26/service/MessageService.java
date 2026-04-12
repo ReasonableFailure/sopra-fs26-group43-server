@@ -4,6 +4,7 @@ import ch.uzh.ifi.hase.soprafs26.constant.CommsStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.*;
 import ch.uzh.ifi.hase.soprafs26.repository.*;
 import ch.uzh.ifi.hase.soprafs26.rest.messagedto.MessagePostDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.messagedto.MessagePutDTO;
 import ch.uzh.ifi.hase.soprafs26.mapper.MessageDTOMapper;
 
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -20,7 +21,7 @@ public class MessageService {
 
     private final MessageRepository messageRepository;
     private final ScenarioRepository scenarioRepository;
-    // private final CharacterRepository characterRepository;
+    // private final RoleRepository roleRepository;
 
     public MessageService(
             @Qualifier("messageRepository") MessageRepository messageRepository,
@@ -42,20 +43,20 @@ public class MessageService {
         }
 
         /*
-        Character creator = characterRepository.findById(postDTO.getCreatorId())
+        Role creator = roleRepository.findById(postDTO.getCreatorId())
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Creator Character not found"));
 
-        Character recipient = characterRepository.findById(postDTO.getRecipientId())
+        Role recipient = roleRepository.findById(postDTO.getRecipientId())
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Recipient Character not found"));
         */
 
         // Temporary fallback (REMOVE later)
-        Character creator = new Character();
+        Role creator = new Role();
         creator.setId(postDTO.getCreatorId());
 
-        Character recipient = new Character();
+        Role recipient = new Role();
         recipient.setId(postDTO.getRecipientId());
 
         Message message = MessageDTOMapper.INSTANCE.convertPostDTOToEntity(postDTO);
