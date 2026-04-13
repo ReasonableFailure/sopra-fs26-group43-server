@@ -21,14 +21,16 @@ public class DirectiveService {
 
     private final DirectiveRepository directiveRepository;
     private final ScenarioRepository scenarioRepository;
-    // private final RoleRepository roleRepository;
+    private final RoleRepository roleRepository;
 
     public DirectiveService(
             @Qualifier("directiveRepository") DirectiveRepository directiveRepository,
-            @Qualifier("scenarioRepository") ScenarioRepository scenarioRepository
+            @Qualifier("scenarioRepository") ScenarioRepository scenarioRepository,
+            @Qualifier("roleRepository") RoleRepository roleRepository
     ) {
         this.directiveRepository = directiveRepository;
         this.scenarioRepository = scenarioRepository;
+        this.roleRepository = roleRepository;
     }
 
     public Directive createDirective(DirectivePostDTO postDTO) {
@@ -41,21 +43,22 @@ public class DirectiveService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Creator ID missing");
         }
 
-        /*
-        creator = roleRepository.findById(postDTO.getCreatorId())
+        Role creator = roleRepository.findById(postDTO.getCreatorId())
                 .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Character not found"));
-        */
+                        HttpStatus.NOT_FOUND, "Role not found"));
 
-        // Temporary fallback (REMOVE later)
-        Role creator = new Role();
-        creator.setId(postDTO.getCreatorId());
+        if (!scenario.getPlayers().contains(creator)) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "Role not part of scenario");
+        }
 
         Directive directive = DirectiveDTOMapper.INSTANCE.convertPostDTOToEntity(postDTO);
 
         directive.setCreatedAt(Instant.now());
         directive.setStatus(CommsStatus.PENDING);
         directive.setCreator(creator);
+        directive.setResponse(null);
+        directive.setScenario(scenario);
 
         directive = directiveRepository.save(directive);
 
@@ -86,7 +89,28 @@ public class DirectiveService {
         }
 
         directive.setStatus(putDTO.getStatus());
+        directive.setResponse(putDTO.getResponse());
 
         directiveRepository.save(directive);
+    }
+
+    public List<Directive> getDirectivesByScenario(Long scenarioId) {
+
+        if (!scenarioRepository.existsById(scenarioId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "Scenario not found");
+        }
+
+        return directiveRepository.findByScenarioId(scenarioId);
+    }
+
+    public List<Directive> getDirectivesByCreator(Long characterId) {
+
+        if (!roleRepository.existsById(characterId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "Character not found");
+        }
+
+        return directiveRepository.findByCreatorId(characterId);
     }
 }

@@ -24,8 +24,7 @@ public class Scenario implements Serializable {
     private List<Player> players;
     @Column(nullable = true)
     private List<Cabinet> cabinets;
-    @OneToMany
-    @JoinColumn(name = "scenario_id")
+    @OneToMany(mappedBy = "scenario")
     private List<Communication> history;
 
     public List<Player> getPlayers() {

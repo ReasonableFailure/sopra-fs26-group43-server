@@ -17,6 +17,7 @@ public interface DirectiveDTOMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "creator", ignore = true)
+    @Mapping(target = "scenario", ignore = true)
     Directive convertPostDTOToEntity(DirectivePostDTO dto);
 
     @Mapping(source = "id", target = "id")

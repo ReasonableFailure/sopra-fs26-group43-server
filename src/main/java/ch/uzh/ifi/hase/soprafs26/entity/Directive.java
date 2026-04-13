@@ -14,6 +14,9 @@ public class Directive extends Communication {
     @JoinColumn(nullable = false)
     private Role creator;
 
+    @Column(nullable = true)
+    private String response;
+
     public CommsStatus getStatus() {
         return status;
     }
@@ -28,5 +31,13 @@ public class Directive extends Communication {
 
     public void setCreator(Role creator) {
         this.creator = creator;
+    }
+
+    public String getResponse() {
+        return response;
+    }
+
+    public void setResponse(String response) {
+        this.response = response;
     }
 }

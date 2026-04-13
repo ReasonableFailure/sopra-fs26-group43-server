@@ -19,13 +19,16 @@ public class NewsService {
 
     private final NewsRepository newsRepository;
     private final ScenarioRepository scenarioRepository;
+    private final RoleRepository roleRepository;
 
     public NewsService(
             @Qualifier("newsRepository") NewsRepository newsRepository,
-            @Qualifier("scenarioRepository") ScenarioRepository scenarioRepository
+            @Qualifier("scenarioRepository") ScenarioRepository scenarioRepository,
+            @Qualifier("roleRepository") RoleRepository roleRepository
     ) {
         this.newsRepository = newsRepository;
         this.scenarioRepository = scenarioRepository;
+        this.roleRepository = roleRepository;
     }
 
     public NewsStory createNews(NewsPostDTO dto) {
@@ -38,17 +41,18 @@ public class NewsService {
 
         if (dto.getAuthorId() != null) {
 
+            Role author = roleRepository.findById(dto.getAuthorId())
+                    .orElseThrow(() -> new ResponseStatusException(
+                            HttpStatus.NOT_FOUND, "Author role not found"));
+
             Pronouncement p = new Pronouncement();
             p.setTitle(dto.getTitle());
             p.setBody(dto.getBody());
             p.setPostURI(dto.getPostURI());
             p.setCreatedAt(Instant.now());
             p.setLikes(0);
-
-            // TODO: replace with RoleRepository
-            Role author = new Role();
-            author.setId(dto.getAuthorId());
             p.setAuthor(author);
+            p.setScenario(scenario);
 
             entity = p;
 
@@ -72,5 +76,15 @@ public class NewsService {
                         HttpStatus.NOT_FOUND, "News item not found"));
 
         return news;
+    }
+
+    public List<NewsStory> getNewsByScenario(Long scenarioId) {
+
+        if (!scenarioRepository.existsById(scenarioId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "Scenario not found");
+        }
+
+        return newsRepository.findByScenarioIdOrderByCreatedAtAsc(scenarioId);
     }
 }

@@ -23,6 +23,10 @@ public abstract class Communication implements Serializable {
     @Column(nullable = false)
     private Instant createdAt;
 
+    @ManyToOne
+    @JoinColumn(name = "scenario_id", nullable = false)
+    private Scenario scenario;
+
     public Long getId() {
         return id;
     }
@@ -53,5 +57,13 @@ public abstract class Communication implements Serializable {
 
     public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Scenario getScenario() {
+        return scenario;
+    }
+
+    public void setScenario(Scenario scenario) {
+        this.scenario = scenario;
     }
 }

@@ -54,4 +54,34 @@ public class DirectiveController {
 
         directiveService.updateDirectiveStatus(directiveId, putDTO);
     }
+
+    @GetMapping("/directives/scenario/{scenarioId}")
+    @ResponseStatus(HttpStatus.OK)
+    public List<DirectiveGetDTO> getDirectivesByScenario(
+            @RequestHeader("Authorization") String token,
+            @PathVariable Long scenarioId) {
+
+        // TODO: validate token
+
+        List<Directive> directives = directiveService.getDirectivesByScenario(scenarioId);
+
+        return directives.stream()
+                .map(DirectiveDTOMapper.INSTANCE::convertEntityToGetDTO)
+                .toList();
+    }
+
+    @GetMapping("/directives/character/{characterId}")
+    @ResponseStatus(HttpStatus.OK)
+    public List<DirectiveGetDTO> getDirectivesByCharacter(
+            @RequestHeader("Authorization") String token,
+            @PathVariable Long characterId) {
+
+        // TODO: validate token
+
+        List<Directive> directives = directiveService.getDirectivesByCreator(characterId);
+
+        return directives.stream()
+                .map(DirectiveDTOMapper.INSTANCE::convertEntityToGetDTO)
+                .toList();
+    }
 }

@@ -21,14 +21,16 @@ public class MessageService {
 
     private final MessageRepository messageRepository;
     private final ScenarioRepository scenarioRepository;
-    // private final RoleRepository roleRepository;
+    private final RoleRepository roleRepository;
 
     public MessageService(
             @Qualifier("messageRepository") MessageRepository messageRepository,
-            @Qualifier("scenarioRepository") ScenarioRepository scenarioRepository
+            @Qualifier("scenarioRepository") ScenarioRepository scenarioRepository,
+            @Qualifier("roleRepository") RoleRepository roleRepository
     ) {
         this.messageRepository = messageRepository;
         this.scenarioRepository = scenarioRepository;
+        this.roleRepository = roleRepository;
     }
 
     public Message createMessage(MessagePostDTO postDTO) {
@@ -42,22 +44,18 @@ public class MessageService {
                     HttpStatus.BAD_REQUEST, "Sender or recipient missing");
         }
 
-        /*
         Role creator = roleRepository.findById(postDTO.getCreatorId())
                 .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Creator Character not found"));
+                        HttpStatus.NOT_FOUND, "Creator role not found"));
 
         Role recipient = roleRepository.findById(postDTO.getRecipientId())
                 .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Recipient Character not found"));
-        */
+                        HttpStatus.NOT_FOUND, "Recipient role not found"));
 
-        // Temporary fallback (REMOVE later)
-        Role creator = new Role();
-        creator.setId(postDTO.getCreatorId());
-
-        Role recipient = new Role();
-        recipient.setId(postDTO.getRecipientId());
+        if (creator.getId().equals(recipient.getId())) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "Cannot send message to self");
+        }
 
         Message message = MessageDTOMapper.INSTANCE.convertPostDTOToEntity(postDTO);
 
@@ -65,6 +63,7 @@ public class MessageService {
         message.setStatus(CommsStatus.PENDING);
         message.setCreator(creator);
         message.setRecipient(recipient);
+        message.setScenario(scenario);
 
         message = messageRepository.save(message);
 
@@ -97,5 +96,58 @@ public class MessageService {
         message.setStatus(putDTO.getStatus());
 
         messageRepository.save(message);
+    }
+
+    public List<MessagePairDTO> getMessagePairsByScenario(Long scenarioId) {
+
+        if (!scenarioRepository.existsById(scenarioId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "Scenario not found");
+        }
+
+        List<Message> messages = messageRepository.findByScenarioId(scenarioId);
+
+        Set<String> seenPairs = new HashSet<>();
+        List<MessagePairDTO> result = new ArrayList<>();
+
+        for (Message msg : messages) {
+
+            Long a = msg.getCreator().getId();
+            Long b = msg.getRecipient().getId();
+
+            Long min = Math.min(a, b);
+            Long max = Math.max(a, b);
+
+            String key = min + "-" + max;
+
+            if (!seenPairs.contains(key)) {
+                seenPairs.add(key);
+
+                MessagePairDTO dto = new MessagePairDTO();
+                dto.setRoleAId(min);
+                dto.setRoleBId(max);
+
+                result.add(dto);
+            }
+        }
+
+        return result;
+    }
+
+    public List<Message> getMessagesBetween(Long characterAId, Long characterBId) {
+
+        if (!roleRepository.existsById(characterAId) ||
+                !roleRepository.existsById(characterBId)) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "One or both characters not found");
+        }
+
+        if (characterAId.equals(characterBId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "Cannot retrieve conversation with self");
+        }
+
+        return messageRepository.findConversation(characterAId, characterBId);
     }
 }

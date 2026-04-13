@@ -7,5 +7,7 @@ import ch.uzh.ifi.hase.soprafs26.entity.Directive;
 
 @Repository("directiveRepository")
 public interface DirectiveRepository extends JpaRepository<Directive, Long> {
+    List<Directive> findByCreatorId(Long creatorId);
 
+    List<Directive> findByScenarioId(Long scenarioId);
 }

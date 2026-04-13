@@ -12,6 +12,7 @@ public interface NewsDTOMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "scenario", ignore = true)
     NewsStory convertPostDTOToNewsStory(NewsPostDTO dto);
 
     @Mapping(source = "id", target = "id")

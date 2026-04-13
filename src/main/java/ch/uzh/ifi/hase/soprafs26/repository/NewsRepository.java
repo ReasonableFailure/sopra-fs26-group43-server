@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository("newsRepository")
 public interface NewsRepository extends JpaRepository<NewsStory, Long> {
-
+    List<NewsStory> findByScenarioIdOrderByCreatedAtAsc(Long scenarioId);
 }

@@ -54,4 +54,32 @@ public class MessageController {
 
         messageService.updateMessageStatus(messageId, putDTO);
     }
+
+    @GetMapping("/messages/scenario/{scenarioId}/pairs")
+    @ResponseStatus(HttpStatus.OK)
+    public List<MessagePairDTO> getMessagePairs(
+            @RequestHeader("Authorization") String token,
+            @PathVariable Long scenarioId) {
+
+        // TODO: validate token
+
+        return messageService.getMessagePairsByScenario(scenarioId);
+    }
+
+    @GetMapping("/messages/between/{characterAId}/{characterBId}")
+    @ResponseStatus(HttpStatus.OK)
+    public List<MessageGetDTO> getMessagesBetween(
+            @RequestHeader("Authorization") String token,
+            @PathVariable Long characterAId,
+            @PathVariable Long characterBId) {
+
+        // TODO: validate token
+
+        List<Message> messages =
+                messageService.getMessagesBetween(characterAId, characterBId);
+
+        return messages.stream()
+                .map(MessageDTOMapper.INSTANCE::convertEntityToGetDTO)
+                .toList();
+    }
 }

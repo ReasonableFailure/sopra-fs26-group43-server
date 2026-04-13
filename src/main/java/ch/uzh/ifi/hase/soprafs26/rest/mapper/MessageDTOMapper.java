@@ -17,6 +17,7 @@ public interface MessageDTOMapper {
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "creator", ignore = true)
     @Mapping(target = "recipient", ignore = true)
+    @Mapping(target = "scenario", ignore = true)
     Message convertPostDTOToEntity(MessagePostDTO dto);
 
     @Mapping(source = "id", target = "id")

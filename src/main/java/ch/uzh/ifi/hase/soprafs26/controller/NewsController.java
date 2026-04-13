@@ -57,4 +57,28 @@ public class NewsController {
 
         return dto;
     }
+    @GetMapping("/news/scenario/{scenarioId}")
+    @ResponseStatus(HttpStatus.OK)
+    public List<NewsGetDTO> getNewsByScenario(
+            @RequestHeader("Authorization") String token,
+            @PathVariable Long scenarioId) {
+
+        // TODO: validate token
+
+        List<NewsStory> newsList = newsService.getNewsByScenario(scenarioId);
+
+        return newsList.stream().map(entity -> {
+
+            NewsGetDTO dto =
+                    NewsDTOMapper.INSTANCE.convertEntityToGetDTO(entity);
+
+            if (entity instanceof Pronouncement p) {
+                dto.setAuthorId(p.getAuthor().getId());
+                dto.setLikes(p.getLikes());
+            }
+
+            return dto;
+
+        }).toList();
+    }
 }
