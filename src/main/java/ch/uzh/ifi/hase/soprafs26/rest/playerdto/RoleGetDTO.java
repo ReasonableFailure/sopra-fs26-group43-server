@@ -1,12 +1,14 @@
 package ch.uzh.ifi.hase.soprafs26.rest.playerdto;
 
-public class CharacterPutDTO {
+public class RoleGetDTO {
     private String name;
     private String title;
     private String description;
     private String secret;
+    private boolean isAlive;
+    private int messageCount;
+    private int actionPoints;
     private byte[] portrait;
-    private Long userId;
 
     public String getName() {
         return name;
@@ -40,19 +42,35 @@ public class CharacterPutDTO {
         this.secret = secret;
     }
 
+    public boolean isAlive() {
+        return isAlive;
+    }
+
+    public void setAlive(boolean alive) {
+        isAlive = alive;
+    }
+
+    public int getMessageCount() {
+        return messageCount;
+    }
+
+    public void setMessageCount(int messageCount) {
+        this.messageCount = messageCount;
+    }
+
+    public int getActionPoints() {
+        return actionPoints;
+    }
+
+    public void setActionPoints(int actionPoints) {
+        this.actionPoints = actionPoints;
+    }
+
     public byte[] getPortrait() {
         return portrait;
     }
 
     public void setPortrait(byte[] portrait) {
         this.portrait = portrait;
-    }
-
-    public Long getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Long userId) {
-        this.userId = userId;
     }
 }

@@ -1,21 +1,20 @@
 package ch.uzh.ifi.hase.soprafs26.entity;
-import java.io.Serializable;
 import jakarta.persistence.*;
 
 @Entity
 @Table(name="characters")
-public class Character extends Player{
+public class Role extends Player{
     private String name;
     private String title;
     private String description;
     private String secret;
-    private boolean isAlive;
+    private boolean alive;
     private int messageCount;
     private int actionPoints;
     private byte[] portrait;
 
     public void die(){
-        this.isAlive = false;
+        this.alive = false;
     }
 
     public boolean buyMessages(int exchangeRate, int desiredIncrease) throws Exception{
@@ -59,12 +58,12 @@ public class Character extends Player{
         this.secret = secret;
     }
 
-    public boolean isAlive() {
-        return isAlive;
+    public boolean getAlive() {
+        return alive;
     }
 
     public void setAlive(boolean alive) {
-        isAlive = alive;
+        this.alive = alive;
     }
 
     public int getMessageCount() {
