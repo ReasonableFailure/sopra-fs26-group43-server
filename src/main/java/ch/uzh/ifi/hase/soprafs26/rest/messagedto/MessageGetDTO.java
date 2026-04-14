@@ -1,31 +1,17 @@
-package ch.uzh.ifi.hase.soprafs26.entity;
+package ch.uzh.ifi.hase.soprafs26.rest.messagedto;
 
-import jakarta.persistence.*;
-import java.io.Serializable;
+import ch.uzh.ifi.hase.soprafs26.constant.CommsStatus;
 import java.time.Instant;
 
-@Entity
-@Inheritance(strategy = InheritanceType.JOINED)
-public abstract class Communication implements Serializable {
+public class MessageGetDTO {
 
-    private static final long serialVersionUID = 1L;
-
-    @Id
-    @GeneratedValue
     private Long id;
-
-    @Column(nullable = false)
     private String title;
-
-    @Column(nullable = false, length = 5000)
     private String body;
-
-    @Column(nullable = false)
     private Instant createdAt;
-
-    @ManyToOne
-    @JoinColumn(name = "scenario_id", nullable = false)
-    private Scenario scenario;
+    private CommsStatus status;
+    private Long creatorId;
+    private Long recipientId;
 
     public Long getId() {
         return id;
@@ -59,11 +45,27 @@ public abstract class Communication implements Serializable {
         this.createdAt = createdAt;
     }
 
-    public Scenario getScenario() {
-        return scenario;
+    public CommsStatus getStatus() {
+        return status;
     }
 
-    public void setScenario(Scenario scenario) {
-        this.scenario = scenario;
+    public void setStatus(CommsStatus status) {
+        this.status = status;
+    }
+
+    public Long getCreatorId() {
+        return creatorId;
+    }
+
+    public void setCreatorId(Long creatorId) {
+        this.creatorId = creatorId;
+    }
+
+    public Long getRecipientId() {
+        return recipientId;
+    }
+
+    public void setRecipientId(Long recipientId) {
+        this.recipientId = recipientId;
     }
 }

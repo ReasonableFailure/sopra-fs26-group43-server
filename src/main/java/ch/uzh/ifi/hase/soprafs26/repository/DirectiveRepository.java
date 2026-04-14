@@ -5,7 +5,11 @@ import org.springframework.stereotype.Repository;
 
 import ch.uzh.ifi.hase.soprafs26.entity.Directive;
 
+import java.util.List;
+
 @Repository("directiveRepository")
 public interface DirectiveRepository extends JpaRepository<Directive, Long> {
+    List<Directive> findByCreatorId(Long creatorId);
 
+    List<Directive> findByScenarioId(Long scenarioId);
 }

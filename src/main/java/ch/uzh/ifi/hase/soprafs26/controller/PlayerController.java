@@ -28,6 +28,7 @@ public class PlayerController {
     @PutMapping("/characters/{characterId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @ResponseBody
+
     public void updateRole(@RequestBody RolePutDTO rolePutDTO, @RequestHeader("Authorization") String token, @PathVariable Long characterId) {
         playerService.updateRole(token, rolePutDTO,characterId);
     }
