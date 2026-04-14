@@ -12,6 +12,7 @@ abstract public class Player implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable=false, unique=true)
     private Long id;
 

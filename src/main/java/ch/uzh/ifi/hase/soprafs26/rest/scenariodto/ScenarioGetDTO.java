@@ -5,7 +5,7 @@ public class ScenarioGetDTO {
     private Long id;
     private String title;
     private String description;
-    private Boolean isActive;
+    private Boolean active;
     private int day;
     private int exchangeRate;
 
@@ -33,12 +33,12 @@ public class ScenarioGetDTO {
         this.description = description;
     }
 
-    public Boolean getIsActive() {
-        return isActive;
+    public Boolean getActive() {
+        return active;
     }
 
-    public void setIsActive(Boolean isActive) {
-        this.isActive = isActive;
+    public void setActive(Boolean isActive) {
+        this.active = isActive;
     }
 
     public int getDay() {
