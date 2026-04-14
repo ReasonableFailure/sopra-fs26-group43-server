@@ -1,4 +1,5 @@
 package ch.uzh.ifi.hase.soprafs26.rest.playerdto;
 
-public class CabinetPutDTO {
+public class RolePostDTO {
+    private String name;
 }

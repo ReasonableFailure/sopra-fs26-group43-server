@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
 
 import java.util.List;
-
 @RestController
 public class DirectiveController {
 
@@ -39,7 +38,6 @@ public class DirectiveController {
             @PathVariable Long directiveId) {
 
         // TODO: validate token
-
         Directive directive = directiveService.getDirectiveById(directiveId);
 
         return DirectiveDTOMapper.INSTANCE.convertEntityToGetDTO(directive);

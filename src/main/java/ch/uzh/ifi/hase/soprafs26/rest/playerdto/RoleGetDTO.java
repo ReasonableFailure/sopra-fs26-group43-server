@@ -1,38 +1,14 @@
-package ch.uzh.ifi.hase.soprafs26.entity;
-import jakarta.persistence.*;
+package ch.uzh.ifi.hase.soprafs26.rest.playerdto;
 
-@Entity
-@Table(name="characters")
-public class Role extends Player{
-    @Column(unique=false,nullable=false)
+public class RoleGetDTO {
     private String name;
-    @Column(unique=false,nullable=false)
     private String title;
-    @Column(unique=false,nullable=false)
     private String description;
-    @Column(unique=false,nullable=false)
     private String secret;
-    @Column(nullable=false)
-    private boolean alive;
-    @Column(unique=false,nullable=false)
+    private boolean isAlive;
     private int messageCount;
-    @Column(unique=false,nullable=false)
     private int actionPoints;
-    @Column(unique=false,nullable=true)
     private byte[] portrait;
-
-    public void die(){
-        this.alive = false;
-    }
-
-    public boolean buyMessages(int exchangeRate, int desiredIncrease) throws Exception{
-        if(this.actionPoints >= exchangeRate*desiredIncrease){
-            this.messageCount+=desiredIncrease;
-            return true;
-        } else {
-            throw new Exception("You do not have enough action points for this purchase");
-        }
-    }
 
     public String getName() {
         return name;
@@ -66,12 +42,12 @@ public class Role extends Player{
         this.secret = secret;
     }
 
-    public boolean getAlive() {
-        return alive;
+    public boolean isAlive() {
+        return isAlive;
     }
 
     public void setAlive(boolean alive) {
-        this.alive = alive;
+        isAlive = alive;
     }
 
     public int getMessageCount() {

@@ -51,7 +51,7 @@ public class ScenarioControllerTest {
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].title", is(scenario.getTitle())))
                 .andExpect(jsonPath("$[0].description", is(scenario.getDescription())))
-                .andExpect(jsonPath("$[0].isActive", is(false)))
+                .andExpect(jsonPath("$[0].getActive", is(false)))
                 .andExpect(jsonPath("$[0].day", is(0)))
                 .andExpect(jsonPath("$[0].exchangeRate", is(10)));
     }
