@@ -43,14 +43,16 @@ public class ScenarioController {
 
     @GetMapping("/scenarios/{scenarioID}")
     public ScenarioGetDTO getScenarioById(@RequestHeader("Authorization") String token, @PathVariable Long scenarioId){
-
+        return new ScenarioGetDTO();
     }
 
     @PutMapping("/scenarios/{scenarioId}")
     public void updateScenario(@RequestHeader("Authorization") String token, @PathVariable Long scenarioId, @RequestBody ScenarioPutDTO scenarioPutDTO){
-
+        return;
     }
     @DeleteMapping("/scenarios/{scenarioId}")
-    public void deleteScenario(@RequestHeader("Authorization") String token, @PathVariable Long scenarioId){}
+    public void deleteScenario(@RequestHeader("Authorization") String token, @PathVariable Long scenarioId){
+        return;
+    }
 
 }

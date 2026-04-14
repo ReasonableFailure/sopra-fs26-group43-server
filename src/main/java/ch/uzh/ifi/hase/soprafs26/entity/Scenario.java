@@ -22,6 +22,8 @@ public class Scenario implements Serializable {
     private int exchangeRate = 10;
     @Column(nullable = true)
     private List<Player> players;
+    @OneToMany(mappedBy = "scenario")
+    private List<Communication> history;
 
     public List<Player> getPlayers() {
         return players;
@@ -77,5 +79,13 @@ public class Scenario implements Serializable {
 
     public void setExchangeRate(int exchangeRate) {
         this.exchangeRate = exchangeRate;
+    }
+
+    public List<Communication> getHistory() {
+        return history;
+    }
+
+    public void setHistory(List<Communication> history) {
+        this.history = history;
     }
 }

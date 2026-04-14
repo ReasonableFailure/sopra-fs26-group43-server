@@ -12,11 +12,11 @@ public class Message extends Communication {
 
     @ManyToOne
     @JoinColumn(nullable = false)
-    private Character creator;
+    private Role creator;
 
     @ManyToOne
     @JoinColumn(nullable = false)
-    private Character recipient;
+    private Role recipient;
 
     public CommsStatus getStatus() {
         return status;
@@ -26,19 +26,19 @@ public class Message extends Communication {
         this.status = status;
     }
 
-    public Character getCreator() {
+    public Role getCreator() {
         return creator;
     }
 
-    public void setCreator(Character creator) {
+    public void setCreator(Role creator) {
         this.creator = creator;
     }
 
-    public Character getRecipient() {
+    public Role getRecipient() {
         return recipient;
     }
 
-    public void setRecipient(Character recipient) {
+    public void setRecipient(Role recipient) {
         this.recipient = recipient;
     }
 }
