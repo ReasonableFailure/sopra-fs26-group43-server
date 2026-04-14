@@ -4,13 +4,21 @@ import jakarta.persistence.*;
 @Entity
 @Table(name="characters")
 public class Role extends Player{
+    @Column(unique=false,nullable=false)
     private String name;
+    @Column(unique=false,nullable=false)
     private String title;
+    @Column(unique=false,nullable=false)
     private String description;
+    @Column(unique=false,nullable=false)
     private String secret;
+    @Column(nullable=false)
     private boolean alive;
+    @Column(unique=false,nullable=false)
     private int messageCount;
+    @Column(unique=false,nullable=false)
     private int actionPoints;
+    @Column(unique=false,nullable=true)
     private byte[] portrait;
 
     public void die(){
