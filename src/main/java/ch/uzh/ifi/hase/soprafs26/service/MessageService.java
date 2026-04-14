@@ -5,6 +5,7 @@ import ch.uzh.ifi.hase.soprafs26.entity.*;
 import ch.uzh.ifi.hase.soprafs26.repository.*;
 import ch.uzh.ifi.hase.soprafs26.rest.messagedto.MessagePostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.messagedto.MessagePutDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.messagedto.MessagePairDTO;
 import ch.uzh.ifi.hase.soprafs26.mapper.MessageDTOMapper;
 
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -14,6 +15,10 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.ArrayList;
 
 @Service
 @Transactional

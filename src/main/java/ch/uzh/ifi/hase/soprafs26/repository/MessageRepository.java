@@ -4,6 +4,10 @@ import ch.uzh.ifi.hase.soprafs26.entity.Message;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+import org.springframework.data.jpa.repository.Query;
+
+
 @Repository("messageRepository")
 public interface MessageRepository extends JpaRepository<Message, Long> {
     List<Message> findByScenarioId(Long scenarioId);
