@@ -1,10 +1,18 @@
 package ch.uzh.ifi.hase.soprafs26.entity;
 import jakarta.persistence.*;
 
+import java.io.Serial;
+import java.io.Serializable;
+
 @Inheritance(strategy = InheritanceType.JOINED)
 @Entity
-abstract public class Player {
+@Table(name="players")
+abstract public class Player implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     @Id
+    @Column(nullable=false, unique=true)
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
