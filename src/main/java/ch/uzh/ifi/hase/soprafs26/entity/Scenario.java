@@ -10,9 +10,10 @@ import java.util.*;
 public class Scenario implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(nullable = false)
+    @Column(nullable=false, unique=true)
     private Long id;
     @Column(nullable = false)
     private boolean active;
@@ -21,9 +22,9 @@ public class Scenario implements Serializable {
     @Column(nullable = true)
     private String title;
     @Column(nullable = false)
-    private int day = 0;
+    private int day;
     @Column(nullable = true)
-    private int exchangeRate = 10;
+    private int exchangeRate;
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "scenario_id")
     private List<Player> players;
