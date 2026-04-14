@@ -1,11 +1,15 @@
 package ch.uzh.ifi.hase.soprafs26.entity;
 import  jakarta.persistence.*;
+
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
 
 @Entity
 @Table(name = "scenarios")
 public class Scenario implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
@@ -20,7 +24,8 @@ public class Scenario implements Serializable {
     private int day = 0;
     @Column(nullable = true)
     private int exchangeRate = 10;
-    @Column(nullable = true)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "scenario_id")
     private List<Player> players;
     @OneToMany(mappedBy = "scenario")
     private List<Communication> history;
@@ -31,6 +36,14 @@ public class Scenario implements Serializable {
 
     public void setPlayers(List<Player> players) {
         this.players = players;
+    }
+
+    public void addPlayer(Player player){
+        this.players.add(player);
+    }
+
+    public void addComm(Communication comm){
+        this.history.add(comm);
     }
 
     public Long getId() {
