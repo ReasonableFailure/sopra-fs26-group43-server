@@ -36,23 +36,27 @@ public class ScenarioController {
         }
         return scenarioGetDTOs;
     }
+
     @PostMapping("/scenarios")
     public ScenarioGetDTO createScenario(@RequestBody ScenarioPostDTO scenarioPostDTO, @RequestHeader("Authorization") String token){
-        return new ScenarioGetDTO();
+        Scenario created = scenarioService.createScenario(token,scenarioPostDTO);
+        return ScenarioDTOMapper.INSTANCE.convertEntityToScenarioGetDTO(created);
     }
 
     @GetMapping("/scenarios/{scenarioID}")
     public ScenarioGetDTO getScenarioById(@RequestHeader("Authorization") String token, @PathVariable Long scenarioId){
-        return new ScenarioGetDTO();
+        Scenario scenario = scenarioService.getScenarioById(token,scenarioId);
+        return ScenarioDTOMapper.INSTANCE.convertEntityToScenarioGetDTO(scenario);
     }
 
     @PutMapping("/scenarios/{scenarioId}")
     public void updateScenario(@RequestHeader("Authorization") String token, @PathVariable Long scenarioId, @RequestBody ScenarioPutDTO scenarioPutDTO){
-        return;
+        scenarioService.updateScenario(token,scenarioId,scenarioPutDTO);
     }
+
     @DeleteMapping("/scenarios/{scenarioId}")
     public void deleteScenario(@RequestHeader("Authorization") String token, @PathVariable Long scenarioId){
-        return;
+        scenarioService.deleteScenario(token,scenarioId);
     }
 
 }
