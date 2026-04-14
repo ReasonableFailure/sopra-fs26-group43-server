@@ -1,6 +1,6 @@
 package ch.uzh.ifi.hase.soprafs26.controller;
 
-import ch.uzh.ifi.hase.soprafs26.entity.Player;
+import ch.uzh.ifi.hase.soprafs26.entity.Role;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.PlayerDTOMapper;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.PlayerPutDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RoleGetDTO;
@@ -36,19 +36,20 @@ public class PlayerController {
     @ResponseStatus
     @ResponseBody
     public RoleGetDTO getRole(@RequestHeader("Authorization") String token, @PathVariable Long characterId) {
-        Player found = playerService.getPlayer(token,characterId);
-        return new RoleGetDTO();
+        Role found = playerService.getRole(token,characterId);
+        return PlayerDTOMapper.INSTANCE.convertEntitytoRoleGetDTO(found);
     }
 
     @PostMapping("/characters")
-    public RoleGetDTO createRole(@RequestBody RolePostDTO rolePostDTO){
-        //TODO: implement stub
-        return new RoleGetDTO();
+    public RoleGetDTO createRole(@RequestBody RolePostDTO rolePostDTO, @RequestHeader("Authorization") String token){
+        Role created =playerService.createRole(token, rolePostDTO);
+        return PlayerDTOMapper.INSTANCE.convertEntitytoRoleGetDTO(created);
     }
 
     @DeleteMapping("/characters/{characterId}")
-    public void deleteRole(@PathVariable("characterId") long characterId ){
-        //TODO: implement stub
+    public void deleteRole(@RequestHeader("Authorization")String token, @PathVariable Long characterId){
+        playerService.deleteRole(token,characterId);
+
     }
 
     @GetMapping("/characters/{scenarioId}")

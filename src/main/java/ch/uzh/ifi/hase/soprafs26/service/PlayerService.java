@@ -9,7 +9,6 @@ import ch.uzh.ifi.hase.soprafs26.rest.playerdto.PlayerPutDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RolePostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RolePutDTO;
 import jakarta.transaction.Transactional;
-import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,8 +16,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.util.UUID;
 
 @Service
 @Transactional
@@ -41,9 +38,9 @@ public class PlayerService {
         this.userRepository = userRepository;
     }
 
-    public Player getPlayer(String token, Long roleId)  {
+    public Role getRole(String token, Long roleId)  {
         checkIfValidToken(token);
-        return playerRepository.findById(roleId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Player with id %d not found", roleId)));
+        return roleRepository.findById(roleId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Role with id %d not found", roleId)));
 
     }
 
@@ -60,12 +57,20 @@ public class PlayerService {
         PlayerDTOMapper.INSTANCE.convertRolePutDTOtoEntity(rolePutDTO, role);
     }
 
-    public void createRole(String token, RolePostDTO rolePostDTO){
+    public Role createRole(String token, RolePostDTO rolePostDTO){
         checkIfValidToken(token);
         Role newRole = PlayerDTOMapper.INSTANCE.convertRolePostDTOtoEntity(rolePostDTO);
         newRole.setAlive(true);
         newRole.setActionPoints(initialActionPoints);
-        newRole.setMessageCount(15); //magic number comes from user story
+        newRole.setMessageCount(15);
+        roleRepository.save(newRole);
+        roleRepository.flush();//magic number comes from user story
+        return newRole;
+    }
+
+    public void deleteRole(String token, Long roleId){
+        checkIfValidToken(token);
+        roleRepository.deleteById(roleId);
     }
 
     private void checkIfValidToken(String token) throws ResponseStatusException {
