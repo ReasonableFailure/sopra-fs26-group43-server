@@ -6,7 +6,7 @@ import java.util.List;
 @Entity
 @Table(name = "backroomers")
 public class Backroomer extends Player{
-    @Column(nullable = false)
-            @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "backroomer_id")
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     List<Long> delegatedCharacters;
 }
