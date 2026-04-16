@@ -41,7 +41,7 @@ public class UserServiceIntegrationTest {
 		assertNull(userRepository.findByUsername("testUsername"));
 
 		User testUser = new User();
-		testUser.setPassword("testName");
+		testUser.setPassword("testPassword");
 		testUser.setUsername("testUsername");
 
 		// when
@@ -52,7 +52,7 @@ public class UserServiceIntegrationTest {
 		assertEquals(testUser.getPassword(), createdUser.getPassword());
 		assertEquals(testUser.getUsername(), createdUser.getUsername());
 		assertNotNull(createdUser.getToken());
-		assertEquals(UserStatus.OFFLINE, createdUser.getStatus());
+		assertEquals(UserStatus.ONLINE, createdUser.getStatus());
 	}
 
 	@Test
@@ -60,7 +60,7 @@ public class UserServiceIntegrationTest {
 		assertNull(userRepository.findByUsername("testUsername"));
 
 		User testUser = new User();
-		testUser.setPassword("testName");
+		testUser.setPassword("testPassword");
 		testUser.setUsername("testUsername");
 		userService.createUser(testUser);
 

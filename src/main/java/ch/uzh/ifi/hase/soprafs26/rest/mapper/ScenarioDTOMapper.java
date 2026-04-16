@@ -16,7 +16,7 @@ public interface ScenarioDTOMapper {
     @Mapping(source = "title", target = "title")
     @Mapping(source = "description", target = "description")
     @Mapping(source = "active", target = "isActive")
-    @Mapping(source = "day", target = "day")
+    @Mapping(source = "dayNumber", target = "dayNumber")
     @Mapping(source = "exchangeRate", target = "exchangeRate")
     ScenarioGetDTO convertEntityToScenarioGetDTO(Scenario scenario);
 

@@ -17,11 +17,17 @@ public class Scenario implements Serializable {
     @Column(nullable = true)
     private String title;
     @Column(nullable = false)
-    private int day = 0;
+    private int dayNumber = 0;
     @Column(nullable = true)
     private int exchangeRate = 10;
-    @Column(nullable = true)
+    @ManyToMany
+    @JoinTable(
+        name = "scenario_players",
+        joinColumns = @JoinColumn(name = "scenario_id"),
+        inverseJoinColumns = @JoinColumn(name = "player_id")
+    )
     private List<Player> players;
+
     @OneToMany(mappedBy = "scenario")
     private List<Communication> history;
 
@@ -65,12 +71,12 @@ public class Scenario implements Serializable {
         this.title = title;
     }
 
-    public int getDay() {
-        return day;
+    public int getdayNumber() {
+        return dayNumber;
     }
 
-    public void setDay(int day) {
-        this.day = day;
+    public void setdayNumber(int dayNumber) {
+        this.dayNumber = dayNumber;
     }
 
     public int getExchangeRate() {
