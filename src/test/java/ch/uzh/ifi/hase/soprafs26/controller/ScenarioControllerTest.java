@@ -36,8 +36,8 @@ public class ScenarioControllerTest {
         scenario.setId(1L);
         scenario.setTitle("The Trojan War");
         scenario.setDescription("A crisis simulation of the Trojan War");
-        scenario.setIsActive(false);
-        scenario.setdayNumber(0);
+        scenario.setactive(false);
+        scenario.setDayNumber(0);
         scenario.setExchangeRate(10);
 
         List<Scenario> allScenarios = Collections.singletonList(scenario);

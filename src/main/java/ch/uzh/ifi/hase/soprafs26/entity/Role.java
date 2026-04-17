@@ -25,13 +25,17 @@ public class Role extends Player{
         this.alive = false;
     }
 
-    public boolean buyMessages(int exchangeRate, int desiredIncrease) throws Exception{
+    public void buyMessages(int exchangeRate, int desiredIncrease) throws Exception{
         if(this.actionPoints >= exchangeRate*desiredIncrease){
             this.messageCount+=desiredIncrease;
-            return true;
+            this.actionPoints -= exchangeRate*desiredIncrease;
         } else {
             throw new Exception("You do not have enough action points for this purchase");
         }
+    }
+
+    public void gainActionPoints(int points){
+        this.actionPoints += points;
     }
 
     public String getName() {

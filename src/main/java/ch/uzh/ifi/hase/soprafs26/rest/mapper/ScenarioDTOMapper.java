@@ -15,12 +15,12 @@ public interface ScenarioDTOMapper {
     @Mapping(source = "id", target = "id")
     @Mapping(source = "title", target = "title")
     @Mapping(source = "description", target = "description")
-    @Mapping(source = "active", target = "isActive")
+    @Mapping(source = "active", target = "active")
     @Mapping(source = "dayNumber", target = "dayNumber")
     @Mapping(source = "exchangeRate", target = "exchangeRate")
     ScenarioGetDTO convertEntityToScenarioGetDTO(Scenario scenario);
 
     Scenario convertScenarioPostDTOtoEntity(ScenarioPostDTO scenarioPostDTO);
 
-    Scenario convertScenarioPutDTOtoEntity(ScenarioPutDTO scenarioPutDTO);
+    Scenario convertScenarioPutDTOtoEntity(ScenarioPutDTO scenarioPutDTO, @MappingTarget Scenario scenario);
 }

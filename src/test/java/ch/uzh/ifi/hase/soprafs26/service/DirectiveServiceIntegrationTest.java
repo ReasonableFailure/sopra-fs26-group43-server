@@ -60,7 +60,6 @@ public class DirectiveServiceIntegrationTest {
 		testRole.setAlive(true);
 		testRole.setMessageCount(5);
 		testRole.setActionPoints(10);
-		testRole = roleRepository.save(testRole);
 
 		testScenario = new Scenario();
 		testScenario.setTitle("Test Scenario");
@@ -70,6 +69,7 @@ public class DirectiveServiceIntegrationTest {
 		testScenario.setHistory(new ArrayList<>());
 		testScenario.getPlayers().add(testRole);
 		testScenario = scenarioRepository.save(testScenario);
+		testRole = (Role) testScenario.getPlayers().get(0);
 	}
 
 	@Test
