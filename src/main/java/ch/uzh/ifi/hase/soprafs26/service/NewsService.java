@@ -60,6 +60,7 @@ public class NewsService {
         } else {
             entity = NewsDTOMapper.INSTANCE.convertPostDTOToNewsStory(dto);
             entity.setCreatedAt(Instant.now());
+            entity.setScenario(scenario);
         }
 
         entity = newsRepository.save(entity);

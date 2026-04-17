@@ -103,6 +103,23 @@ public class MessageService {
         messageRepository.save(message);
     }
 
+    public List<Message> getMessagesBetween(Long characterAId, Long characterBId) {
+
+        if (!roleRepository.existsById(characterAId) ||
+                !roleRepository.existsById(characterBId)) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "One or both characters not found");
+        }
+
+        if (characterAId.equals(characterBId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "Cannot retrieve conversation with self");
+        }
+
+        return messageRepository.findConversation(characterAId, characterBId);
+    }
+
     public List<MessagePairDTO> getMessagePairsByScenario(Long scenarioId) {
 
         if (!scenarioRepository.existsById(scenarioId)) {
@@ -137,22 +154,5 @@ public class MessageService {
         }
 
         return result;
-    }
-
-    public List<Message> getMessagesBetween(Long characterAId, Long characterBId) {
-
-        if (!roleRepository.existsById(characterAId) ||
-                !roleRepository.existsById(characterBId)) {
-
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND, "One or both characters not found");
-        }
-
-        if (characterAId.equals(characterBId)) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "Cannot retrieve conversation with self");
-        }
-
-        return messageRepository.findConversation(characterAId, characterBId);
     }
 }
