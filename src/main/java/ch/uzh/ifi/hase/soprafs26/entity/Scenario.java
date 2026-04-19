@@ -19,7 +19,7 @@ public class Scenario implements Serializable {
     private boolean active;
     @Column(nullable = true)
     private String description;
-    @Column(nullable = true)
+    @Column(nullable = false)
     private String title;
     @Column(nullable = false)
     private int dayNumber;
@@ -28,6 +28,10 @@ public class Scenario implements Serializable {
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "scenario_id")
     private List<Player> players;
+    @Column(nullable = true)
+    private String mastodonBaseUrl;
+    @Column(nullable = true)
+    private String mastodonAccessToken;
 
     @OneToMany(mappedBy = "scenario")
     private List<Communication> history;
@@ -102,5 +106,21 @@ public class Scenario implements Serializable {
 
     public void setHistory(List<Communication> history) {
         this.history = history;
+    }
+
+    public String getMastodonBaseUrl() {
+        return mastodonBaseUrl;
+    }
+
+    public void setMastodonBaseUrl(String mastodonBaseUrl) {
+        this.mastodonBaseUrl = mastodonBaseUrl;
+    }
+
+    public void setMastodonAccessToken(String mastodonAccessToken) {
+        this.mastodonAccessToken = mastodonAccessToken;
+    }
+
+    public String getMastodonAccessToken() {
+        return mastodonAccessToken;
     }
 }
