@@ -44,7 +44,7 @@ public class UserDTOMapperTest {
 
 		// check content
 		assertEquals(user.getId(), userGetDTO.getId());
-		assertEquals(user.getPassword(), userGetDTO.getToken());
+		assertEquals(user.getToken(), userGetDTO.getToken());
 		assertEquals(user.getUsername(), userGetDTO.getUsername());
 		assertEquals(user.getStatus(), userGetDTO.getStatus());
 	}
