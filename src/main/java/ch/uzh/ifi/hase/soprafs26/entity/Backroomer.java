@@ -8,5 +8,13 @@ import java.util.List;
 public class Backroomer extends Player{
     @JoinColumn(name = "backroomer_id")
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    List<Long> delegatedCharacters;
+    List<Role> delegatedCharacters;
+
+    public List<Role> getDelegatedCharacters() {
+        return delegatedCharacters;
+    }
+
+    public void setDelegatedCharacters(List<Role> delegatedCharacters) {
+        this.delegatedCharacters = delegatedCharacters;
+    }
 }
