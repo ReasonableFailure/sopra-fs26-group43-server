@@ -22,43 +22,43 @@ import org.springframework.web.server.ResponseStatusException;
 public class PlayerService {
 
     private final RoleRepository roleRepository;
-    private final UserRepository userRepository;
     private final PlayerRepository playerRepository;
     private final BackroomerRepository backroomerRepository;
     private final DirectorRepository directorRepository;
+    private final UserService userService;
     private final int initialActionPoints = 0;
 
     private final Logger log = LoggerFactory.getLogger(PlayerService.class);
 
-    public PlayerService(@Qualifier("playerRepository") PlayerRepository playerRepository, @Qualifier("roleRepository") RoleRepository roleRepository,@Qualifier("backroomerRepository") BackroomerRepository backroomerRepository,@Qualifier("directorRepository") DirectorRepository directorRepository, @Qualifier("userRepository") UserRepository userRepository) {
+    public PlayerService(@Qualifier("playerRepository") PlayerRepository playerRepository, @Qualifier("roleRepository") RoleRepository roleRepository,@Qualifier("backroomerRepository") BackroomerRepository backroomerRepository,@Qualifier("directorRepository") DirectorRepository directorRepository, @Qualifier("userService") UserService userService) {
         this.playerRepository = playerRepository;
         this.backroomerRepository = backroomerRepository;
         this.directorRepository = directorRepository;
         this.roleRepository = roleRepository;
-        this.userRepository = userRepository;
+        this.userService = userService;
     }
 
     public Role getRole(String token, Long roleId)  {
-        checkIfValidToken(token);
+        userService.checkIfValidToken(token);
         return roleRepository.findById(roleId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Role with id %d not found", roleId)));
-
     }
 
     public void updatePlayerAssociation(Long playerId, PlayerPutDTO playerPutDTO, String token){
-        checkIfValidToken(token);
+        userService.checkIfValidToken(token);
         Player player = playerRepository.findById(playerId).orElseThrow(() -> new ResponseStatusException(HttpStatusCode.valueOf(404), String.format("User %d cannot be assigned to player %d, this player does not exist", playerPutDTO.getNewAssignedUserId(), playerId)));
         player = PlayerDTOMapper.INSTANCE.convertPlayerPutDTOtoEntity(playerPutDTO, player);
         playerRepository.save(player);
     }
 
     public void updateRole(String token, RolePutDTO rolePutDTO, Long roleId){
-        checkIfValidToken(token);
+        userService.checkIfValidToken(token);
         Role role = roleRepository.findById(roleId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Character with id %d not found", roleId)));
         PlayerDTOMapper.INSTANCE.convertRolePutDTOtoEntity(rolePutDTO, role);
     }
 
     public Role createRole(String token, RolePostDTO rolePostDTO){
-        checkIfValidToken(token);
+        checkDirectorToken(token);
+        userService.checkIfValidToken(token);
         Role newRole = PlayerDTOMapper.INSTANCE.convertRolePostDTOtoEntity(rolePostDTO);
         newRole.setAlive(true);
         newRole.setActionPoints(initialActionPoints);
@@ -69,14 +69,20 @@ public class PlayerService {
     }
 
     public void deleteRole(String token, Long roleId){
-        checkIfValidToken(token);
+        userService.checkIfValidToken(token);
         roleRepository.deleteById(roleId);
     }
 
-    private void checkIfValidToken(String token) throws ResponseStatusException {
-        User foundByToken = userRepository.findByToken(token);
-        if (foundByToken.getToken() == null){
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access to character profile");
-        }
+    protected void checkDirectorToken(String token){
+
     }
+
+    protected void checkBackroomerToken(String token){
+
+    }
+
+    protected void checkRoleToken(String token){
+
+    }
+
 }
