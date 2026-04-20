@@ -53,15 +53,12 @@ public class PlayerController {
 
     }
 
-    @GetMapping("/characters/{scenarioId}")
-    public List<RoleGetDTO> getAllRoles(){
-        //TODO: implement stub
-        return new ArrayList<>();
+    @GetMapping("/character/{characterId}/interlocutors")
+
+    private ArrayList<String> stripToken(String token){
+        
     }
 
-    @GetMapping("/characters/{scenarioId}/cabinet/{cabinetId}")
-    public List<RoleGetDTO> getAllRolesPerCabinet(){
-        return new ArrayList<>();
-    }
+
 
 }
