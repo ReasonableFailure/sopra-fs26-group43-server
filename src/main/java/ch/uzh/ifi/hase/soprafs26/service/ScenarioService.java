@@ -6,6 +6,7 @@ import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.ScenarioDTOMapper;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioPutDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioMastodonDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -45,9 +46,9 @@ public class ScenarioService {
     }
 
     public Scenario createScenario(String token, ScenarioPostDTO scenarioPostDTO){
-        userService.checkIfValidToken(token);
+        //checkIfValidToken(token);
         Scenario newScenario = ScenarioDTOMapper.INSTANCE.convertScenarioPostDTOtoEntity(scenarioPostDTO);
-        newScenario.setDay(0);
+        newScenario.setDayNumber(0);
         newScenario.setActive(true);
         newScenario.setPlayers(new ArrayList<Player>());
         newScenario.setHistory(new ArrayList<Communication>());

@@ -5,13 +5,14 @@ import ch.uzh.ifi.hase.soprafs26.rest.mapper.PlayerDTOMapper;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RoleGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioPutDTO;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
-
+import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioMastodonDTO;
 import ch.uzh.ifi.hase.soprafs26.entity.Scenario;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.ScenarioDTOMapper;
 import ch.uzh.ifi.hase.soprafs26.service.ScenarioService;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -82,5 +83,11 @@ public class ScenarioController {
         return toReturn;
     }
 
+
+    @PutMapping("/scenarios/{scenarioId}/mastodon")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void updateMastodonConfig(@PathVariable Long scenarioId, @RequestHeader("Authorization") String token, @RequestBody ScenarioMastodonDTO dto) {
+        scenarioService.updateMastodonConfig(scenarioId, token, dto);
+    }
 
 }

@@ -15,4 +15,8 @@ public class NewsStory extends Communication {
     public void setPostURI(String postURI) {
         this.postURI = postURI;
     }
+
+    public String formatSelf() {
+        return getTitle() + ": " + getBody();
+    }
 }

@@ -28,11 +28,13 @@ public class Pronouncement extends NewsStory {
         this.likes = likes;
     }
 
+    @Override
     public String formatSelf() {
         return getTitle() + ": " + getBody() + "\n-" + author.getName();
     }
 
-    public int calculateActionPoints(int exchangeRate) {
+    public int calculateActionPoints() {
+        int exchangeRate = this.getScenario().getExchangeRate();
         if (exchangeRate <= 0) {
             throw new IllegalArgumentException("exchangeRate must exceed 0");
         }

@@ -7,6 +7,6 @@ import java.util.List;
 @Table(name = "backroomers")
 public class Backroomer extends Player{
     @JoinColumn(name = "backroomer_id")
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    List<Long> delegatedCharacters;
+    @OneToMany(fetch = FetchType.LAZY,cascade = CascadeType.ALL)
+    List<Role> delegatedCharacters;
 }

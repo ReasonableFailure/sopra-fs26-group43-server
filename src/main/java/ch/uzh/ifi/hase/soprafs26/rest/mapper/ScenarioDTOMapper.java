@@ -12,6 +12,12 @@ import org.mapstruct.factory.Mappers;
 public interface ScenarioDTOMapper {
     ScenarioDTOMapper INSTANCE = Mappers.getMapper(ScenarioDTOMapper.class);
 
+    @Mapping(source = "id", target = "id")
+    @Mapping(source = "title", target = "title")
+    @Mapping(source = "description", target = "description")
+    @Mapping(source = "active", target = "active")
+    @Mapping(source = "dayNumber", target = "dayNumber")
+    @Mapping(source = "exchangeRate", target = "exchangeRate")
     ScenarioGetDTO convertEntityToScenarioGetDTO(Scenario scenario);
 
     Scenario convertScenarioPostDTOtoEntity(ScenarioPostDTO scenarioPostDTO);
