@@ -37,16 +37,12 @@ public class UserService {
 	}
 
 	public List<User> getUsers(String token) {
-        if(!checkIfValidToken(token)){
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("Invalid Token"));
-        }
+        checkIfValidToken(token);
 		return this.userRepository.findAll();
 	}
 
     public User getProfile(Long idToBeFound, String authToken){
-        if(!checkIfValidToken(authToken)){
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("Unauthorized access to this resource"));
-        }
+        checkIfValidToken(authToken);
         return userRepository.findById(idToBeFound).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User with id %d not found", idToBeFound)));
     }
 
@@ -89,9 +85,7 @@ public class UserService {
 
     public void logoutUser(Long ID, String token){
         //200, 401, 404
-        if(!checkIfValidToken(token)){
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("Invalid token"));
-        }
+        checkIfValidToken(token);
         if(!checkIfUserExistsByID(ID)){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User with id %d not found", ID));
         }
@@ -104,9 +98,7 @@ public class UserService {
     }
 
     public void updateProfile(String token, Long id, User holdsUpdate) {
-        if(!checkIfValidToken(token)){
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("Invalid token"));
-        }
+        checkIfValidToken(token);
         if(!checkIfUserExistsByID(id)){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User with id %d not found", id));
         }
@@ -173,9 +165,10 @@ public class UserService {
         return foundById != null;
     }
 
-    private boolean checkIfValidToken(String token){
+    protected void checkIfValidToken(String token){
+        if (token == null || token.isEmpty()) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("Invalid token"));
         User foundByToken = userRepository.findByToken(token);
-        return  foundByToken.getToken() != null;
+        if (foundByToken.getToken() == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("Invalid token"));
     }
 
 }
