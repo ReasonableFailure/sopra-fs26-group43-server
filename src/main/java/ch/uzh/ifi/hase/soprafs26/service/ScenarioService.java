@@ -1,8 +1,6 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
-import ch.uzh.ifi.hase.soprafs26.entity.Communication;
-import ch.uzh.ifi.hase.soprafs26.entity.Player;
-import ch.uzh.ifi.hase.soprafs26.entity.User;
+import ch.uzh.ifi.hase.soprafs26.entity.*;
 import ch.uzh.ifi.hase.soprafs26.repository.PlayerRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.ScenarioDTOMapper;
@@ -17,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import ch.uzh.ifi.hase.soprafs26.entity.Scenario;
 import ch.uzh.ifi.hase.soprafs26.repository.ScenarioRepository;
 
 import java.util.ArrayList;
@@ -28,23 +25,23 @@ import java.util.List;
 public class ScenarioService {
 
     private final Logger log = LoggerFactory.getLogger(ScenarioService.class);
-    private final PlayerRepository playerRepository;
+    private final PlayerService playerService;
+    private final UserService userService;
     private final ScenarioRepository scenarioRepository;
-    private final UserRepository userRepository;
 
-    public ScenarioService(@Qualifier("playerRepository") PlayerRepository playerRepository, @Qualifier("scenarioRepository") ScenarioRepository scenarioRepository, @Qualifier("userRepository") UserRepository userRepository) {
+    public ScenarioService(@Qualifier("scenarioRepository") ScenarioRepository scenarioRepository, @Qualifier("userService") UserService userService, @Qualifier("playerService") PlayerService playerService) {
         this.scenarioRepository = scenarioRepository;
-        this.userRepository = userRepository;
-        this.playerRepository = playerRepository;
+        this.userService = userService;
+        this.playerService = playerService;
     }
 
     public List<Scenario> getScenarios(String token) {
-        checkIfValidToken(token);
+        userService.checkIfValidToken(token);
         return this.scenarioRepository.findAll();
     }
 
     public Scenario getScenarioById(String token, Long scenarioId) {
-        checkIfValidToken(token);
+        userService.checkIfValidToken(token);
         return this.scenarioRepository.findById(scenarioId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario with id " + scenarioId + " not found"));
     }
 
@@ -70,24 +67,35 @@ public class ScenarioService {
         ScenarioDTOMapper.INSTANCE.convertScenarioPutDTOtoEntity(scenarioPutDTO, toUpdate);
     }
 
-    private void checkIfValidToken(String token) throws ResponseStatusException {
-        User foundByToken = userRepository.findByToken(token);
-        if (foundByToken.getToken() == null){
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access to scenario!");
+    public void addPlayerToScenario(String token, Long scenarioId, Long playerId){
+        userService.checkIfValidToken(token);
+        Player toAdd = playerService.getRole(token,playerId);
+        Scenario scenario = getScenarioById(token,scenarioId);
+        scenario.addPlayer(toAdd);
+    }
+
+    public List<Role> getRoles(Long scenarioId, String token) {
+        userService.checkIfValidToken(token);
+        Scenario scenario = getScenarioById(token,scenarioId);
+        List<Role> toReturn = new ArrayList<Role>();
+        for(Player player : scenario.getPlayers()){
+            if(player instanceof Role){
+                toReturn.add((Role) player);
+            }
         }
+        return toReturn;
     }
 
-    public void updateMastodonConfig(Long scenarioId, String token, ScenarioMastodonDTO dto) {
-
-        //checkIfValidToken(token);
-
-        Scenario scenario = scenarioRepository.findById(scenarioId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Scenario not found"));
-
-        scenario.setMastodonBaseUrl(dto.getMastodonBaseUrl());
-        scenario.setMastodonAccessToken(dto.getMastodonAccessToken());
-
-        scenarioRepository.save(scenario);
+    public List<Role> getRolesPerCabinet(Long scenarioId, Long cabinetId, String token){
+        userService.checkIfValidToken(token);
+        Scenario scenario = getScenarioById(token,scenarioId);
+        List<Role> toReturn = new ArrayList<Role>();
+        for(Player player : scenario.getPlayers()){
+            if(player instanceof Role && (((Role) player).getCabinetAssigned() == cabinetId)){
+                toReturn.add((Role) player);
+            }
+        }
+        return toReturn;
     }
+
 }

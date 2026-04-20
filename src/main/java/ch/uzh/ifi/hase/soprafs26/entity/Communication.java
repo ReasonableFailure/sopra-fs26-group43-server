@@ -1,6 +1,8 @@
 package ch.uzh.ifi.hase.soprafs26.entity;
 
 import jakarta.persistence.*;
+
+import java.io.Serial;
 import java.io.Serializable;
 import java.time.Instant;
 
@@ -8,6 +10,7 @@ import java.time.Instant;
 @Inheritance(strategy = InheritanceType.JOINED)
 public abstract class Communication implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     @Id

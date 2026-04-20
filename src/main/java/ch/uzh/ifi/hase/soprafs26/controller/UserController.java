@@ -10,6 +10,7 @@ import ch.uzh.ifi.hase.soprafs26.rest.userdto.UserGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.userdto.UserPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.UserDTOMapper;
 import ch.uzh.ifi.hase.soprafs26.service.UserService;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,7 +48,8 @@ public class UserController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public UserGetDTO retrieveUser(@PathVariable Long userid, @RequestHeader("Authorization") String token){
-        User user = userService.getProfile(userid,token);
+        String strippedToken = stripPrefix(token);
+        User user = userService.getProfile(userid,strippedToken);
         return UserDTOMapper.INSTANCE.convertEntityToUserGetDTO(user);
     }
 
@@ -55,7 +57,8 @@ public class UserController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void updateUser(@PathVariable Long userid, @RequestHeader("Authorization") String token, @RequestBody UserPutDTO userPutDTO){
         User holdsUpdateData = UserDTOMapper.INSTANCE.convertUserPutDTOtoEntity(userPutDTO);
-        userService.updateProfile(token, userid, holdsUpdateData);
+        String strippedToken = stripPrefix(token);
+        userService.updateProfile(strippedToken, userid, holdsUpdateData);
     }
 
     @PostMapping("/login")
@@ -70,7 +73,8 @@ public class UserController {
     @PostMapping("/logout/{userid}")
     @ResponseStatus(HttpStatus.OK)
     public void logout(@PathVariable Long userid, @RequestHeader("Authorization") String token){
-        userService.logoutUser(userid,token);
+        String strippedToken = stripPrefix(token);
+        userService.logoutUser(userid,strippedToken);
     }
 
     @GetMapping("/users")
@@ -78,7 +82,8 @@ public class UserController {
     @ResponseBody
     public List<UserGetDTO> getAllUsers(@RequestHeader("Authorization") String token) {
         // fetch all users in the internal representation
-        List<User> users = userService.getUsers(token);
+        String strippedToken = stripPrefix(token);
+        List<User> users = userService.getUsers(strippedToken);
         List<UserGetDTO> userGetDTOs = new ArrayList<>();
 
         // convert each user to the API representation
@@ -86,5 +91,11 @@ public class UserController {
             userGetDTOs.add(UserDTOMapper.INSTANCE.convertEntityToUserGetDTO(user));
         }
         return userGetDTOs;
+    }
+
+    private String stripPrefix(String token){
+        if (token != null && token.startsWith("Bearer ")) {
+            return token.substring(7);
+        } else throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
     }
 }
