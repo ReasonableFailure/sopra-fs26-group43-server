@@ -1,5 +1,8 @@
 package ch.uzh.ifi.hase.soprafs26.controller;
 
+import ch.uzh.ifi.hase.soprafs26.entity.Role;
+import ch.uzh.ifi.hase.soprafs26.rest.mapper.PlayerDTOMapper;
+import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RoleGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioPutDTO;
 import org.springframework.http.HttpStatus;
@@ -58,5 +61,26 @@ public class ScenarioController {
     public void deleteScenario(@RequestHeader("Authorization") String token, @PathVariable Long scenarioId){
         scenarioService.deleteScenario(token,scenarioId);
     }
+
+    @GetMapping("/characters/{scenarioId}")
+    public List<RoleGetDTO> retrieveAllRoles(@PathVariable Long scenarioId, @RequestHeader("Authorization") String token){
+        List<Role> list = scenarioService.getRoles(scenarioId,token);
+        ArrayList<RoleGetDTO> toReturn = new ArrayList<RoleGetDTO>();
+        for(Role role : list){
+            toReturn.add(PlayerDTOMapper.INSTANCE.convertEntitytoRoleGetDTO(role));
+        }
+        return  toReturn;
+    }
+
+    @GetMapping("/characters/{scenarioId}/cabinet/{cabinetId}")
+    public List<RoleGetDTO> retrieveAllRolesInCabinet(@PathVariable Long scenarioId, @PathVariable Long cabinetId, @RequestHeader("Authorization") String token){
+        List<Role> list = scenarioService.getRolesPerCabinet(scenarioId,cabinetId,token);
+        ArrayList<RoleGetDTO> toReturn = new ArrayList<RoleGetDTO>();
+        for (Role role : list){
+            toReturn.add(PlayerDTOMapper.INSTANCE.convertEntitytoRoleGetDTO(role));
+        }
+        return toReturn;
+    }
+
 
 }
