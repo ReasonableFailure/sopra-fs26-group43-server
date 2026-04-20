@@ -50,7 +50,7 @@ public class UserService {
         if(!isValidProfileData(newUser.getUsername(),newUser.getPassword())){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Invalid username or password"));
         }
-        if(!checkIfUsernameTaken(newUser.getUsername())){
+        if(checkIfUsernameTaken(newUser.getUsername())){
             throw new ResponseStatusException(HttpStatus.CONFLICT, String.format("Username already taken"));
         }
         newUser.setToken(UUID.randomUUID().toString());
@@ -125,19 +125,16 @@ public class UserService {
     private boolean isValidProfileData(String uname, String pwd){
         //TODO: in future: enforce pwd rules?
         boolean isValid = true;
-        if(uname.isEmpty() || pwd.isEmpty()){
-            //fields may not be empty
-            isValid = false;
-        }
         if(uname == null || pwd == null){
             //fields must exist
             isValid = false;
         }
-        if(uname.isBlank() || pwd.isBlank()){
-            //fields may not be just whitespace
+        if(uname.isEmpty() || pwd.isEmpty()){
+            //fields may not be empty
             isValid = false;
         }
-        if(!checkIfUsernameTaken(uname)){
+        if(uname.isBlank() || pwd.isBlank()){
+            //fields may not be just whitespace
             isValid = false;
         }
         return isValid;

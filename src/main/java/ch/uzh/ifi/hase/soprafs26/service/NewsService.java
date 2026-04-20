@@ -2,6 +2,7 @@ package ch.uzh.ifi.hase.soprafs26.service;
 
 import ch.uzh.ifi.hase.soprafs26.entity.*;
 import ch.uzh.ifi.hase.soprafs26.repository.*;
+import ch.uzh.ifi.hase.soprafs26.integration.MastodonClient;
 import ch.uzh.ifi.hase.soprafs26.rest.newsdto.NewsPostDTO;
 import ch.uzh.ifi.hase.soprafs26.mapper.NewsDTOMapper;
 
@@ -21,15 +22,18 @@ public class NewsService {
     private final NewsRepository newsRepository;
     private final ScenarioRepository scenarioRepository;
     private final RoleRepository roleRepository;
+    private final MastodonClient mastodonClient;
 
     public NewsService(
             @Qualifier("newsRepository") NewsRepository newsRepository,
             @Qualifier("scenarioRepository") ScenarioRepository scenarioRepository,
-            @Qualifier("roleRepository") RoleRepository roleRepository
+            @Qualifier("roleRepository") RoleRepository roleRepository,
+            MastodonClient mastodonClient
     ) {
         this.newsRepository = newsRepository;
         this.scenarioRepository = scenarioRepository;
         this.roleRepository = roleRepository;
+        this.mastodonClient = mastodonClient;
     }
 
     public NewsStory createNews(NewsPostDTO dto) {
@@ -60,12 +64,23 @@ public class NewsService {
         } else {
             entity = NewsDTOMapper.INSTANCE.convertPostDTOToNewsStory(dto);
             entity.setCreatedAt(Instant.now());
+            entity.setScenario(scenario);
         }
 
         entity = newsRepository.save(entity);
 
         scenario.getHistory().add(entity);
         scenarioRepository.save(scenario);
+
+        try {
+            mastodonClient.postStatus(
+                    scenario.getMastodonBaseUrl(),
+                    scenario.getMastodonAccessToken(),
+                    entity.formatSelf()
+            );
+        } catch (Exception e) {
+            System.err.println("Failed to post to Mastodon: " + e.getMessage());
+        }
 
         return entity;
     }

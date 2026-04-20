@@ -36,8 +36,8 @@ public class ScenarioControllerTest {
         scenario.setId(1L);
         scenario.setTitle("The Trojan War");
         scenario.setDescription("A crisis simulation of the Trojan War");
-        scenario.setIsActive(false);
-        scenario.setDay(0);
+        scenario.setactive(false);
+        scenario.setDayNumber(0);
         scenario.setExchangeRate(10);
 
         List<Scenario> allScenarios = Collections.singletonList(scenario);
@@ -52,7 +52,7 @@ public class ScenarioControllerTest {
                 .andExpect(jsonPath("$[0].title", is(scenario.getTitle())))
                 .andExpect(jsonPath("$[0].description", is(scenario.getDescription())))
                 .andExpect(jsonPath("$[0].getActive", is(false)))
-                .andExpect(jsonPath("$[0].day", is(0)))
+                .andExpect(jsonPath("$[0].dayNumber", is(0)))
                 .andExpect(jsonPath("$[0].exchangeRate", is(10)));
     }
 
