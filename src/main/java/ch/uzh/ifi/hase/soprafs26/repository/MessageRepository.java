@@ -13,9 +13,15 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     List<Message> findByScenarioId(Long scenarioId);
     @Query("""
     SELECT m FROM Message m
-    WHERE (m.creator.id = :a AND m.recipient.id = :b)
-       OR (m.creator.id = :b AND m.recipient.id = :a)
-    ORDER BY m.createdAt ASC
-""")
+        WHERE (m.creator.id = :a AND m.recipient.id = :b)
+        OR (m.creator.id = :b AND m.recipient.id = :a)
+        ORDER BY m.createdAt ASC
+    """)
     List<Message> findConversation(Long a, Long b);
+    @Query("""
+    SELECT m FROM Message m
+        WHERE m.scenario.id = :scenarioId
+        AND (m.creator.id = :roleId OR m.recipient.id = :roleId)
+    """)
+    List<Message> findAllByScenarioAndRole(Long scenarioId, Long roleId);
 }

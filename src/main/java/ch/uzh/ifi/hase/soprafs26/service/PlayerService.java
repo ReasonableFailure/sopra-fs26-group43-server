@@ -3,6 +3,7 @@ package ch.uzh.ifi.hase.soprafs26.service;
 import ch.uzh.ifi.hase.soprafs26.entity.Player;
 import ch.uzh.ifi.hase.soprafs26.entity.Role;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
+import ch.uzh.ifi.hase.soprafs26.entity.Message;
 import ch.uzh.ifi.hase.soprafs26.repository.*;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.PlayerDTOMapper;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.PlayerPutDTO;
@@ -17,6 +18,11 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Set;
+import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 @Transactional
 public class PlayerService {
@@ -25,17 +31,21 @@ public class PlayerService {
     private final PlayerRepository playerRepository;
     private final BackroomerRepository backroomerRepository;
     private final DirectorRepository directorRepository;
+    private final MessageRepository messageRepository;
+    private final ScenarioRepository scenarioRepository;
     private final UserService userService;
     private final int initialActionPoints = 0;
 
     private final Logger log = LoggerFactory.getLogger(PlayerService.class);
 
-    public PlayerService(@Qualifier("playerRepository") PlayerRepository playerRepository, @Qualifier("roleRepository") RoleRepository roleRepository,@Qualifier("backroomerRepository") BackroomerRepository backroomerRepository,@Qualifier("directorRepository") DirectorRepository directorRepository, @Qualifier("userService") UserService userService) {
+    public PlayerService(@Qualifier("playerRepository") PlayerRepository playerRepository, @Qualifier("roleRepository") RoleRepository roleRepository,@Qualifier("backroomerRepository") BackroomerRepository backroomerRepository,@Qualifier("directorRepository") DirectorRepository directorRepository, @Qualifier("userService") UserService userService, @Qualifier("messageRepository") MessageRepository messageRepository, @Qualifier("scenarioRepository") ScenarioRepository scenarioRepository) {
         this.playerRepository = playerRepository;
         this.backroomerRepository = backroomerRepository;
         this.directorRepository = directorRepository;
         this.roleRepository = roleRepository;
         this.userService = userService;
+        this.messageRepository = messageRepository;
+        this.scenarioRepository = scenarioRepository;
     }
 
     public Role getRole(String token, Long roleId)  {
@@ -71,6 +81,30 @@ public class PlayerService {
     public void deleteRole(String token, Long roleId){
         userService.checkIfValidToken(token);
         roleRepository.deleteById(roleId);
+    }
+
+    public List<Role> getInterlocutors(String token, Long scenarioId, Long roleId) {
+        userService.checkIfValidToken(token);
+        Role role = roleRepository.findById(roleId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        String.format("Character with id %d not found", roleId)
+                ));
+        if (!scenarioRepository.existsById(scenarioId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "Scenario not found");
+        }
+        List<Message> messages =
+                messageRepository.findAllByScenarioAndRole(scenarioId, roleId);
+        Set<Role> interlocutors = new HashSet<>();
+        for (Message m : messages) {
+            if (m.getCreator().getId().equals(roleId)) {
+                interlocutors.add(m.getRecipient());
+            } else {
+                interlocutors.add(m.getCreator());
+            }
+        }
+        return new ArrayList<>(interlocutors);
     }
 
     protected void checkDirectorToken(String token){
