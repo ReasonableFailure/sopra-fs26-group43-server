@@ -46,6 +46,14 @@ public class PlayerService {
         return roleRepository.findById(roleId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Role with id %d not found", roleId)));
     }
 
+    public Role updateMessagingStats(Long roleId, int initialMessageCount){
+        Role toChange = roleRepository.findById(roleId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Role with id %d not found", roleId)));
+        toChange.setMessageCount(initialMessageCount);
+        roleRepository.save(toChange);
+        roleRepository.flush();
+        return toChange;
+    }
+
     public PlayerGetDTO updatePlayerAssociation(Long playerId, PlayerPutDTO playerPutDTO, String token){
         //Assigns a user to an existing Player or child class
         checkToken(token,"any");
@@ -65,7 +73,7 @@ public class PlayerService {
         checkToken(token, "Director");
         Role newRole = PlayerDTOMapper.INSTANCE.convertRolePostDTOtoEntity(rolePostDTO);
         newRole.setAlive(true);
-        newRole.setActionPoints((Integer) null);
+        newRole.setActionPoints(initialActionPoints);
         newRole.setMessageCount((Integer) null);
         newRole.setAuthToken(randomUUID().toString());
         roleRepository.save(newRole);
