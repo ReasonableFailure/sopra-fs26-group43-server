@@ -35,6 +35,8 @@ public class Scenario implements Serializable {
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = false)
     @JoinColumn(name="scenario_id")
     private Director director;
+    @Column(nullable = false, unique = false)
+    private int startingMessageCount;
 
     @OneToMany(mappedBy = "scenario")
     private List<Communication> history;
@@ -133,5 +135,13 @@ public class Scenario implements Serializable {
 
     public void setDirector(Director director) {
         this.director = director;
+    }
+
+    public int getStartingMessageCount() {
+        return startingMessageCount;
+    }
+
+    public void setStartingMessageCount(int startingMessageCount) {
+        this.startingMessageCount = startingMessageCount;
     }
 }
