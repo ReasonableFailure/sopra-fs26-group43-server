@@ -98,4 +98,17 @@ public class ScenarioService {
         return toReturn;
     }
 
+    public void updateMastodonConfig(Long scenarioId, String token, ScenarioMastodonDTO dto) {
+
+        //checkIfValidToken(token);
+
+        Scenario scenario = scenarioRepository.findById(scenarioId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Scenario not found"));
+
+        scenario.setMastodonBaseUrl(dto.getMastodonBaseUrl());
+        scenario.setMastodonAccessToken(dto.getMastodonAccessToken());
+
+        scenarioRepository.save(scenario);
+    }
 }

@@ -53,12 +53,18 @@ public class PlayerController {
 
     }
 
-    @GetMapping("/character/{characterId}/interlocutors")
-
-    private ArrayList<String> stripToken(String token){
-        
+    @GetMapping("/characters/{scenarioId}/{characterId}/interlocutors")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public List<RoleGetDTO> getInterlocutors(
+            @RequestHeader("Authorization") String token,
+            @PathVariable Long scenarioId,
+            @PathVariable Long characterId) {
+        List<Role> roles =
+                playerService.getInterlocutors(token, scenarioId, characterId);
+        return roles.stream()
+                .map(PlayerDTOMapper.INSTANCE::convertEntitytoRoleGetDTO)
+                .toList();
     }
-
-
 
 }
