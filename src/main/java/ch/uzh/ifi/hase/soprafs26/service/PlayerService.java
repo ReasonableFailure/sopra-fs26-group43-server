@@ -1,10 +1,9 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
-import ch.uzh.ifi.hase.soprafs26.entity.Player;
-import ch.uzh.ifi.hase.soprafs26.entity.Role;
-import ch.uzh.ifi.hase.soprafs26.entity.User;
+import ch.uzh.ifi.hase.soprafs26.entity.*;
 import ch.uzh.ifi.hase.soprafs26.repository.*;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.PlayerDTOMapper;
+import ch.uzh.ifi.hase.soprafs26.rest.playerdto.PlayerGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.PlayerPutDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RolePostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RolePutDTO;
@@ -16,6 +15,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import java.util.UUID;
+import java.util.ArrayList;
+
+import static java.util.UUID.randomUUID;
 
 @Service
 @Transactional
@@ -39,50 +42,75 @@ public class PlayerService {
     }
 
     public Role getRole(String token, Long roleId)  {
-        userService.checkIfValidToken(token);
+        checkToken(token,"any");
         return roleRepository.findById(roleId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Role with id %d not found", roleId)));
     }
 
-    public void updatePlayerAssociation(Long playerId, PlayerPutDTO playerPutDTO, String token){
-        userService.checkIfValidToken(token);
+    public PlayerGetDTO updatePlayerAssociation(Long playerId, PlayerPutDTO playerPutDTO, String token){
+        //Assigns a user to an existing Player or child class
+        checkToken(token,"any");
         Player player = playerRepository.findById(playerId).orElseThrow(() -> new ResponseStatusException(HttpStatusCode.valueOf(404), String.format("User %d cannot be assigned to player %d, this player does not exist", playerPutDTO.getNewAssignedUserId(), playerId)));
         player = PlayerDTOMapper.INSTANCE.convertPlayerPutDTOtoEntity(playerPutDTO, player);
         playerRepository.save(player);
+        return PlayerDTOMapper.INSTANCE.convertEntitytoPlayerGetDTO(player);
     }
 
     public void updateRole(String token, RolePutDTO rolePutDTO, Long roleId){
-        userService.checkIfValidToken(token);
+        checkToken(token, "Director");
         Role role = roleRepository.findById(roleId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Character with id %d not found", roleId)));
         PlayerDTOMapper.INSTANCE.convertRolePutDTOtoEntity(rolePutDTO, role);
     }
 
     public Role createRole(String token, RolePostDTO rolePostDTO){
-        checkDirectorToken(token);
-        userService.checkIfValidToken(token);
+        checkToken(token, "Director");
         Role newRole = PlayerDTOMapper.INSTANCE.convertRolePostDTOtoEntity(rolePostDTO);
         newRole.setAlive(true);
-        newRole.setActionPoints(initialActionPoints);
-        newRole.setMessageCount(15);
+        newRole.setActionPoints((Integer) null);
+        newRole.setMessageCount((Integer) null);
+        newRole.setAuthToken(randomUUID().toString());
         roleRepository.save(newRole);
         roleRepository.flush();//magic number comes from user story
         return newRole;
     }
 
     public void deleteRole(String token, Long roleId){
-        userService.checkIfValidToken(token);
+        checkToken(token, "Director");
         roleRepository.deleteById(roleId);
     }
 
-    protected void checkDirectorToken(String token){
-
+    public Backroomer createBackroomer(String userToken){
+        userService.checkIfValidToken(userToken);
+        Backroomer b = new Backroomer();
+        b.setAuthToken(randomUUID().toString());
+        b.setDelegatedCharacters(new ArrayList<Role>());
+        backroomerRepository.save(b);
+        backroomerRepository.flush();
+        return b;
+    }
+    public Director createDirector(String userToken){
+        userService.checkIfValidToken(userToken);
+        Director d = new Director();
+        d.setAuthToken(randomUUID().toString());
+        d.setUser(userService.getByToken(userToken));
+        directorRepository.save(d);
+        directorRepository.flush();
+        return d;
     }
 
-    protected void checkBackroomerToken(String token){
-
-    }
-
-    protected void checkRoleToken(String token){
-
+    protected void checkToken(String token, String type){
+        Role toReturn = roleRepository.findByToken(token);
+        Backroomer toReturnBackroomer = backroomerRepository.findByToken(token);
+        Director toReturnDirector = directorRepository.findByToken(token);
+        Player toReturnPlayer = playerRepository.findByToken(token);
+        if(type.equals("Role") && toReturn == null){
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        } else if(type.equals("Backroomer") && toReturnBackroomer == null){
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        } else if (type.equals("Director") && toReturnDirector == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        } else if (type.equals("any") && toReturnPlayer == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
     }
 
 }

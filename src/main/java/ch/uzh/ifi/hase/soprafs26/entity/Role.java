@@ -20,6 +20,8 @@ public class Role extends Player{
     private int actionPoints;
     @Column(unique=false,nullable=true)
     private byte[] portrait;
+    @Column(unique = false, nullable = false)
+    private Long assignedCabinet;
 
     public void die(){
         this.alive = false;
@@ -100,5 +102,13 @@ public class Role extends Player{
 
     public void setPortrait(byte[] portrait) {
         this.portrait = portrait;
+    }
+
+    public Long getAssignedCabinet() {
+        return assignedCabinet;
+    }
+
+    public void setAssignedCabinet(Long assignedCabinet) {
+        this.assignedCabinet = assignedCabinet;
     }
 }

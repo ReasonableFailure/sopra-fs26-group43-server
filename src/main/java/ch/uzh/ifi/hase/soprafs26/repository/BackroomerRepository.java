@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository("backroomerRepository")
 public interface BackroomerRepository extends JpaRepository<Backroomer, Long>{
-
+    Backroomer findByToken(String token);
 }

@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository("directorRepository")
 public interface DirectorRepository extends JpaRepository<Director, Long>{
-
+    Director findByToken(String token);
 }

@@ -1,12 +1,7 @@
 package ch.uzh.ifi.hase.soprafs26.rest.mapper;
 
-import ch.uzh.ifi.hase.soprafs26.entity.Player;
-import ch.uzh.ifi.hase.soprafs26.entity.User;
-import ch.uzh.ifi.hase.soprafs26.rest.playerdto.PlayerPutDTO;
-import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RoleGetDTO;
-import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RolePostDTO;
-import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RolePutDTO;
-import ch.uzh.ifi.hase.soprafs26.entity.Role;
+import ch.uzh.ifi.hase.soprafs26.entity.*;
+import ch.uzh.ifi.hase.soprafs26.rest.playerdto.*;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
@@ -24,4 +19,23 @@ import org.mapstruct.factory.Mappers;
 
     Role convertRolePostDTOtoEntity(RolePostDTO rolePostDTO);
 
+    @Mapping(source = "authToken", target = "authToken")
+    @Mapping(source = "id", target = "id")
+    PlayerGetDTO convertEntitytoPlayerGetDTO(Player player);
+
+    @AfterMapping
+    default void addPrefix(@MappingTarget PlayerGetDTO playerGetDTO, Player entity) {
+        if (entity.getAuthToken() == null) return;
+
+        String prefix = "";
+        if (entity instanceof Role) {
+            prefix = "Role ";
+        } else if (entity instanceof Director) {
+            prefix = "Director ";
+        } else if (entity instanceof Backroomer) {
+            prefix = "Backroomer ";
+        }
+
+        playerGetDTO.setAuthToken(prefix + entity.getAuthToken());
+    }
 }
