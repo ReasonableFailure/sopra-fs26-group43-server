@@ -8,6 +8,7 @@ import ch.uzh.ifi.hase.soprafs26.rest.playerdto.PlayerPutDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RolePostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RolePutDTO;
 import jakarta.transaction.Transactional;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -105,7 +106,7 @@ public class PlayerService {
         return d;
     }
 
-    protected void checkToken(String token, String type){
+    protected void checkToken(String token, @NonNull String type){
         Role toReturn = roleRepository.findByToken(token);
         Backroomer toReturnBackroomer = backroomerRepository.findByToken(token);
         Director toReturnDirector = directorRepository.findByToken(token);
