@@ -8,6 +8,7 @@ public class ScenarioGetDTO {
     private Boolean active;
     private int dayNumber;
     private int exchangeRate;
+    private String directorToken;
 
     public Long getId() {
         return id;
@@ -55,5 +56,13 @@ public class ScenarioGetDTO {
 
     public void setExchangeRate(int exchangeRate) {
         this.exchangeRate = exchangeRate;
+    }
+
+    public String getDirectorToken() {
+        return directorToken;
+    }
+
+    public void setDirectorToken(String directorToken) {
+        this.directorToken = directorToken;
     }
 }

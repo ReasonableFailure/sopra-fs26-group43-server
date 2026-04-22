@@ -20,7 +20,7 @@ public class Role extends Player{
     private int actionPoints;
     @Column(unique=false,nullable=true)
     private byte[] portrait;
-    @Column(unique = false, nullable = false)
+    @Column(unique = false, nullable = true)
     private Long assignedCabinet;
 
     public void die(){

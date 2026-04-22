@@ -80,13 +80,17 @@ public class PlayerService {
 
     public Role createRole(String token, RolePostDTO rolePostDTO){
         checkToken(token, "Director");
+        Scenario scenario = scenarioRepository.findById(rolePostDTO.getScenarioId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario not found"));
         Role newRole = PlayerDTOMapper.INSTANCE.convertRolePostDTOtoEntity(rolePostDTO);
         newRole.setAlive(true);
         newRole.setActionPoints(initialActionPoints);
-        newRole.setMessageCount((Integer) null);
+        newRole.setMessageCount(0);
         newRole.setToken(randomUUID().toString());
         roleRepository.save(newRole);
-        roleRepository.flush();//magic number comes from user story
+        roleRepository.flush();
+        scenario.addPlayer(newRole);
+        scenarioRepository.save(scenario);
         return newRole;
     }
 
