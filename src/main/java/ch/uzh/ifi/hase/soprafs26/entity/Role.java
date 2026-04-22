@@ -20,6 +20,8 @@ public class Role extends Player{
     private int actionPoints;
     @Column(unique=false,nullable=true)
     private byte[] portrait;
+    @Column(unique = false, nullable = false)
+    private Long assignedCabinet;
 
     public void die(){
         this.alive = false;
@@ -39,7 +41,7 @@ public class Role extends Player{
     }
 
     public String getName() {
-        return name;
+        return this.name;
     }
 
     public void setName(String name) {
@@ -47,7 +49,7 @@ public class Role extends Player{
     }
 
     public String getTitle() {
-        return title;
+        return this.title;
     }
 
     public void setTitle(String title) {
@@ -55,7 +57,7 @@ public class Role extends Player{
     }
 
     public String getDescription() {
-        return description;
+        return this.description;
     }
 
     public void setDescription(String description) {
@@ -63,7 +65,7 @@ public class Role extends Player{
     }
 
     public String getSecret() {
-        return secret;
+        return this.secret;
     }
 
     public void setSecret(String secret) {
@@ -71,7 +73,7 @@ public class Role extends Player{
     }
 
     public boolean getAlive() {
-        return alive;
+        return this.alive;
     }
 
     public void setAlive(boolean alive) {
@@ -79,7 +81,7 @@ public class Role extends Player{
     }
 
     public int getMessageCount() {
-        return messageCount;
+        return this.messageCount;
     }
 
     public void setMessageCount(int messageCount) {
@@ -87,7 +89,7 @@ public class Role extends Player{
     }
 
     public int getActionPoints() {
-        return actionPoints;
+        return this.actionPoints;
     }
 
     public void setActionPoints(int actionPoints) {
@@ -95,10 +97,18 @@ public class Role extends Player{
     }
 
     public byte[] getPortrait() {
-        return portrait;
+        return this.portrait;
     }
 
     public void setPortrait(byte[] portrait) {
         this.portrait = portrait;
+    }
+
+    public Long getAssignedCabinet() {
+        return this.assignedCabinet;
+    }
+
+    public void setAssignedCabinet(Long assignedCabinet) {
+        this.assignedCabinet = assignedCabinet;
     }
 }

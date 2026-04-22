@@ -41,7 +41,7 @@ public class UserService {
 		return this.userRepository.findAll();
 	}
 
-    public User getProfile(Long idToBeFound, String authToken){
+    public User getProfileById(Long idToBeFound, String authToken){
         checkIfValidToken(authToken);
         return userRepository.findById(idToBeFound).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User with id %d not found", idToBeFound)));
     }
@@ -160,6 +160,11 @@ public class UserService {
     private boolean checkIfUserExistsByID(Long ID){
         User foundById = userRepository.findById(ID).orElse(null);
         return foundById != null;
+    }
+
+    protected User getByToken(String token){
+        checkIfValidToken(token);
+        return userRepository.findByToken(token);
     }
 
     protected void checkIfValidToken(String token){

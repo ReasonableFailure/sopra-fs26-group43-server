@@ -49,7 +49,7 @@ public class UserController {
     @ResponseBody
     public UserGetDTO retrieveUser(@PathVariable Long userid, @RequestHeader("Authorization") String token){
         String strippedToken = stripPrefix(token);
-        User user = userService.getProfile(userid,strippedToken);
+        User user = userService.getProfileById(userid,strippedToken);
         return UserDTOMapper.INSTANCE.convertEntityToUserGetDTO(user);
     }
 

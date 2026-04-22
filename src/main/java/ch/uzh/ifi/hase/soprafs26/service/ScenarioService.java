@@ -52,6 +52,7 @@ public class ScenarioService {
         newScenario.setActive(true);
         newScenario.setPlayers(new ArrayList<Player>());
         newScenario.setHistory(new ArrayList<Communication>());
+        newScenario.setDirector(playerService.createDirector(token));
         scenarioRepository.save(newScenario);
         scenarioRepository.flush();
         return newScenario;
@@ -69,9 +70,18 @@ public class ScenarioService {
 
     public void addPlayerToScenario(String token, Long scenarioId, Long playerId){
         userService.checkIfValidToken(token);
-        Player toAdd = playerService.getRole(token,playerId);
+        Role toAdd = playerService.getRole(token,playerId);
         Scenario scenario = getScenarioById(token,scenarioId);
+        toAdd = playerService.updateMessagingStats(playerId, scenario.getStartingMessageCount());
         scenario.addPlayer(toAdd);
+        scenarioRepository.save(scenario);
+        scenarioRepository.flush();
+    }
+
+    public void addCommunicationToHistory(String token, Long scenarioId, Long communicationId){
+        Scenario toAddTo =  getScenarioById(token,scenarioId);
+        toAddTo.addComm(null);
+        //TODO: @HalaiRhea
     }
 
     public List<Role> getRoles(Long scenarioId, String token) {
@@ -91,7 +101,7 @@ public class ScenarioService {
         Scenario scenario = getScenarioById(token,scenarioId);
         List<Role> toReturn = new ArrayList<Role>();
         for(Player player : scenario.getPlayers()){
-            if(player instanceof Role && (((Role) player).getCabinetAssigned() == cabinetId)){
+            if(player instanceof Role && (((Role) player).getAssignedCabinet() == cabinetId)){
                 toReturn.add((Role) player);
             }
         }
