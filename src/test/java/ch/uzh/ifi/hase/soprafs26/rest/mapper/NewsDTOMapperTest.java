@@ -6,7 +6,7 @@ import ch.uzh.ifi.hase.soprafs26.entity.NewsStory;
 import ch.uzh.ifi.hase.soprafs26.entity.Pronouncement;
 import ch.uzh.ifi.hase.soprafs26.entity.Role;
 import ch.uzh.ifi.hase.soprafs26.entity.Scenario;
-import ch.uzh.ifi.hase.soprafs26.mapper.NewsDTOMapper;
+import ch.uzh.ifi.hase.soprafs26.rest.mapper.NewsDTOMapper;
 import ch.uzh.ifi.hase.soprafs26.rest.newsdto.NewsGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.newsdto.NewsPostDTO;
 
