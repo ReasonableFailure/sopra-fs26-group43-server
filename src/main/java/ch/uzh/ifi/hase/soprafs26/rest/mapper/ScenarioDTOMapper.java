@@ -1,7 +1,5 @@
 package ch.uzh.ifi.hase.soprafs26.rest.mapper;
 import ch.uzh.ifi.hase.soprafs26.entity.Scenario;
-import org.springframework.web.bind.annotation.RequestHeader;
-import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioDeleteDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioPutDTO;
@@ -20,7 +18,22 @@ public interface ScenarioDTOMapper {
     @Mapping(source = "exchangeRate", target = "exchangeRate")
     ScenarioGetDTO convertEntityToScenarioGetDTO(Scenario scenario);
 
+    @Mapping(target = "players", ignore = true)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "active", ignore = true)
+    @Mapping(target = "dayNumber", ignore = true)
+    @Mapping(target = "history", ignore = true)
+    @Mapping(target = "mastodonBaseUrl", ignore = true)
+    @Mapping(target = "mastodonAccessToken", ignore = true)
+    @Mapping(target = "director", ignore = true)
     Scenario convertScenarioPostDTOtoEntity(ScenarioPostDTO scenarioPostDTO);
 
-    Scenario convertScenarioPutDTOtoEntity(ScenarioPutDTO scenarioPutDTO, @MappingTarget Scenario scenario);
+    @Mapping(target = "players", ignore = true)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "history", ignore = true)
+    @Mapping(target = "mastodonBaseUrl", ignore = true)
+    @Mapping(target = "mastodonAccessToken", ignore = true)
+    @Mapping(target = "director", ignore = true)
+    @Mapping(target = "startingMessageCount", ignore = true)
+    void convertScenarioPutDTOtoEntity(ScenarioPutDTO scenarioPutDTO, @MappingTarget Scenario scenario);
 }
