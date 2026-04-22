@@ -139,14 +139,14 @@ public class PlayerService {
         return d;
     }
 
-    protected void checkToken(String token, @NonNull String type){
+    public void checkToken(String token, @NonNull String type){
         Role toReturn = roleRepository.findByToken(token);
         Backroomer toReturnBackroomer = backroomerRepository.findByToken(token);
         Director toReturnDirector = directorRepository.findByToken(token);
         Player toReturnPlayer = playerRepository.findByToken(token);
         if(type.equals("Role") && toReturn == null){
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-        } else if(type.equals("Backroomer") && toReturnBackroomer == null){
+        } else if(type.equals("Backroomer") && toReturnBackroomer == null && toReturnDirector == null){
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         } else if (type.equals("Director") && toReturnDirector == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);

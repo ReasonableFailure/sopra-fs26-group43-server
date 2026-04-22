@@ -10,6 +10,8 @@ import ch.uzh.ifi.hase.soprafs26.entity.Scenario;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.ScenarioDTOMapper;
 import ch.uzh.ifi.hase.soprafs26.service.ScenarioService;
+import ch.uzh.ifi.hase.soprafs26.service.PlayerService;
+import static ch.uzh.ifi.hase.soprafs26.controller.PlayerController.splitToken;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -20,10 +22,13 @@ import java.util.List;
 @RestController
 public class ScenarioController {
 
+    private final PlayerService playerService;
     private final ScenarioService scenarioService;
 
-    ScenarioController(ScenarioService scenarioService) {
+    ScenarioController(ScenarioService scenarioService,
+                    PlayerService playerService) {
         this.scenarioService = scenarioService;
+        this.playerService = playerService;
     }
 
     @GetMapping("/scenarios")
@@ -86,8 +91,20 @@ public class ScenarioController {
 
     @PutMapping("/scenarios/{scenarioId}/mastodon")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void updateMastodonConfig(@PathVariable Long scenarioId, @RequestHeader("Authorization") String token, @RequestBody ScenarioMastodonDTO dto) {
-        scenarioService.updateMastodonConfig(scenarioId, token, dto);
+    public void updateMastodonConfig(
+            @PathVariable Long scenarioId,
+            @RequestHeader("Authorization") String token,
+            @RequestBody ScenarioMastodonDTO dto) {
+
+        validate(token, "Director");
+
+        scenarioService.updateMastodonConfig(scenarioId, dto);
+    }
+
+    private String validate(String header, String type) {
+        String[] tokens = splitToken(header);
+        playerService.checkToken(tokens[1], type);
+        return tokens[1];
     }
 
 }
