@@ -19,13 +19,13 @@ import org.mapstruct.factory.Mappers;
 
     Role convertRolePostDTOtoEntity(RolePostDTO rolePostDTO);
 
-    @Mapping(source = "authToken", target = "authToken")
+    @Mapping(source = "token", target = "authToken")
     @Mapping(source = "id", target = "id")
     PlayerGetDTO convertEntitytoPlayerGetDTO(Player player);
 
     @AfterMapping
     default void addPrefix(@MappingTarget PlayerGetDTO playerGetDTO, Player entity) {
-        if (entity.getAuthToken() == null) return;
+        if (entity.getToken() == null) return;
 
         String prefix = "";
         if (entity instanceof Role) {
@@ -36,6 +36,6 @@ import org.mapstruct.factory.Mappers;
             prefix = "Backroomer ";
         }
 
-        playerGetDTO.setAuthToken(prefix + entity.getAuthToken());
+        playerGetDTO.setAuthToken(prefix + entity.getToken());
     }
 }

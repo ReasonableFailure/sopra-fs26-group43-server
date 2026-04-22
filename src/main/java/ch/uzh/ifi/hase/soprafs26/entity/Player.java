@@ -17,7 +17,7 @@ abstract public class Player implements Serializable {
     private Long id;
 
     @Column(nullable = false,unique = true)
-    private String authToken;
+    private String token;
 
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "userId")
@@ -39,11 +39,11 @@ abstract public class Player implements Serializable {
         this.user = user;
     }
 
-    public String getAuthToken() {
-        return authToken;
+    public String getToken() {
+        return token;
     }
 
-    public void setAuthToken(String authToken) {
-        this.authToken = authToken;
+    public void setToken(String token) {
+        this.token = token;
     }
 }

@@ -111,4 +111,6 @@ public class Role extends Player{
     public void setAssignedCabinet(Long assignedCabinet) {
         this.assignedCabinet = assignedCabinet;
     }
+
+
 }

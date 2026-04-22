@@ -16,14 +16,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-import java.util.UUID;
+
 import java.util.ArrayList;
 
 import static java.util.UUID.randomUUID;
 
 import java.util.Set;
 import java.util.HashSet;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -85,7 +84,7 @@ public class PlayerService {
         newRole.setAlive(true);
         newRole.setActionPoints(initialActionPoints);
         newRole.setMessageCount((Integer) null);
-        newRole.setAuthToken(randomUUID().toString());
+        newRole.setToken(randomUUID().toString());
         roleRepository.save(newRole);
         roleRepository.flush();//magic number comes from user story
         return newRole;
@@ -99,7 +98,7 @@ public class PlayerService {
     public Backroomer createBackroomer(String userToken){
         userService.checkIfValidToken(userToken);
         Backroomer b = new Backroomer();
-        b.setAuthToken(randomUUID().toString());
+        b.setToken(randomUUID().toString());
         b.setDelegatedCharacters(new ArrayList<Role>());
         backroomerRepository.save(b);
         backroomerRepository.flush();
@@ -133,7 +132,7 @@ public class PlayerService {
     public Director createDirector(String userToken){
         userService.checkIfValidToken(userToken);
         Director d = new Director();
-        d.setAuthToken(randomUUID().toString());
+        d.setToken(randomUUID().toString());
         d.setUser(userService.getByToken(userToken));
         directorRepository.save(d);
         directorRepository.flush();
