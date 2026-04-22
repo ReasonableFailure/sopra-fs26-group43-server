@@ -21,6 +21,11 @@ import java.util.ArrayList;
 
 import static java.util.UUID.randomUUID;
 
+import java.util.Set;
+import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 @Transactional
 public class PlayerService {
@@ -29,17 +34,21 @@ public class PlayerService {
     private final PlayerRepository playerRepository;
     private final BackroomerRepository backroomerRepository;
     private final DirectorRepository directorRepository;
+    private final MessageRepository messageRepository;
+    private final ScenarioRepository scenarioRepository;
     private final UserService userService;
     private final int initialActionPoints = 0;
 
     private final Logger log = LoggerFactory.getLogger(PlayerService.class);
 
-    public PlayerService(@Qualifier("playerRepository") PlayerRepository playerRepository, @Qualifier("roleRepository") RoleRepository roleRepository,@Qualifier("backroomerRepository") BackroomerRepository backroomerRepository,@Qualifier("directorRepository") DirectorRepository directorRepository, @Qualifier("userService") UserService userService) {
+    public PlayerService(@Qualifier("playerRepository") PlayerRepository playerRepository, @Qualifier("roleRepository") RoleRepository roleRepository,@Qualifier("backroomerRepository") BackroomerRepository backroomerRepository,@Qualifier("directorRepository") DirectorRepository directorRepository, @Qualifier("userService") UserService userService, @Qualifier("messageRepository") MessageRepository messageRepository, @Qualifier("scenarioRepository") ScenarioRepository scenarioRepository) {
         this.playerRepository = playerRepository;
         this.backroomerRepository = backroomerRepository;
         this.directorRepository = directorRepository;
         this.roleRepository = roleRepository;
         this.userService = userService;
+        this.messageRepository = messageRepository;
+        this.scenarioRepository = scenarioRepository;
     }
 
     public Role getRole(String token, Long roleId)  {
@@ -96,6 +105,31 @@ public class PlayerService {
         backroomerRepository.flush();
         return b;
     }
+  
+    public List<Role> getInterlocutors(String token, Long scenarioId, Long roleId) {
+        userService.checkIfValidToken(token);
+        Role role = roleRepository.findById(roleId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        String.format("Character with id %d not found", roleId)
+                ));
+        if (!scenarioRepository.existsById(scenarioId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "Scenario not found");
+        }
+        List<Message> messages =
+                messageRepository.findAllByScenarioAndRole(scenarioId, roleId);
+        Set<Role> interlocutors = new HashSet<>();
+        for (Message m : messages) {
+            if (m.getCreator().getId().equals(roleId)) {
+                interlocutors.add(m.getRecipient());
+            } else {
+                interlocutors.add(m.getCreator());
+            }
+        }
+        return new ArrayList<>(interlocutors);
+    }
+
     public Director createDirector(String userToken){
         userService.checkIfValidToken(userToken);
         Director d = new Director();

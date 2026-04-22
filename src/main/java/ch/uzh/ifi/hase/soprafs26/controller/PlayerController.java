@@ -70,7 +70,23 @@ public class PlayerController {
         } else throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
     }
 
-    protected String[] splitToken(String token){
+
+  
+    @GetMapping("/characters/{scenarioId}/{characterId}/interlocutors")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public List<RoleGetDTO> getInterlocutors(
+            @RequestHeader("Authorization") String token,
+            @PathVariable Long scenarioId,
+            @PathVariable Long characterId) {
+        List<Role> roles =
+                playerService.getInterlocutors(token, scenarioId, characterId);
+        return roles.stream()
+                .map(PlayerDTOMapper.INSTANCE::convertEntitytoRoleGetDTO)
+                .toList();
+    }
+  
+     protected String[] splitToken(String token){
         if(token == null || token.isEmpty()){
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token is empty");
         }
@@ -80,4 +96,5 @@ public class PlayerController {
         }
         throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token is invalid");
     }
+
 }
