@@ -62,6 +62,9 @@ public class MessageService {
                     HttpStatus.BAD_REQUEST, "Cannot send message to self");
         }
 
+        creator.useMessageSlot();
+        roleRepository.save(creator);
+
         Message message = MessageDTOMapper.INSTANCE.convertPostDTOToEntity(postDTO);
 
         message.setCreatedAt(Instant.now());

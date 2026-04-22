@@ -13,12 +13,12 @@ public interface NewsDTOMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "scenario", ignore = true)
+    @Mapping(target = "mastodonStatusId", ignore = true)
     NewsStory convertPostDTOToNewsStory(NewsPostDTO dto);
 
     @Mapping(source = "id", target = "id")
     @Mapping(source = "title", target = "title")
     @Mapping(source = "body", target = "body")
     @Mapping(source = "createdAt", target = "createdAt")
-    @Mapping(source = "postURI", target = "postURI")
     NewsGetDTO convertEntityToGetDTO(NewsStory entity);
 }

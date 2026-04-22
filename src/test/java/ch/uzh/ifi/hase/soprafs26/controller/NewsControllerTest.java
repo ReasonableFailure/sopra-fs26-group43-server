@@ -75,7 +75,7 @@ public class NewsControllerTest {
         testNewsStory.setId(1L);
         testNewsStory.setTitle("Test News");
         testNewsStory.setBody("Test news body");
-        testNewsStory.setPostURI("http://example.com");
+        testNewsStory.setMastodonStatusId("http://example.com");
         testNewsStory.setCreatedAt(Instant.now());
         testNewsStory.setScenario(testScenario);
 
@@ -83,7 +83,7 @@ public class NewsControllerTest {
         testPronouncement.setId(2L);
         testPronouncement.setTitle("Test Pronouncement");
         testPronouncement.setBody("Test pronouncement body");
-        testPronouncement.setPostURI("http://example.com");
+        testPronouncement.setMastodonStatusId("http://example.com");
         testPronouncement.setCreatedAt(Instant.now());
         testPronouncement.setAuthor(testRole);
         testPronouncement.setLikes(0);
@@ -92,7 +92,6 @@ public class NewsControllerTest {
         newsPostDTO = new NewsPostDTO();
         newsPostDTO.setTitle("Test News");
         newsPostDTO.setBody("Test news body");
-        newsPostDTO.setPostURI("http://example.com");
         newsPostDTO.setScenarioId(1L);
         newsPostDTO.setAuthorId(1L);
     }
@@ -112,7 +111,6 @@ public class NewsControllerTest {
                 .andExpect(jsonPath("$.id", is(2)))
                 .andExpect(jsonPath("$.title", is("Test Pronouncement")))
                 .andExpect(jsonPath("$.body", is("Test pronouncement body")))
-                .andExpect(jsonPath("$.postURI", is("http://example.com")))
                 .andExpect(jsonPath("$.authorId", is(1)))
                 .andExpect(jsonPath("$.likes", is(0)));
 
@@ -135,7 +133,6 @@ public class NewsControllerTest {
                 .andExpect(jsonPath("$.id", is(1)))
                 .andExpect(jsonPath("$.title", is("Test News")))
                 .andExpect(jsonPath("$.body", is("Test news body")))
-                .andExpect(jsonPath("$.postURI", is("http://example.com")))
                 .andExpect(jsonPath("$.authorId").doesNotExist())
                 .andExpect(jsonPath("$.likes").doesNotExist());
 
@@ -187,7 +184,6 @@ public class NewsControllerTest {
                 .andExpect(jsonPath("$.id", is(2)))
                 .andExpect(jsonPath("$.title", is("Test Pronouncement")))
                 .andExpect(jsonPath("$.body", is("Test pronouncement body")))
-                .andExpect(jsonPath("$.postURI", is("http://example.com")))
                 .andExpect(jsonPath("$.authorId", is(1)))
                 .andExpect(jsonPath("$.likes", is(0)));
 
@@ -207,7 +203,6 @@ public class NewsControllerTest {
                 .andExpect(jsonPath("$.id", is(1)))
                 .andExpect(jsonPath("$.title", is("Test News")))
                 .andExpect(jsonPath("$.body", is("Test news body")))
-                .andExpect(jsonPath("$.postURI", is("http://example.com")))
                 .andExpect(jsonPath("$.authorId").doesNotExist())
                 .andExpect(jsonPath("$.likes").doesNotExist());
 

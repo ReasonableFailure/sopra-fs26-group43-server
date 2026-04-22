@@ -61,7 +61,8 @@ public class MessageServiceIntegrationTest {
 		testCreator.setSecret("creator-secret");
 		testCreator.setAlive(true);
 		testCreator.setMessageCount(5);
-		testCreator.setActionPoints(10);
+		testCreator.setTotalPoints(10);
+		testCreator.setPointsBalance(10);
 		testCreator.setAssignedCabinet(0L);
 
 		testRecipient = new Role();
@@ -72,7 +73,8 @@ public class MessageServiceIntegrationTest {
 		testRecipient.setSecret("recipient-secret");
 		testRecipient.setAlive(true);
 		testRecipient.setMessageCount(5);
-		testRecipient.setActionPoints(10);
+		testRecipient.setTotalPoints(10);
+		testRecipient.setPointsBalance(10);
 		testRecipient.setAssignedCabinet(1L);
 
 		testScenario = new Scenario();

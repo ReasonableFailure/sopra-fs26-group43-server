@@ -52,7 +52,6 @@ public class NewsServiceTest {
 		testNewsPostDTO = new NewsPostDTO();
 		testNewsPostDTO.setTitle("Test News");
 		testNewsPostDTO.setBody("Test news body");
-		testNewsPostDTO.setPostURI("http://example.com");
 		testNewsPostDTO.setScenarioId(1L);
 		testNewsPostDTO.setAuthorId(1L);
 
@@ -71,7 +70,7 @@ public class NewsServiceTest {
 		testNewsStory.setId(1L);
 		testNewsStory.setTitle("Test News");
 		testNewsStory.setBody("Test news body");
-		testNewsStory.setPostURI("http://example.com");
+		testNewsStory.setMastodonStatusId("http://example.com");
 		testNewsStory.setCreatedAt(Instant.now());
 		testNewsStory.setScenario(testScenario);
 
@@ -79,7 +78,7 @@ public class NewsServiceTest {
 		testPronouncement.setId(2L);
 		testPronouncement.setTitle("Test News");
 		testPronouncement.setBody("Test news body");
-		testPronouncement.setPostURI("http://example.com");
+		testPronouncement.setMastodonStatusId("http://example.com");
 		testPronouncement.setCreatedAt(Instant.now());
 		testPronouncement.setAuthor(testRole);
 		testPronouncement.setLikes(0);
@@ -107,7 +106,6 @@ public class NewsServiceTest {
 
 		assertEquals(testNewsPostDTO.getTitle(), createdNews.getTitle());
 		assertEquals(testNewsPostDTO.getBody(), createdNews.getBody());
-		assertEquals(testNewsPostDTO.getPostURI(), createdNews.getPostURI());
 		assertEquals(testScenario, createdNews.getScenario());
 		assertNotNull(createdNews.getCreatedAt());
 		assertTrue(createdNews instanceof Pronouncement);
@@ -128,7 +126,6 @@ public class NewsServiceTest {
 
 		assertEquals(testNewsPostDTO.getTitle(), createdNews.getTitle());
 		assertEquals(testNewsPostDTO.getBody(), createdNews.getBody());
-		assertEquals(testNewsPostDTO.getPostURI(), createdNews.getPostURI());
 		assertEquals(testScenario, createdNews.getScenario());
 		assertNotNull(createdNews.getCreatedAt());
 		assertTrue(createdNews instanceof NewsStory);

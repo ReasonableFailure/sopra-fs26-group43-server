@@ -8,22 +8,53 @@ import java.util.Map;
 @Service
 public class MastodonClient {
 
-    public void postStatus(String baseUrl, String token, String content) {
+    public String postStatus(String baseUrl, String token, String content) {
 
         if (baseUrl == null || token == null) {
-            return;
+            return null;
         }
 
         WebClient client = WebClient.builder()
                 .baseUrl(baseUrl)
                 .build();
 
-        client.post()
+        Map response = client.post()
                 .uri("/api/v1/statuses")
                 .header("Authorization", "Bearer " + token)
                 .bodyValue(Map.of("status", content))
                 .retrieve()
-                .toBodilessEntity()
+                .bodyToMono(Map.class)
                 .block();
+
+        if (response == null) {
+            return null;
+        }
+
+        Object id = response.get("id");
+        return id != null ? id.toString() : null;
+    }
+
+    public Integer getLikes(String baseUrl, String token, String statusId) {
+
+        if (baseUrl == null || token == null || statusId == null) {
+            return 0;
+        }
+
+        WebClient client = WebClient.builder()
+                .baseUrl(baseUrl)
+                .build();
+
+        Map response = client.get()
+                .uri("/api/v1/statuses/" + statusId)
+                .header("Authorization", "Bearer " + token)
+                .retrieve()
+                .bodyToMono(Map.class)
+                .block();
+
+        if (response == null || response.get("favourites_count") == null) {
+            return 0;
+        }
+
+        return ((Number) response.get("favourites_count")).intValue();
     }
 }

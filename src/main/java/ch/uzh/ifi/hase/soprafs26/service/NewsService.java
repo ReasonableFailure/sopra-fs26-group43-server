@@ -53,7 +53,6 @@ public class NewsService {
             Pronouncement p = new Pronouncement();
             p.setTitle(dto.getTitle());
             p.setBody(dto.getBody());
-            p.setPostURI(dto.getPostURI());
             p.setCreatedAt(Instant.now());
             p.setLikes(0);
             p.setAuthor(author);
@@ -73,11 +72,15 @@ public class NewsService {
         scenarioRepository.save(scenario);
 
         try {
-            mastodonClient.postStatus(
+            String statusId = mastodonClient.postStatus(
                     scenario.getMastodonBaseUrl(),
                     scenario.getMastodonAccessToken(),
                     entity.formatSelf()
             );
+
+            entity.setMastodonStatusId(statusId);
+            newsRepository.save(entity);
+
         } catch (Exception e) {
             System.err.println("Failed to post to Mastodon: " + e.getMessage());
         }

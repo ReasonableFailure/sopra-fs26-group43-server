@@ -60,7 +60,8 @@ public class DirectiveServiceIntegrationTest {
 		testRole.setSecret("secret");
 		testRole.setAlive(true);
 		testRole.setMessageCount(5);
-		testRole.setActionPoints(10);
+		testRole.setTotalPoints(10);
+		testRole.setPointsBalance(10);
 		testRole.setAssignedCabinet(0L);
 
 		testScenario = new Scenario();
@@ -137,7 +138,8 @@ public class DirectiveServiceIntegrationTest {
 		otherRole.setSecret("other-secret");
 		otherRole.setAlive(true);
 		otherRole.setMessageCount(5);
-		otherRole.setActionPoints(10);
+		otherRole.setTotalPoints(10);
+		otherRole.setPointsBalance(10);
 		otherRole.setAssignedCabinet(99L);
 		otherRole = roleRepository.save(otherRole);
 

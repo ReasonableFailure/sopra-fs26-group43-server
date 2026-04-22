@@ -9,4 +9,5 @@ import java.util.List;
 @Repository("newsRepository")
 public interface NewsRepository extends JpaRepository<NewsStory, Long> {
     List<NewsStory> findByScenarioIdOrderByCreatedAtAsc(Long scenarioId);
+    List<NewsStory> findAllByScenarioId(Long scenarioId);
 }
