@@ -47,7 +47,7 @@ public class ScenarioController {
         return ScenarioDTOMapper.INSTANCE.convertEntityToScenarioGetDTO(created);
     }
 
-    @GetMapping("/scenarios/{scenarioID}")
+    @GetMapping("/scenarios/{scenarioId}")
     public ScenarioGetDTO getScenarioById(@RequestHeader("Authorization") String token, @PathVariable Long scenarioId){
         Scenario scenario = scenarioService.getScenarioById(token,scenarioId);
         return ScenarioDTOMapper.INSTANCE.convertEntityToScenarioGetDTO(scenario);
