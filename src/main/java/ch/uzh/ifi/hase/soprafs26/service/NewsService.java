@@ -4,7 +4,7 @@ import ch.uzh.ifi.hase.soprafs26.entity.*;
 import ch.uzh.ifi.hase.soprafs26.repository.*;
 import ch.uzh.ifi.hase.soprafs26.integration.MastodonClient;
 import ch.uzh.ifi.hase.soprafs26.rest.newsdto.NewsPostDTO;
-import ch.uzh.ifi.hase.soprafs26.mapper.NewsDTOMapper;
+import ch.uzh.ifi.hase.soprafs26.rest.mapper.NewsDTOMapper;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -87,11 +87,11 @@ public class NewsService {
 
     public NewsStory getNewsById(Long newsId) {
 
-        NewsStory news = newsRepository.findById(newsId)
+        return newsRepository.findById(newsId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "News item not found"));
 
-        return news;
+
     }
 
     public List<NewsStory> getNewsByScenario(Long scenarioId) {

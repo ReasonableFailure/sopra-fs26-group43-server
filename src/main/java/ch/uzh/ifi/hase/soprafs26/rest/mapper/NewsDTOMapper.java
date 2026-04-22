@@ -1,4 +1,4 @@
-package ch.uzh.ifi.hase.soprafs26.mapper;
+package ch.uzh.ifi.hase.soprafs26.rest.mapper;
 
 import ch.uzh.ifi.hase.soprafs26.entity.*;
 import ch.uzh.ifi.hase.soprafs26.rest.newsdto.*;
