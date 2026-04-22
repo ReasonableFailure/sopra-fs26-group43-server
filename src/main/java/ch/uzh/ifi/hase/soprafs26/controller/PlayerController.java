@@ -44,7 +44,7 @@ public class PlayerController {
         }
     }
 
-    @GetMapping("/characters/{characterId}")
+    @GetMapping("/characters/{characterId}/detail")
     @ResponseStatus
     @ResponseBody
     public RoleGetDTO getRole(@RequestHeader("Authorization") String token, @PathVariable Long characterId) {
