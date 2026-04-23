@@ -86,7 +86,7 @@ public class PlayerController {
                 .toList();
     }
   
-     protected String[] splitToken(String token){
+     public static String[] splitToken(String token){
         if(token == null || token.isEmpty()){
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token is empty");
         }

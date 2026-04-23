@@ -108,10 +108,7 @@ public class ScenarioService {
         return toReturn;
     }
 
-    public void updateMastodonConfig(Long scenarioId, String token, ScenarioMastodonDTO dto) {
-
-        //checkIfValidToken(token);
-
+    public void updateMastodonConfig(Long scenarioId, ScenarioMastodonDTO dto) {
         Scenario scenario = scenarioRepository.findById(scenarioId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Scenario not found"));
