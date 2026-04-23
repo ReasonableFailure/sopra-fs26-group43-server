@@ -97,6 +97,26 @@ public class NewsController {
         }).toList();
     }
 
+    @PostMapping("/news/like/{newsId}/{roleId}")
+    @ResponseStatus(HttpStatus.OK)
+    public NewsGetDTO likeNews(
+            @RequestHeader("Authorization") String token,
+            @PathVariable Long newsId,
+            @PathVariable Long roleId) {
+
+        validate(token, "Role");
+
+        Pronouncement updated = newsService.likePronouncement(newsId, roleId);
+
+        NewsGetDTO dto =
+                NewsDTOMapper.INSTANCE.convertEntityToGetDTO(updated);
+
+        dto.setAuthorId(updated.getAuthor().getId());
+        dto.setLikes(updated.getLikes());
+
+        return dto;
+    }
+
     private String validate(String header, String type) {
         String[] tokens = splitToken(header);
         playerService.checkToken(tokens[1], type);

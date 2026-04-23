@@ -103,4 +103,35 @@ public class NewsService {
 
         return newsRepository.findByScenarioIdOrderByCreatedAtAsc(scenarioId);
     }
+
+    public Pronouncement likePronouncement(Long newsId, Long roleId) {
+        NewsStory news = newsRepository.findById(newsId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "News not found"));
+
+        if (!(news instanceof Pronouncement pronouncement)) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "News item is not a pronouncement");
+        }
+
+        Role role = roleRepository.findById(roleId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Role not found"));
+
+        if (pronouncement.getLikedBy().contains(role)) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "Role already liked this pronouncement");
+        }
+        
+        if (pronouncement.getAuthor().getId().equals(roleId)) {
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST, "Author cannot like own pronouncement");
+        }
+
+        pronouncement.getLikedBy().add(role);
+        pronouncement.setLikes(pronouncement.getLikes() + 1);
+        pronouncement.getAuthor().gainActionPoints(1);
+
+        return newsRepository.save(pronouncement);
+    }
 }
