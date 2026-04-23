@@ -44,7 +44,7 @@ public class PlayerController {
         }
     }
 
-    @GetMapping("/characters/{characterId}")
+    @GetMapping("/characters/{characterId}/detail")
     @ResponseStatus
     @ResponseBody
     public RoleGetDTO getRole(@RequestHeader("Authorization") String token, @PathVariable Long characterId) {
@@ -56,7 +56,7 @@ public class PlayerController {
     public RoleGetDTO createRole(@RequestBody RolePostDTO rolePostDTO, @RequestHeader("Authorization") String authToken){
         String[] tokens = splitToken(authToken);
         if(tokens[0].equals("Director")){
-            return PlayerDTOMapper.INSTANCE.convertEntitytoRoleGetDTO(playerService.createRole(authToken, rolePostDTO));
+            return PlayerDTOMapper.INSTANCE.convertEntitytoRoleGetDTO(playerService.createRole(tokens[1], rolePostDTO));
         } else {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
