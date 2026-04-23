@@ -11,6 +11,7 @@ public class DirectiveGetDTO {
     private Instant createdAt;
     private CommsStatus status;
     private Long creatorId;
+    private String response;
 
     public Long getId() {
         return id;
@@ -58,5 +59,13 @@ public class DirectiveGetDTO {
 
     public void setCreatorId(Long creatorId) {
         this.creatorId = creatorId;
+    }
+
+    public String getResponse() {
+        return response;
+    }
+
+    public void setResponse(String response) {
+        this.response = response;
     }
 }

@@ -85,7 +85,7 @@ public class PlayerService {
         Role newRole = PlayerDTOMapper.INSTANCE.convertRolePostDTOtoEntity(rolePostDTO);
         newRole.setAlive(true);
         newRole.setActionPoints(initialActionPoints);
-        newRole.setMessageCount(0);
+        newRole.setMessageCount(scenario.getStartingMessageCount());
         newRole.setToken(randomUUID().toString());
         roleRepository.save(newRole);
         roleRepository.flush();
