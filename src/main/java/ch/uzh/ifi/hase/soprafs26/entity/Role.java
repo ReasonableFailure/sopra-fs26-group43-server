@@ -36,6 +36,10 @@ public class Role extends Player{
         }
     }
 
+    public void incrementLikeCounter(int incrementBy){
+        this.actionPoints+=incrementBy;
+    }
+
     public void gainActionPoints(int points){
         this.actionPoints += points;
     }

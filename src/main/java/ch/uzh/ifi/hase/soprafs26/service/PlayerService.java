@@ -143,6 +143,14 @@ public class PlayerService {
         return d;
     }
 
+    public void addLikes(String token, Long characterId, int incrementBy){
+        checkToken(token, "Role");
+        Role role = roleRepository.findById(characterId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Role with ID %d cannot be found", characterId)));
+        role.gainActionPoints(incrementBy);
+    }
+
+
+
     public void checkToken(String token, @NonNull String type){
         Role toReturn = roleRepository.findByToken(token);
         Backroomer toReturnBackroomer = backroomerRepository.findByToken(token);
