@@ -171,6 +171,5 @@ public class UserService {
         if (token == null || token.isEmpty()) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("Invalid token"));
         User foundByToken = userRepository.findByToken(token);
         if (foundByToken == null || foundByToken.getToken() == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("Invalid token"));
-    }
 
 }
