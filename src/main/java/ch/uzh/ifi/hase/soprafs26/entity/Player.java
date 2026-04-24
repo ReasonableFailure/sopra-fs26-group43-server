@@ -19,6 +19,8 @@ abstract public class Player implements Serializable {
     @Column(nullable = false,unique = true)
     private String token;
 
+    // BUG: CascadeType.ALL includes REMOVE, so deleting any Player (Role, Director, Backroomer)
+    // also deletes the associated User account. User should not be owned by Player — remove cascade.
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "userId")
     private User user;
