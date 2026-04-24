@@ -5,7 +5,7 @@ import ch.uzh.ifi.hase.soprafs26.rest.newsdto.*;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface NewsDTOMapper {
 
     NewsDTOMapper INSTANCE = Mappers.getMapper(NewsDTOMapper.class);

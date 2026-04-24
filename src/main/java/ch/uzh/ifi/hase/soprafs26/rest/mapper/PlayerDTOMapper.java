@@ -5,7 +5,7 @@ import ch.uzh.ifi.hase.soprafs26.rest.playerdto.*;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING, uses = PlayerMapper.class)
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING, uses = PlayerMapper.class, unmappedTargetPolicy = ReportingPolicy.IGNORE)
  public interface PlayerDTOMapper {
 
 
