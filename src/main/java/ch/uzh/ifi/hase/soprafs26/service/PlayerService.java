@@ -157,13 +157,13 @@ public class PlayerService {
         Director toReturnDirector = directorRepository.findByToken(token);
         Player toReturnPlayer = playerRepository.findByToken(token);
         if(type.equals("Role") && toReturn == null){
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The Role token is unknown");
         } else if(type.equals("Backroomer") && toReturnBackroomer == null && toReturnDirector == null){
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The Backroomer token is unknown");
         } else if (type.equals("Director") && toReturnDirector == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The Director token is unknown");
         } else if (type.equals("any") && toReturnPlayer == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The Player token is unknown");
         }
     }
 
