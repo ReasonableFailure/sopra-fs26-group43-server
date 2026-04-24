@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import ch.uzh.ifi.hase.soprafs26.constant.CommsStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.Directive;
 import ch.uzh.ifi.hase.soprafs26.entity.Role;
-import ch.uzh.ifi.hase.soprafs26.mapper.DirectiveDTOMapper;
+import ch.uzh.ifi.hase.soprafs26.rest.mapper.DirectiveDTOMapper;
 import ch.uzh.ifi.hase.soprafs26.rest.directivedto.DirectiveGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.directivedto.DirectivePostDTO;
 
