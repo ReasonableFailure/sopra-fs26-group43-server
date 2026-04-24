@@ -60,6 +60,7 @@ public class DirectiveServiceIntegrationTest {
 		testRole.setAlive(true);
 		testRole.setMessageCount(5);
 		testRole.setActionPoints(10);
+        testRole.setToken("Role valid-token");
 
 		testScenario = new Scenario();
 		testScenario.setTitle("Test Scenario");
@@ -135,6 +136,7 @@ public class DirectiveServiceIntegrationTest {
 		otherRole.setAlive(true);
 		otherRole.setMessageCount(5);
 		otherRole.setActionPoints(10);
+        otherRole.setToken("Role other-valid-token");
 		otherRole = roleRepository.save(otherRole);
 
 		DirectivePostDTO postDTO = new DirectivePostDTO();

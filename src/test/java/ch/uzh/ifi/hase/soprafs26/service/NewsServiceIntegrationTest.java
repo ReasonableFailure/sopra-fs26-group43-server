@@ -58,7 +58,7 @@ public class NewsServiceIntegrationTest {
 		testRole.setAlive(true);
 		testRole.setMessageCount(5);
 		testRole.setActionPoints(10);
-
+        testRole.setToken("Role valid-token");
 		testScenario = new Scenario();
 		testScenario.setTitle("Test Scenario");
 		testScenario.setDescription("Test scenario description");
