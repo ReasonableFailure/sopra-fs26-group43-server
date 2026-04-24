@@ -3,7 +3,7 @@ package ch.uzh.ifi.hase.soprafs26.controller;
 import ch.uzh.ifi.hase.soprafs26.entity.Directive;
 import ch.uzh.ifi.hase.soprafs26.rest.directivedto.*;
 import ch.uzh.ifi.hase.soprafs26.service.DirectiveService;
-import ch.uzh.ifi.hase.soprafs26.mapper.DirectiveDTOMapper;
+import ch.uzh.ifi.hase.soprafs26.rest.mapper.DirectiveDTOMapper;
 
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
