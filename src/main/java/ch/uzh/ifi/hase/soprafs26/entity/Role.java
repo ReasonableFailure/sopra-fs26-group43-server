@@ -36,8 +36,19 @@ public class Role extends Player{
         }
     }
 
+    public void incrementLikeCounter(int incrementBy){
+        this.actionPoints+=incrementBy;
+    }
+
     public void gainActionPoints(int points){
         this.actionPoints += points;
+    }
+
+    public void useMessageSlot() {
+        if (messageCount <= 0) {
+            throw new IllegalStateException("No message slots available");
+        }
+        messageCount--;
     }
 
     public String getName() {

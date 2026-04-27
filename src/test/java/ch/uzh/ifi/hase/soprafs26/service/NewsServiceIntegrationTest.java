@@ -51,6 +51,7 @@ public class NewsServiceIntegrationTest {
 		roleRepository.deleteAll();
 
 		testRole = new Role();
+		testRole.setToken("test-token");
 		testRole.setName("Test Role");
 		testRole.setTitle("Test Title");
 		testRole.setDescription("Test description");
@@ -58,6 +59,8 @@ public class NewsServiceIntegrationTest {
 		testRole.setAlive(true);
 		testRole.setMessageCount(5);
 		testRole.setActionPoints(10);
+		testRole.setAssignedCabinet(0L);
+
         testRole.setToken("Role valid-token");
 		testScenario = new Scenario();
 		testScenario.setTitle("Test Scenario");

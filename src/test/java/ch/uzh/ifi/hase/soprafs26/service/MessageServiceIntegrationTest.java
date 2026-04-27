@@ -54,6 +54,7 @@ public class MessageServiceIntegrationTest {
 		roleRepository.deleteAll();
 
 		testCreator = new Role();
+		testCreator.setToken("test-creator-token");
 		testCreator.setName("Creator");
 		testCreator.setTitle("Creator Title");
 		testCreator.setDescription("Creator description");
@@ -61,9 +62,11 @@ public class MessageServiceIntegrationTest {
 		testCreator.setAlive(true);
 		testCreator.setMessageCount(5);
 		testCreator.setActionPoints(10);
+		testCreator.setAssignedCabinet(0L);
         testCreator.setToken("Role valid-creator-token");
 
 		testRecipient = new Role();
+		testRecipient.setToken("test-recipient-token");
 		testRecipient.setName("Recipient");
 		testRecipient.setTitle("Recipient Title");
 		testRecipient.setDescription("Recipient description");
@@ -71,7 +74,8 @@ public class MessageServiceIntegrationTest {
 		testRecipient.setAlive(true);
 		testRecipient.setMessageCount(5);
 		testRecipient.setActionPoints(10);
-        testRecipient.setToken("Role valid-recipient-token");
+		testRecipient.setAssignedCabinet(1L);
+    testRecipient.setToken("Role valid-recipient-token");
 
 		testScenario = new Scenario();
 		testScenario.setTitle("Test Scenario");

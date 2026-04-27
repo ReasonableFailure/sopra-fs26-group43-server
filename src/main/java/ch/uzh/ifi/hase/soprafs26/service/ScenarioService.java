@@ -1,8 +1,6 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
 import ch.uzh.ifi.hase.soprafs26.entity.*;
-import ch.uzh.ifi.hase.soprafs26.repository.PlayerRepository;
-import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.ScenarioDTOMapper;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioPutDTO;
@@ -70,19 +68,29 @@ public class ScenarioService {
 
     public void addPlayerToScenario(String token, Long scenarioId, Long playerId){
         userService.checkIfValidToken(token);
-        Role toAdd = playerService.getRole(token,playerId);
         Scenario scenario = getScenarioById(token,scenarioId);
-        toAdd = playerService.updateMessagingStats(playerId, scenario.getStartingMessageCount());
+        Role toAdd = playerService.updateMessagingStats(playerId, scenario.getStartingMessageCount());
         scenario.addPlayer(toAdd);
         scenarioRepository.save(scenario);
         scenarioRepository.flush();
     }
 
-    public void addCommunicationToHistory(String token, Long scenarioId, Long communicationId){
+    public void buyMoreMessages(String token, Long scenarioId, Long characterId, int incrementBy){
+        playerService.checkToken(token, "Role");
+        Role role = playerService.getRole(token, characterId);
+        Scenario scenario = getScenarioById(token, scenarioId);
+        try{
+            role.buyMessages(scenario.getExchangeRate(), incrementBy);
+        } catch (Exception e){
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "not enough action points!");
+        }
+    }
+
+    /** public void addCommunicationToHistory(String token, Long scenarioId, Long communicationId){
         Scenario toAddTo =  getScenarioById(token,scenarioId);
         toAddTo.addComm(null);
         //TODO: @HalaiRhea
-    }
+    } **/
 
     public List<Role> getRoles(Long scenarioId, String token) {
         userService.checkIfValidToken(token);
@@ -101,17 +109,16 @@ public class ScenarioService {
         Scenario scenario = getScenarioById(token,scenarioId);
         List<Role> toReturn = new ArrayList<Role>();
         for(Player player : scenario.getPlayers()){
-            if(player instanceof Role && (((Role) player).getAssignedCabinet() == cabinetId)){
+            long playerId = ((Role) player).getAssignedCabinet().longValue();
+            boolean b =  playerId == cabinetId.longValue();
+            if(player instanceof Role && b) {
                 toReturn.add((Role) player);
-            }
+                }
         }
         return toReturn;
     }
 
-    public void updateMastodonConfig(Long scenarioId, String token, ScenarioMastodonDTO dto) {
-
-        //checkIfValidToken(token);
-
+    public void updateMastodonConfig(Long scenarioId, ScenarioMastodonDTO dto) {
         Scenario scenario = scenarioRepository.findById(scenarioId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Scenario not found"));

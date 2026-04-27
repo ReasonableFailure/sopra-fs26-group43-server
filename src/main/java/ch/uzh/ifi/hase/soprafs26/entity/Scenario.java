@@ -32,7 +32,7 @@ public class Scenario implements Serializable {
     private String mastodonBaseUrl;
     @Column(nullable = true)
     private String mastodonAccessToken;
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = false)
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name="scenario_id")
     private Director director;
     @Column(nullable = false, unique = false)

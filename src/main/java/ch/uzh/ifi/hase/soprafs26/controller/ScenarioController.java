@@ -3,16 +3,17 @@ package ch.uzh.ifi.hase.soprafs26.controller;
 import ch.uzh.ifi.hase.soprafs26.entity.Role;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.PlayerDTOMapper;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RoleGetDTO;
-import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioPostDTO;
-import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioPutDTO;
-import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioMastodonDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RoleIncrementationDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.*;
 import ch.uzh.ifi.hase.soprafs26.entity.Scenario;
-import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.ScenarioDTOMapper;
 import ch.uzh.ifi.hase.soprafs26.service.ScenarioService;
+import ch.uzh.ifi.hase.soprafs26.service.PlayerService;
+import static ch.uzh.ifi.hase.soprafs26.controller.PlayerController.splitToken;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,10 +21,13 @@ import java.util.List;
 @RestController
 public class ScenarioController {
 
+    private final PlayerService playerService;
     private final ScenarioService scenarioService;
 
-    ScenarioController(ScenarioService scenarioService) {
+    ScenarioController(ScenarioService scenarioService,
+                    PlayerService playerService) {
         this.scenarioService = scenarioService;
+        this.playerService = playerService;
     }
 
     @GetMapping("/scenarios")
@@ -73,6 +77,14 @@ public class ScenarioController {
         return  toReturn;
     }
 
+    @PutMapping("/scenario/{scenarioId}/character/{characterId}/messages")
+    public void buyMoreMessages(@PathVariable Long scenarioId, @PathVariable Long characterId, @RequestHeader("Authorization") String token, @RequestBody RoleIncrementationDTO roleIncrementationDTO) {
+        String[] tokens = splitToken(token);
+        if(tokens[0].equals("Role")){
+            scenarioService.buyMoreMessages(tokens[1], scenarioId, characterId, roleIncrementationDTO.getIncrementBy());
+        }
+    }
+
     @GetMapping("/characters/{scenarioId}/cabinet/{cabinetId}")
     public List<RoleGetDTO> retrieveAllRolesInCabinet(@PathVariable Long scenarioId, @PathVariable Long cabinetId, @RequestHeader("Authorization") String token){
         List<Role> list = scenarioService.getRolesPerCabinet(scenarioId,cabinetId,token);
@@ -83,11 +95,39 @@ public class ScenarioController {
         return toReturn;
     }
 
+    @PostMapping("/scenario/{scenarioId}/characters")public void addPlayerToScenario(@PathVariable Long scenarioId, @RequestBody ScenarioPlayerDTO scenarioPlayerDTO, @RequestHeader("Authorization") String token){
+        String token1 = validate(token, "any");
+        scenarioService.addPlayerToScenario(token1,scenarioId,scenarioPlayerDTO.getToAssignId());
+
+    }
+
 
     @PutMapping("/scenarios/{scenarioId}/mastodon")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void updateMastodonConfig(@PathVariable Long scenarioId, @RequestHeader("Authorization") String token, @RequestBody ScenarioMastodonDTO dto) {
-        scenarioService.updateMastodonConfig(scenarioId, token, dto);
+    public void updateMastodonConfig(
+            @PathVariable Long scenarioId,
+            @RequestHeader("Authorization") String token,
+            @RequestBody ScenarioMastodonDTO dto) {
+
+        validate(token, "Director");
+
+        scenarioService.updateMastodonConfig(scenarioId, dto);
     }
 
+    private String validate(String header, String type) {
+        String[] tokens = splitToken(header);
+        playerService.checkToken(tokens[1], type);
+        return tokens[1];
+    }
+
+    public static String[] splitToken(String token){
+        if(token == null || token.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token is empty");
+        }
+        String[] thingy = token.split(" ");
+        if(thingy[0].equals("Role") || thingy[0].equals("Backroomer") || thingy[0].equals("Director")){
+            return thingy;
+        }
+        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token is invalid");
+    }
 }

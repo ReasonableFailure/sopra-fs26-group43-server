@@ -53,6 +53,7 @@ public class DirectiveServiceIntegrationTest {
 		roleRepository.deleteAll();
 
 		testRole = new Role();
+		testRole.setToken("test-token");
 		testRole.setName("Test Role");
 		testRole.setTitle("Test Title");
 		testRole.setDescription("Test description");
@@ -60,7 +61,7 @@ public class DirectiveServiceIntegrationTest {
 		testRole.setAlive(true);
 		testRole.setMessageCount(5);
 		testRole.setActionPoints(10);
-        testRole.setToken("Role valid-token");
+		testRole.setAssignedCabinet(0L);
 
 		testScenario = new Scenario();
 		testScenario.setTitle("Test Scenario");
@@ -129,6 +130,7 @@ public class DirectiveServiceIntegrationTest {
 	@Test
 	public void createDirective_roleNotPartOfScenario_throwsException() {
 		Role otherRole = new Role();
+		otherRole.setToken("other-token");
 		otherRole.setName("Other Role");
 		otherRole.setTitle("Other Title");
 		otherRole.setDescription("Other description");
@@ -136,7 +138,7 @@ public class DirectiveServiceIntegrationTest {
 		otherRole.setAlive(true);
 		otherRole.setMessageCount(5);
 		otherRole.setActionPoints(10);
-        otherRole.setToken("Role other-valid-token");
+		otherRole.setAssignedCabinet(99L);
 		otherRole = roleRepository.save(otherRole);
 
 		DirectivePostDTO postDTO = new DirectivePostDTO();

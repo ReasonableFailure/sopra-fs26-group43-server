@@ -19,7 +19,7 @@ abstract public class Player implements Serializable {
     @Column(nullable = false,unique = true)
     private String token;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "userId")
     private User user;
 
