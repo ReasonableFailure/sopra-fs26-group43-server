@@ -28,29 +28,29 @@ import java.util.UUID;
 @Transactional
 public class UserService {
 
-	private final Logger log = LoggerFactory.getLogger(UserService.class);
+    private final Logger log = LoggerFactory.getLogger(UserService.class);
 
-	private final UserRepository userRepository;
+    private final UserRepository userRepository;
 
-	public UserService(@Qualifier("userRepository") UserRepository userRepository) {
-		this.userRepository = userRepository;
-	}
+    public UserService(@Qualifier("userRepository") UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
-	public List<User> getUsers(String token) {
+    public List<User> getUsers(String token) {
         checkIfValidToken(token);
-		return this.userRepository.findAll();
-	}
+        return this.userRepository.findAll();
+    }
 
-    public User getProfileById(Long idToBeFound, String authToken){
+    public User getProfileById(Long idToBeFound, String authToken) {
         checkIfValidToken(authToken);
-        return userRepository.findById(idToBeFound).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User with id %d not found", idToBeFound)));
+        return userRepository.findById(idToBeFound).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User with id %d not found", idToBeFound)));
     }
 
     public User createUser(User newUser) {
-        if(!isValidProfileData(newUser.getUsername(),newUser.getPassword())){
+        if (!isValidProfileData(newUser.getUsername(), newUser.getPassword())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Invalid username or password"));
         }
-        if(checkIfUsernameTaken(newUser.getUsername())){
+        if (checkIfUsernameTaken(newUser.getUsername())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, String.format("Username already taken"));
         }
         newUser.setToken(UUID.randomUUID().toString());
@@ -65,14 +65,14 @@ public class UserService {
         return newUser;
     }
 
-    public User loginUser(User user){
-        if(!isValidProfileData(user.getUsername(),user.getPassword())){
+    public User loginUser(User user) {
+        if (!isValidProfileData(user.getUsername(), user.getPassword())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Invalid username or password"));
         }
-        if(!checkPwd(user.getUsername(),user.getPassword())){
+        if (!checkPwd(user.getUsername(), user.getPassword())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("Invalid token"));
         }
-        if(!checkIfUserExistsByID(user.getId())){
+        if (!checkIfUserExistsByID(user.getId())) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User with id %d not found", user.getId()));
         }
         User fromStore = userRepository.findByUsername(user.getUsername());
@@ -83,10 +83,10 @@ public class UserService {
         return fromStore;
     }
 
-    public void logoutUser(Long ID, String token){
+    public void logoutUser(Long ID, String token) {
         //200, 401, 404
         checkIfValidToken(token);
-        if(!checkIfUserExistsByID(ID)){
+        if (!checkIfUserExistsByID(ID)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User with id %d not found", ID));
         }
         User requestsLogout = userRepository.findByToken(token);
@@ -99,10 +99,10 @@ public class UserService {
 
     public void updateProfile(String token, Long id, User holdsUpdate) {
         checkIfValidToken(token);
-        if(!checkIfUserExistsByID(id)){
+        if (!checkIfUserExistsByID(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User with id %d not found", id));
         }
-        if(!isValidProfileData(holdsUpdate.getUsername(),holdsUpdate.getPassword())){
+        if (!isValidProfileData(holdsUpdate.getUsername(), holdsUpdate.getPassword())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Invalid username or password"));
         }
         User toBeModified = userRepository.findById(id).get();
@@ -114,62 +114,66 @@ public class UserService {
     }
 
     /*List of Failure conditions:
-    * Invalid profile input data || Done
-    * wrong password Done
-    * username already exists Done
-    * unauthorised token |||| Done
-    * userid does not exist |||| Done
-    * invalid data in update Done
-    * */
+     * Invalid profile input data || Done
+     * wrong password Done
+     * username already exists Done
+     * unauthorised token |||| Done
+     * userid does not exist |||| Done
+     * invalid data in update Done
+     * */
 
-    private boolean isValidProfileData(String uname, String pwd){
+    private boolean isValidProfileData(String uname, String pwd) {
         //TODO: in future: enforce pwd rules?
         boolean isValid = true;
-        if(uname == null || pwd == null){
+        if (uname == null || pwd == null) {
             //fields must exist
             isValid = false;
         }
-        if(uname.isEmpty() || pwd.isEmpty()){
+        if (uname.isEmpty() || pwd.isEmpty()) {
             //fields may not be empty
             isValid = false;
         }
-        if(uname.isBlank() || pwd.isBlank()){
+        if (uname.isBlank() || pwd.isBlank()) {
             //fields may not be just whitespace
             isValid = false;
         }
         return isValid;
     }
 
-    private boolean checkIfUsernameTaken(String uname){
+    private boolean checkIfUsernameTaken(String uname) {
         User foundByUname = userRepository.findByUsername(uname);
         if (foundByUname == null) {
             return false;
         }
         return true;
     }
+
     /*
-    * pre-condition: user must exist*/
-    private boolean checkPwd(String uname, String pwd){
+     * pre-condition: user must exist*/
+    private boolean checkPwd(String uname, String pwd) {
         User foundByUname = userRepository.findByUsername(uname);
-        if (foundByUname.getPassword().equals(pwd)){
+        if (foundByUname.getPassword().equals(pwd)) {
             return true;
         }
         return false;
     }
 
-    private boolean checkIfUserExistsByID(Long ID){
+    private boolean checkIfUserExistsByID(Long ID) {
         User foundById = userRepository.findById(ID).orElse(null);
         return foundById != null;
     }
 
-    protected User getByToken(String token){
+    protected User getByToken(String token) {
         checkIfValidToken(token);
         return userRepository.findByToken(token);
     }
 
-    protected void checkIfValidToken(String token){
-        if (token == null || token.isEmpty()) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("Invalid token"));
+    protected void checkIfValidToken(String token) {
+        if (token == null || token.isEmpty())
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("Invalid token"));
         User foundByToken = userRepository.findByToken(token);
-        if (foundByToken == null || foundByToken.getToken() == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("Invalid token"));
+        if (foundByToken == null || foundByToken.getToken() == null)
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("Invalid token"));
 
+    }
 }
