@@ -61,6 +61,7 @@ public class NewsServiceIntegrationTest {
 		testRole.setActionPoints(10);
 		testRole.setAssignedCabinet(0L);
 
+        testRole.setToken("Role valid-token");
 		testScenario = new Scenario();
 		testScenario.setTitle("Test Scenario");
 		testScenario.setDescription("Test scenario description");

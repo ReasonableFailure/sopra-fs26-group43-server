@@ -5,7 +5,7 @@ import ch.uzh.ifi.hase.soprafs26.entity.*;
 import ch.uzh.ifi.hase.soprafs26.repository.*;
 import ch.uzh.ifi.hase.soprafs26.rest.directivedto.DirectivePostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.directivedto.DirectivePutDTO;
-import ch.uzh.ifi.hase.soprafs26.mapper.DirectiveDTOMapper;
+import ch.uzh.ifi.hase.soprafs26.rest.mapper.DirectiveDTOMapper;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;

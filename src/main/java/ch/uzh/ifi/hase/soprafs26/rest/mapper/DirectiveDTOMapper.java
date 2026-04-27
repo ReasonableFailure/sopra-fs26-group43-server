@@ -1,4 +1,4 @@
-package ch.uzh.ifi.hase.soprafs26.mapper;
+package ch.uzh.ifi.hase.soprafs26.rest.mapper;
 
 import ch.uzh.ifi.hase.soprafs26.entity.Directive;
 import ch.uzh.ifi.hase.soprafs26.rest.directivedto.DirectiveGetDTO;
@@ -6,7 +6,7 @@ import ch.uzh.ifi.hase.soprafs26.rest.directivedto.DirectivePostDTO;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface DirectiveDTOMapper {
 
     DirectiveDTOMapper INSTANCE = Mappers.getMapper(DirectiveDTOMapper.class);

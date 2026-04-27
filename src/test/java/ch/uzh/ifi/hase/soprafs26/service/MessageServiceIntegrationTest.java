@@ -63,6 +63,7 @@ public class MessageServiceIntegrationTest {
 		testCreator.setMessageCount(5);
 		testCreator.setActionPoints(10);
 		testCreator.setAssignedCabinet(0L);
+        testCreator.setToken("Role valid-creator-token");
 
 		testRecipient = new Role();
 		testRecipient.setToken("test-recipient-token");
@@ -74,6 +75,7 @@ public class MessageServiceIntegrationTest {
 		testRecipient.setMessageCount(5);
 		testRecipient.setActionPoints(10);
 		testRecipient.setAssignedCabinet(1L);
+    testRecipient.setToken("Role valid-recipient-token");
 
 		testScenario = new Scenario();
 		testScenario.setTitle("Test Scenario");

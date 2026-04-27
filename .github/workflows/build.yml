@@ -33,4 +33,11 @@ jobs:
       - name: Build and analyze
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./gradlew build sonar --info
+          SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
+        run: ./gradlew build sonar -Dsonar.host.url=https://sonarcloud.io --info > sonar_logs.txt 2>&1
+      - name: Upload Logs on Failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonar-diag-logs
+          path: sonar_logs.txt
