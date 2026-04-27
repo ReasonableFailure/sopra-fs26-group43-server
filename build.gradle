@@ -56,14 +56,17 @@ bootJar {
 }
 
 sonar {
+
     properties {
         property "sonar.projectKey", "ReasonableFailure_sopra-fs26-group43-server"
         property "sonar.organization", "reasonablefailure"
         property "sonar.host.url", "https://sonarcloud.io"
+        property "sonar.coverage.jacoco.xmlReportPaths", "${project.layout.buildDirectory.get()}/reports/jacoco/test/jacocoTestReport.xml"
     }
 }
 
 jacocoTestReport {
+    dependsOn test
     reports {
         xml.required = true
     }
@@ -73,6 +76,7 @@ test {
     useJUnitPlatform()
     testLogging.showStandardStreams = true
     maxParallelForks = 1
+    finalizedBy jacocoTestReport
 }
 
 File secretPropsFile = file('./local.properties')
