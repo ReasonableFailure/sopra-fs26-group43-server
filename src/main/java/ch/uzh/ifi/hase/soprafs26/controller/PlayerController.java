@@ -47,7 +47,7 @@ public class PlayerController {
     public PlayerGetDTO createBackroomer(@RequestHeader("Authorization") String token, PlayerPutDTO playerPutDTO){
         String[] tokens = splitToken(token);
         if(tokens[0].equals("Bearer")){
-            Backroomer b = playerService.createBackroomer(tokens[1]);
+            Backroomer b = playerService.createBackroomer(tokens[1], playerPutDTO);
             return PlayerDTOMapper.INSTANCE.convertEntitytoPlayerGetDTO(b);
         } else {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
