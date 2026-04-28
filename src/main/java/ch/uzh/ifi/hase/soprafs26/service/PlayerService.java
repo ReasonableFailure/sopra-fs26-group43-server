@@ -99,11 +99,12 @@ public class PlayerService {
         roleRepository.deleteById(roleId);
     }
 
-    public Backroomer createBackroomer(String userToken){
+    public Backroomer createBackroomer(String userToken, PlayerPutDTO playerPutDTO){
         userService.checkIfValidToken(userToken);
         Backroomer b = new Backroomer();
         b.setToken(randomUUID().toString());
         b.setDelegatedCharacters(new ArrayList<Role>());
+        b = (Backroomer) PlayerDTOMapper.INSTANCE.convertPlayerPutDTOtoEntity(playerPutDTO, b);
         backroomerRepository.save(b);
         backroomerRepository.flush();
         return b;

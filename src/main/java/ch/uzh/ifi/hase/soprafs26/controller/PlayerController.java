@@ -44,7 +44,7 @@ public class PlayerController {
 
     @PostMapping("/backroomers")
     @ResponseStatus(HttpStatus.OK)
-    public PlayerGetDTO createBackroomer(@RequestHeader("Authorization") String token){
+    public PlayerGetDTO createBackroomer(@RequestHeader("Authorization") String token, PlayerPutDTO playerPutDTO){
         String[] tokens = splitToken(token);
         if(tokens[0].equals("Bearer")){
             Backroomer b = playerService.createBackroomer(tokens[1]);
