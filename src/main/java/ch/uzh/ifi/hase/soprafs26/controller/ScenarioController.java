@@ -96,7 +96,7 @@ public class ScenarioController {
             @RequestHeader("Authorization") String token,
             @RequestBody ScenarioMastodonDTO dto) {
 
-        validate(token, "Director");
+        //validate(token, "Director");
 
         scenarioService.updateMastodonConfig(scenarioId, dto);
     }

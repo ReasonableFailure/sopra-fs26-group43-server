@@ -32,6 +32,8 @@ public class Scenario implements Serializable {
     private String mastodonBaseUrl;
     @Column(nullable = true)
     private String mastodonAccessToken;
+    @Column(nullable = true)
+    private String mastodonProfileUrl;
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = false)
     @JoinColumn(name="scenario_id")
     private Director director;
@@ -127,6 +129,14 @@ public class Scenario implements Serializable {
 
     public String getMastodonAccessToken() {
         return mastodonAccessToken;
+    }
+
+    public String getMastodonProfileUrl() {
+        return mastodonProfileUrl;
+    }
+
+    public void setMastodonProfileUrl(String mastodonProfileUrl) {
+        this.mastodonProfileUrl = mastodonProfileUrl;
     }
 
     public Director getDirector() {

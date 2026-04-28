@@ -9,6 +9,7 @@ public class ScenarioGetDTO {
     private int dayNumber;
     private int exchangeRate;
     private String directorToken;
+    private String mastodonProfileUrl;
 
     public Long getId() {
         return id;
@@ -64,5 +65,13 @@ public class ScenarioGetDTO {
 
     public void setDirectorToken(String directorToken) {
         this.directorToken = directorToken;
+    }
+
+    public String getMastodonProfileUrl() {
+        return mastodonProfileUrl;
+    }
+
+    public void setMastodonProfileUrl(String mastodonProfileUrl) {
+        this.mastodonProfileUrl = mastodonProfileUrl;
     }
 }

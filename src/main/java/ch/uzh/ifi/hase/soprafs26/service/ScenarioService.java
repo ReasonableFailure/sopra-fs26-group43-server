@@ -7,6 +7,7 @@ import ch.uzh.ifi.hase.soprafs26.rest.mapper.ScenarioDTOMapper;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioPutDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioMastodonDTO;
+import ch.uzh.ifi.hase.soprafs26.integration.MastodonClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -115,6 +116,13 @@ public class ScenarioService {
 
         scenario.setMastodonBaseUrl(dto.getMastodonBaseUrl());
         scenario.setMastodonAccessToken(dto.getMastodonAccessToken());
+
+        String profileUrl = MastodonClient.fetchMastodonProfileUrl(
+                dto.getMastodonBaseUrl(),
+                dto.getMastodonAccessToken()
+        );
+
+        scenario.setMastodonProfileUrl(profileUrl);
 
         scenarioRepository.save(scenario);
     }

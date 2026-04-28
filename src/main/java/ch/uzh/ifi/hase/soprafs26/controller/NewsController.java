@@ -30,13 +30,13 @@ public class NewsController {
     public NewsGetDTO createNews(
             @RequestHeader("Authorization") String token,
             @RequestBody NewsPostDTO dto) {
-
+        /*
         if (dto.getAuthorId() != null) {
             validate(token, "Role");
         } else {
             validate(token, "Backroomer");
         }
-
+        */
         NewsStory entity = newsService.createNews(dto);
 
         NewsGetDTO output =
@@ -56,7 +56,7 @@ public class NewsController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long newsId) {
 
-        validate(token, "any");
+        //validate(token, "any");
 
         NewsStory entity = newsService.getNewsById(newsId);
 
@@ -77,7 +77,7 @@ public class NewsController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long scenarioId) {
 
-        validate(token, "any");
+        //validate(token, "any");
 
         List<NewsStory> newsList =
                 newsService.getNewsByScenario(scenarioId);

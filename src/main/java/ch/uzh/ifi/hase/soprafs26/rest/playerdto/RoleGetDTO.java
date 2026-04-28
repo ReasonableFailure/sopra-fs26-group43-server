@@ -1,6 +1,7 @@
 package ch.uzh.ifi.hase.soprafs26.rest.playerdto;
 
 public class RoleGetDTO {
+    private Long id;
     private String name;
     private String title;
     private String description;
@@ -10,6 +11,14 @@ public class RoleGetDTO {
     private int actionPoints;
     private byte[] portrait;
 
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+    
     public String getName() {
         return name;
     }

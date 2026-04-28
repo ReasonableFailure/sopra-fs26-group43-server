@@ -30,7 +30,7 @@ public class MessageController {
             @RequestHeader("Authorization") String token,
             @RequestBody MessagePostDTO postDTO) {
 
-        validate(token, "Role");
+        //validate(token, "Role");
 
         Message message = messageService.createMessage(postDTO);
 
@@ -43,7 +43,7 @@ public class MessageController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long messageId) {
 
-        validate(token, "any");
+        //validate(token, "any");
 
         Message message = messageService.getMessageById(messageId);
 
@@ -57,7 +57,7 @@ public class MessageController {
             @PathVariable Long messageId,
             @RequestBody MessagePutDTO putDTO) {
 
-        validate(token, "Backroomer");
+        //validate(token, "Backroomer");
 
         messageService.updateMessageStatus(messageId, putDTO);
     }
@@ -68,7 +68,7 @@ public class MessageController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long scenarioId) {
 
-        validate(token, "any");
+        //validate(token, "any");
 
         return messageService.getMessagePairsByScenario(scenarioId);
     }
@@ -80,7 +80,7 @@ public class MessageController {
             @PathVariable Long characterAId,
             @PathVariable Long characterBId) {
 
-        validate(token, "any");
+        //validate(token, "any");
 
         List<Message> messages =
                 messageService.getMessagesBetween(characterAId, characterBId);

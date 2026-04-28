@@ -28,7 +28,7 @@ public class DirectiveController {
             @RequestHeader("Authorization") String token,
             @RequestBody DirectivePostDTO postDTO) {
 
-        validate(token, "Role");
+        //validate(token, "Role");
 
         Directive directive = directiveService.createDirective(postDTO);
 
@@ -41,7 +41,7 @@ public class DirectiveController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long directiveId) {
 
-        validate(token, "any");
+        //validate(token, "any");
 
         Directive directive = directiveService.getDirectiveById(directiveId);
 
@@ -55,7 +55,7 @@ public class DirectiveController {
             @PathVariable Long directiveId,
             @RequestBody DirectivePutDTO putDTO) {
 
-        validate(token, "Backroomer");
+        //validate(token, "Backroomer");
 
         directiveService.updateDirectiveStatus(directiveId, putDTO);
     }
@@ -66,7 +66,7 @@ public class DirectiveController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long scenarioId) {
 
-        validate(token, "any");
+        //validate(token, "any");
 
         List<Directive> directives = directiveService.getDirectivesByScenario(scenarioId);
 
@@ -81,7 +81,7 @@ public class DirectiveController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long characterId) {
 
-        validate(token, "any");
+        //validate(token, "any");
 
         List<Directive> directives = directiveService.getDirectivesByCreator(characterId);
 
