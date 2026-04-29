@@ -15,9 +15,6 @@ import org.mapstruct.factory.Mappers;
 
     RoleGetDTO convertEntitytoRoleGetDTO(Role role);
 
-    @Mapping(source = "newAssignedUserId", target = "id")
-    Player convertPlayerPutDTOtoEntity(PlayerAssignDTO playerAssignDTO);
-
     Role convertRolePostDTOtoEntity(RolePostDTO rolePostDTO);
 
     @Mapping(source = "token", target = "authToken")
