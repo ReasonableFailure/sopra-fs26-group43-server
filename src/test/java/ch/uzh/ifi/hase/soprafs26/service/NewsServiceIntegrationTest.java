@@ -77,7 +77,7 @@ public class NewsServiceIntegrationTest {
 		testRole.setSecret("secret");
 		testRole.setAlive(true);
 		testRole.setMessageCount(5);
-		testRole.setcreditedLikes(10);
+		testRole.setTotalPoints(10);
 		testRole.setPointsBalance(10);
 		testRole.setAssignedCabinet(0L);
 

@@ -8,7 +8,7 @@ public class RoleGetDTO {
     private String secret;
     private boolean isAlive;
     private int messageCount;
-    private int creditedLikes;
+    private int totalPoints;
     private int pointsBalance;
     private byte[] portrait;
 
@@ -68,12 +68,12 @@ public class RoleGetDTO {
         this.messageCount = messageCount;
     }
 
-    public int getcreditedLikes() {
-        return creditedLikes;
+    public int getTotalPoints() {
+        return totalPoints;
     }
 
-    public void setcreditedLikes(int creditedLikes) {
-        this.creditedLikes = creditedLikes;
+    public void setTotalPoints(int totalPoints) {
+        this.totalPoints = totalPoints;
     }
 
     public int getPointsBalance() {

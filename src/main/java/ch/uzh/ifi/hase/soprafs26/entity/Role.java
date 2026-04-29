@@ -17,7 +17,7 @@ public class Role extends Player{
     @Column(unique=false,nullable=false)
     private int messageCount;
     @Column(unique=false,nullable=false)
-    private int creditedLikes;
+    private int totalPoints;
     @Column(unique=false,nullable=true)
     private int pointsBalance;
     @Column(unique=false,nullable=true)
@@ -36,11 +36,6 @@ public class Role extends Player{
         } else {
             throw new Exception("You do not have enough action points for this purchase");
         }
-    }
-
-    public void addEarnedPoints(int delta) {
-        this.creditedLikes += delta;
-        this.pointsBalance += delta;
     }
 
     public void useMessageSlot() {
@@ -98,12 +93,12 @@ public class Role extends Player{
         this.messageCount = messageCount;
     }
 
-    public int getcreditedLikes() {
-        return this.creditedLikes;
+    public int getTotalPoints() {
+        return this.totalPoints;
     }
 
-    public void setcreditedLikes(int creditedLikes) {
-        this.creditedLikes = creditedLikes;
+    public void setTotalPoints(int totalPoints) {
+        this.totalPoints = totalPoints;
     }
 
     public int getPointsBalance() {

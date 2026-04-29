@@ -39,8 +39,6 @@ public class PlayerService {
     private final ScenarioRepository scenarioRepository;
     private final UserService userService;
     private final MastodonClient mastodonClient;
-    private final int initialActionPoints = 0;
-
     private final Logger log = LoggerFactory.getLogger(PlayerService.class);
 
     public PlayerService(@Qualifier("playerRepository") PlayerRepository playerRepository, @Qualifier("roleRepository") RoleRepository roleRepository,@Qualifier("backroomerRepository") BackroomerRepository backroomerRepository,@Qualifier("directorRepository") DirectorRepository directorRepository, @Qualifier("userService") UserService userService, @Qualifier("messageRepository") MessageRepository messageRepository, @Qualifier("scenarioRepository") ScenarioRepository scenarioRepository, @Qualifier("newsRepository") NewsRepository newsRepository, @Qualifier("mastodonClient") MastodonClient mastodonClient) {
@@ -56,7 +54,7 @@ public class PlayerService {
     }
 
     public Role getRole(String token, Long roleId)  {
-        checkToken(token,"any");
+        //checkToken(token,"any");
         return roleRepository.findById(roleId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Role with id %d not found", roleId)));
     }
 
@@ -89,9 +87,9 @@ public class PlayerService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario not found"));
         Role newRole = PlayerDTOMapper.INSTANCE.convertRolePostDTOtoEntity(rolePostDTO);
         newRole.setAlive(true);
-        newRole.setcreditedLikes(initialActionPoints);
-        newRole.setPointsBalance(initialActionPoints);
-        newRole.setMessageCount(0);
+        newRole.setTotalPoints(0);
+        newRole.setPointsBalance(0);
+        newRole.setMessageCount(scenario.getStartingMessageCount());
         newRole.setToken(randomUUID().toString());
         roleRepository.save(newRole);
         roleRepository.flush();
@@ -165,14 +163,26 @@ public class PlayerService {
         }
     }
 
+    @Transactional
+    public Role syncPointsAndGetRole(String authToken, Long scenarioId, Long characterId) {
+
+        Role role = getRole(authToken, characterId);
+
+        Scenario scenario = scenarioRepository.findById(scenarioId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        syncActionPoints(role, scenario);
+
+        return roleRepository.save(role);
+    }
+
     public void syncActionPoints(Role role, Scenario scenario) {
-        List<Pronouncement> pronouncements = newsRepository
-                .findAllByScenarioId(scenario.getId())
-                .stream()
-                .filter(n -> n instanceof Pronouncement)
-                .map(n -> (Pronouncement) n)
-                .filter(p -> p.getAuthor().getId().equals(role.getId()))
-                .toList();
+
+        List<Pronouncement> pronouncements =
+                newsRepository.findPronouncementsByAuthorIdAndScenarioId(
+                        role.getId(),
+                        scenario.getId()
+                );
 
         int newTotal = 0;
 
@@ -184,21 +194,53 @@ public class PlayerService {
                     p.getMastodonStatusId()
             );
 
-            if (likes == null) likes = 0;
-
-            p.setLikes(likes);
+            if (likes == null) {
+                likes = 0;
+            }
 
             newTotal += likes;
         }
 
-        int delta = newTotal - role.getcreditedLikes();
+        int oldTotal = role.getTotalPoints();
 
-        if (delta > 0) {
-            role.setCreditedLikes(newTotal);
+        if (newTotal > oldTotal) {
+            int delta = newTotal - oldTotal;
+
+            role.setTotalPoints(newTotal);
             role.setPointsBalance(role.getPointsBalance() + delta);
+
+        } else {
+            role.setTotalPoints(newTotal);
         }
 
         roleRepository.save(role);
+    }
+
+    @Transactional
+    public Role buyMessage(String token, Long scenarioId, Long characterId) {
+
+        //checkToken(token, "Role");
+
+        Role role = roleRepository.findById(characterId)
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "Character not found"));
+
+        Scenario scenario = scenarioRepository.findById(scenarioId)
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "Scenario not found"));
+
+        syncActionPoints(role, scenario);
+
+        try {
+            role.buyMessages(scenario.getExchangeRate(), 1);
+        } catch (Exception e) {
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                e.getMessage()
+            );
+        }
+
+        return roleRepository.save(role);
     }
 
 }

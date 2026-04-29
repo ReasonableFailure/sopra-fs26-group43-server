@@ -97,4 +97,39 @@ public class PlayerController {
         throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token is invalid");
     }
 
+    @GetMapping("/characters/{scenarioId}/{characterId}/points")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public RoleGetDTO syncAndGetPoints(
+            @RequestHeader("Authorization") String token,
+            @PathVariable Long scenarioId,
+            @PathVariable Long characterId
+    ) {
+        //String[] tokens = splitToken(token);
+
+        return PlayerDTOMapper.INSTANCE.convertEntitytoRoleGetDTO(
+                playerService.syncPointsAndGetRole(token, scenarioId, characterId)
+        );
+    }
+
+    @PostMapping("/characters/{scenarioId}/{characterId}/buy-message")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public RoleGetDTO buyMessage(
+            @RequestHeader("Authorization") String token,
+            @PathVariable Long scenarioId,
+            @PathVariable Long characterId) {
+
+        /*String[] tokens = splitToken(token);
+
+        if (!tokens[0].equals("Role")) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
+        */
+        Role updatedRole =
+            playerService.buyMessage(token, scenarioId, characterId);
+
+        return PlayerDTOMapper.INSTANCE.convertEntitytoRoleGetDTO(updatedRole);
+    }
+
 }
