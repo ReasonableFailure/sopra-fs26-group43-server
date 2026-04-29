@@ -8,7 +8,8 @@ public class RoleGetDTO {
     private String secret;
     private boolean isAlive;
     private int messageCount;
-    private int actionPoints;
+    private int creditedLikes;
+    private int pointsBalance;
     private byte[] portrait;
 
     public Long getId() {
@@ -67,12 +68,19 @@ public class RoleGetDTO {
         this.messageCount = messageCount;
     }
 
-    public int getActionPoints() {
-        return actionPoints;
+    public int getcreditedLikes() {
+        return creditedLikes;
     }
 
-    public void setActionPoints(int actionPoints) {
-        this.actionPoints = actionPoints;
+    public void setcreditedLikes(int creditedLikes) {
+        this.creditedLikes = creditedLikes;
+    }
+
+    public int getPointsBalance() {
+        return pointsBalance;
+    }
+    public void setPointsBalance(int pointsBalance) {
+        this.pointsBalance = pointsBalance;
     }
 
     public byte[] getPortrait() {

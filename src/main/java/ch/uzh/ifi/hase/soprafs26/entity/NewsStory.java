@@ -5,15 +5,15 @@ import jakarta.persistence.*;
 @Entity
 public class NewsStory extends Communication {
 
-    @Column(nullable = false)
-    private String postURI;
+    @Column(nullable = true)
+    private String mastodonStatusId;
 
-    public String getPostURI() {
-        return postURI;
+    public String getMastodonStatusId() {
+        return mastodonStatusId;
     }
 
-    public void setPostURI(String postURI) {
-        this.postURI = postURI;
+    public void setMastodonStatusId(String mastodonStatusId) {
+        this.mastodonStatusId = mastodonStatusId;
     }
 
     public String formatSelf() {

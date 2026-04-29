@@ -27,6 +27,7 @@ public interface ScenarioDTOMapper {
     @Mapping(target = "mastodonBaseUrl", ignore = true)
     @Mapping(target = "mastodonAccessToken", ignore = true)
     @Mapping(target = "director", ignore = true)
+    @Mapping(target = "mastodonProfileUrl", ignore = true)
     Scenario convertScenarioPostDTOtoEntity(ScenarioPostDTO scenarioPostDTO);
 
     @Mapping(target = "players", ignore = true)
@@ -36,5 +37,6 @@ public interface ScenarioDTOMapper {
     @Mapping(target = "mastodonAccessToken", ignore = true)
     @Mapping(target = "director", ignore = true)
     @Mapping(target = "startingMessageCount", ignore = true)
+    @Mapping(target = "mastodonProfileUrl", ignore = true)
     void convertScenarioPutDTOtoEntity(ScenarioPutDTO scenarioPutDTO, @MappingTarget Scenario scenario);
 }

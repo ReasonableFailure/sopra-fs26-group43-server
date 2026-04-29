@@ -52,6 +52,7 @@ public class MessageServiceTest {
 		MockitoAnnotations.openMocks(this);
 
 		testCreator = new Role();
+		testCreator.setMessageCount(5);
 		testCreator.setId(1L);
 
 		testRecipient = new Role();

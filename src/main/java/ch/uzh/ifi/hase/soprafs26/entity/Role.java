@@ -17,7 +17,9 @@ public class Role extends Player{
     @Column(unique=false,nullable=false)
     private int messageCount;
     @Column(unique=false,nullable=false)
-    private int actionPoints;
+    private int creditedLikes;
+    @Column(unique=false,nullable=true)
+    private int pointsBalance;
     @Column(unique=false,nullable=true)
     private byte[] portrait;
     @Column(unique = false, nullable = true)
@@ -28,16 +30,24 @@ public class Role extends Player{
     }
 
     public void buyMessages(int exchangeRate, int desiredIncrease) throws Exception{
-        if(this.actionPoints >= exchangeRate*desiredIncrease){
+        if(this.pointsBalance >= exchangeRate*desiredIncrease){
             this.messageCount+=desiredIncrease;
-            this.actionPoints -= exchangeRate*desiredIncrease;
+            this.pointsBalance -= exchangeRate*desiredIncrease;
         } else {
             throw new Exception("You do not have enough action points for this purchase");
         }
     }
 
-    public void gainActionPoints(int points){
-        this.actionPoints += points;
+    public void addEarnedPoints(int delta) {
+        this.creditedLikes += delta;
+        this.pointsBalance += delta;
+    }
+
+    public void useMessageSlot() {
+        if (messageCount <= 0) {
+            throw new IllegalStateException("No message slots available");
+        }
+        messageCount--;
     }
 
     public String getName() {
@@ -88,12 +98,20 @@ public class Role extends Player{
         this.messageCount = messageCount;
     }
 
-    public int getActionPoints() {
-        return this.actionPoints;
+    public int getcreditedLikes() {
+        return this.creditedLikes;
     }
 
-    public void setActionPoints(int actionPoints) {
-        this.actionPoints = actionPoints;
+    public void setcreditedLikes(int creditedLikes) {
+        this.creditedLikes = creditedLikes;
+    }
+
+    public int getPointsBalance() {
+        return this.pointsBalance;
+    }
+
+    public void setPointsBalance(int pointsBalance) {
+        this.pointsBalance = pointsBalance;
     }
 
     public byte[] getPortrait() {

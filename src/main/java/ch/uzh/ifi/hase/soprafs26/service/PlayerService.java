@@ -2,6 +2,7 @@ package ch.uzh.ifi.hase.soprafs26.service;
 
 import ch.uzh.ifi.hase.soprafs26.entity.*;
 import ch.uzh.ifi.hase.soprafs26.repository.*;
+import ch.uzh.ifi.hase.soprafs26.integration.MastodonClient;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.PlayerDTOMapper;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.PlayerGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.PlayerPutDTO;
@@ -29,6 +30,7 @@ import java.util.List;
 @Transactional
 public class PlayerService {
 
+    private final NewsRepository newsRepository;
     private final RoleRepository roleRepository;
     private final PlayerRepository playerRepository;
     private final BackroomerRepository backroomerRepository;
@@ -36,11 +38,12 @@ public class PlayerService {
     private final MessageRepository messageRepository;
     private final ScenarioRepository scenarioRepository;
     private final UserService userService;
+    private final MastodonClient mastodonClient;
     private final int initialActionPoints = 0;
 
     private final Logger log = LoggerFactory.getLogger(PlayerService.class);
 
-    public PlayerService(@Qualifier("playerRepository") PlayerRepository playerRepository, @Qualifier("roleRepository") RoleRepository roleRepository,@Qualifier("backroomerRepository") BackroomerRepository backroomerRepository,@Qualifier("directorRepository") DirectorRepository directorRepository, @Qualifier("userService") UserService userService, @Qualifier("messageRepository") MessageRepository messageRepository, @Qualifier("scenarioRepository") ScenarioRepository scenarioRepository) {
+    public PlayerService(@Qualifier("playerRepository") PlayerRepository playerRepository, @Qualifier("roleRepository") RoleRepository roleRepository,@Qualifier("backroomerRepository") BackroomerRepository backroomerRepository,@Qualifier("directorRepository") DirectorRepository directorRepository, @Qualifier("userService") UserService userService, @Qualifier("messageRepository") MessageRepository messageRepository, @Qualifier("scenarioRepository") ScenarioRepository scenarioRepository, @Qualifier("newsRepository") NewsRepository newsRepository, @Qualifier("mastodonClient") MastodonClient mastodonClient) {
         this.playerRepository = playerRepository;
         this.backroomerRepository = backroomerRepository;
         this.directorRepository = directorRepository;
@@ -48,6 +51,8 @@ public class PlayerService {
         this.userService = userService;
         this.messageRepository = messageRepository;
         this.scenarioRepository = scenarioRepository;
+        this.newsRepository = newsRepository;
+        this.mastodonClient = mastodonClient;
     }
 
     public Role getRole(String token, Long roleId)  {
@@ -84,7 +89,8 @@ public class PlayerService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario not found"));
         Role newRole = PlayerDTOMapper.INSTANCE.convertRolePostDTOtoEntity(rolePostDTO);
         newRole.setAlive(true);
-        newRole.setActionPoints(initialActionPoints);
+        newRole.setcreditedLikes(initialActionPoints);
+        newRole.setPointsBalance(initialActionPoints);
         newRole.setMessageCount(0);
         newRole.setToken(randomUUID().toString());
         roleRepository.save(newRole);
@@ -157,6 +163,42 @@ public class PlayerService {
         } else if (type.equals("any") && toReturnPlayer == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
+    }
+
+    public void syncActionPoints(Role role, Scenario scenario) {
+        List<Pronouncement> pronouncements = newsRepository
+                .findAllByScenarioId(scenario.getId())
+                .stream()
+                .filter(n -> n instanceof Pronouncement)
+                .map(n -> (Pronouncement) n)
+                .filter(p -> p.getAuthor().getId().equals(role.getId()))
+                .toList();
+
+        int newTotal = 0;
+
+        for (Pronouncement p : pronouncements) {
+
+            Integer likes = mastodonClient.getLikes(
+                    scenario.getMastodonBaseUrl(),
+                    scenario.getMastodonAccessToken(),
+                    p.getMastodonStatusId()
+            );
+
+            if (likes == null) likes = 0;
+
+            p.setLikes(likes);
+
+            newTotal += likes;
+        }
+
+        int delta = newTotal - role.getcreditedLikes();
+
+        if (delta > 0) {
+            role.setCreditedLikes(newTotal);
+            role.setPointsBalance(role.getPointsBalance() + delta);
+        }
+
+        roleRepository.save(role);
     }
 
 }

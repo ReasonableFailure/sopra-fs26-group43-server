@@ -4,7 +4,6 @@ public class NewsPostDTO {
 
     private String title;
     private String body;
-    private String postURI;
     private Long scenarioId;
     private Long authorId;
 
@@ -13,9 +12,6 @@ public class NewsPostDTO {
 
     public String getBody() { return body; }
     public void setBody(String body) { this.body = body; }
-
-    public String getPostURI() { return postURI; }
-    public void setPostURI(String postURI) { this.postURI = postURI; }
 
     public Long getScenarioId() { return scenarioId; }
     public void setScenarioId(Long scenarioId) { this.scenarioId = scenarioId; }

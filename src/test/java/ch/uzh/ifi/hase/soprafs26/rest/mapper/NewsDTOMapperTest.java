@@ -22,7 +22,6 @@ public class NewsDTOMapperTest {
 		NewsPostDTO newsPostDTO = new NewsPostDTO();
 		newsPostDTO.setTitle("Test News");
 		newsPostDTO.setBody("Test Body");
-		newsPostDTO.setPostURI("http://example.com");
 		newsPostDTO.setScenarioId(1L);
 		newsPostDTO.setAuthorId(1L);
 
@@ -30,7 +29,6 @@ public class NewsDTOMapperTest {
 
 		assertEquals(newsPostDTO.getTitle(), newsStory.getTitle());
 		assertEquals(newsPostDTO.getBody(), newsStory.getBody());
-		assertEquals(newsPostDTO.getPostURI(), newsStory.getPostURI());
 		assertNull(newsStory.getId());
 		assertNull(newsStory.getCreatedAt());
 		assertNull(newsStory.getScenario());
@@ -49,7 +47,7 @@ public class NewsDTOMapperTest {
 		newsStory.setId(1L);
 		newsStory.setTitle("Test News");
 		newsStory.setBody("Test Body");
-		newsStory.setPostURI("http://example.com");
+		newsStory.setMastodonStatusId("http://example.com");
 		newsStory.setCreatedAt(Instant.now());
 		newsStory.setScenario(scenario);
 
@@ -58,7 +56,6 @@ public class NewsDTOMapperTest {
 		assertEquals(newsStory.getId(), newsGetDTO.getId());
 		assertEquals(newsStory.getTitle(), newsGetDTO.getTitle());
 		assertEquals(newsStory.getBody(), newsGetDTO.getBody());
-		assertEquals(newsStory.getPostURI(), newsGetDTO.getPostURI());
 		assertEquals(newsStory.getCreatedAt(), newsGetDTO.getCreatedAt());
 		assertNull(newsGetDTO.getAuthorId());
 		assertNull(newsGetDTO.getLikes());
@@ -77,7 +74,7 @@ public class NewsDTOMapperTest {
 		pronouncement.setId(2L);
 		pronouncement.setTitle("Test Pronouncement");
 		pronouncement.setBody("Test Body");
-		pronouncement.setPostURI("http://example.com");
+		pronouncement.setMastodonStatusId("http://example.com");
 		pronouncement.setCreatedAt(Instant.now());
 		pronouncement.setAuthor(author);
 		pronouncement.setLikes(5);
@@ -88,7 +85,6 @@ public class NewsDTOMapperTest {
 		assertEquals(pronouncement.getId(), newsGetDTO.getId());
 		assertEquals(pronouncement.getTitle(), newsGetDTO.getTitle());
 		assertEquals(pronouncement.getBody(), newsGetDTO.getBody());
-		assertEquals(pronouncement.getPostURI(), newsGetDTO.getPostURI());
 		assertEquals(pronouncement.getCreatedAt(), newsGetDTO.getCreatedAt());
 		assertNull(newsGetDTO.getAuthorId());
 		assertNull(newsGetDTO.getLikes());
