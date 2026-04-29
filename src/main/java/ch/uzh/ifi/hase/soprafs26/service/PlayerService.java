@@ -67,7 +67,7 @@ public class PlayerService {
         //Assigns a user to an existing Player or child class
         checkToken(token,"any");
         Player player = playerRepository.findById(playerId).orElseThrow(() -> new ResponseStatusException(HttpStatusCode.valueOf(404), String.format("User %d cannot be assigned to player %d, this player does not exist", playerPutDTO.getNewAssignedUserId(), playerId)));
-        player = PlayerDTOMapper.INSTANCE.convertPlayerPutDTOtoEntity(playerPutDTO, player);
+        player = PlayerDTOMapper.INSTANCE.convertPlayerPutDTOtoEntity(playerPutDTO);
         playerRepository.save(player);
         return PlayerDTOMapper.INSTANCE.convertEntitytoPlayerGetDTO(player);
     }
@@ -104,7 +104,7 @@ public class PlayerService {
         Backroomer b = new Backroomer();
         b.setToken(randomUUID().toString());
         b.setDelegatedCharacters(new ArrayList<Role>());
-        b = (Backroomer) PlayerDTOMapper.INSTANCE.convertPlayerPutDTOtoEntity(playerPutDTO, b);
+        b = (Backroomer) PlayerDTOMapper.INSTANCE.convertPlayerPutDTOtoEntity(playerPutDTO);
         backroomerRepository.save(b);
         backroomerRepository.flush();
         return b;
