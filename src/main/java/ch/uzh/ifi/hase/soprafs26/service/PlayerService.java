@@ -4,7 +4,7 @@ import ch.uzh.ifi.hase.soprafs26.entity.*;
 import ch.uzh.ifi.hase.soprafs26.repository.*;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.PlayerDTOMapper;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.PlayerGetDTO;
-import ch.uzh.ifi.hase.soprafs26.rest.playerdto.PlayerPutDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.playerdto.PlayerAssignDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RolePostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RolePutDTO;
 import jakarta.transaction.Transactional;
@@ -63,11 +63,12 @@ public class PlayerService {
         return toChange;
     }
 
-    public PlayerGetDTO updatePlayerAssociation(Long playerId, PlayerPutDTO playerPutDTO, String token){
+    public PlayerGetDTO updatePlayerAssociation(Long playerId, PlayerAssignDTO playerAssignDTO, String token){
         //Assigns a user to an existing Player or child class
         checkToken(token,"any");
-        Player player = playerRepository.findById(playerId).orElseThrow(() -> new ResponseStatusException(HttpStatusCode.valueOf(404), String.format("User %d cannot be assigned to player %d, this player does not exist", playerPutDTO.getNewAssignedUserId(), playerId)));
-        player = PlayerDTOMapper.INSTANCE.convertPlayerPutDTOtoEntity(playerPutDTO, player);
+        Player player = playerRepository.findById(playerId).orElseThrow(() -> new ResponseStatusException(HttpStatusCode.valueOf(404), String.format("User %d cannot be assigned to player %d, this player does not exist", playerAssignDTO.getNewAssignedUserId(), playerId)));
+        User newAssignee = userService.getProfileById(playerAssignDTO.getNewAssignedUserId(), token);
+        player.setUser(newAssignee);
         playerRepository.save(player);
         return PlayerDTOMapper.INSTANCE.convertEntitytoPlayerGetDTO(player);
     }
@@ -99,11 +100,12 @@ public class PlayerService {
         roleRepository.deleteById(roleId);
     }
 
-    public Backroomer createBackroomer(String userToken){
+    public Backroomer createBackroomer(String userToken, PlayerAssignDTO playerAssignDTO){
         userService.checkIfValidToken(userToken);
         Backroomer b = new Backroomer();
         b.setToken(randomUUID().toString());
         b.setDelegatedCharacters(new ArrayList<Role>());
+        b.setUser(userService.getProfileById(playerAssignDTO.getNewAssignedUserId(), userToken));
         backroomerRepository.save(b);
         backroomerRepository.flush();
         return b;

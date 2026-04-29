@@ -1,6 +1,6 @@
 package ch.uzh.ifi.hase.soprafs26.rest.playerdto;
 
-public class PlayerPutDTO {
+public class PlayerAssignDTO {
     Long newAssignedUserId;
 
     public Long getNewAssignedUserId() {
