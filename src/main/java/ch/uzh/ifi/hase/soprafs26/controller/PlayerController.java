@@ -47,8 +47,13 @@ public class PlayerController {
     public PlayerGetDTO createBackroomer(@RequestHeader("Authorization") String token, PlayerAssignDTO playerAssignDTO){
         String[] tokens = splitToken(token);
         if(tokens[0].equals("Bearer")){
-            Backroomer b = playerService.createBackroomer(tokens[1], playerAssignDTO);
-            return PlayerDTOMapper.INSTANCE.convertEntitytoPlayerGetDTO(b);
+            try{
+                Backroomer b = playerService.createBackroomer(tokens[1], playerAssignDTO);
+                return PlayerDTOMapper.INSTANCE.convertEntitytoPlayerGetDTO(b);
+            } catch (Exception e){
+                System.out.println(e.getStackTrace());
+            }
+            return new PlayerGetDTO();
         } else {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
@@ -115,7 +120,7 @@ public class PlayerController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token is empty");
         }
         String[] thingy = token.split(" ");
-        if(thingy[0].equals("Role") || thingy[0].equals("Backroomer") || thingy[0].equals("Director")){
+        if(thingy[0].equals("Role") || thingy[0].equals("Backroomer") || thingy[0].equals("Director") || thingy[0].equals("Bearer")){
             return thingy;
         }
         throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token is invalid");

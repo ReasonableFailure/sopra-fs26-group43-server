@@ -170,10 +170,10 @@ public class UserService {
 
     protected void checkIfValidToken(String token) {
         if (token == null || token.isEmpty())
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("Invalid token"));
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("This token is empty"));
         User foundByToken = userRepository.findByToken(token);
         if (foundByToken == null || foundByToken.getToken() == null)
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("Invalid token"));
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("This token is unassigned"));
 
     }
 }
