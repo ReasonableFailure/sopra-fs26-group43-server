@@ -21,10 +21,10 @@ public class PlayerController {
 
     @PutMapping("/player/{playerId}")
     @ResponseStatus(HttpStatus.OK)
-    public void assignUserToPlayer(@PathVariable Long playerId, @RequestBody PlayerPutDTO playerPutDTO,  @RequestHeader("Authorization") String token) {
+    public void assignUserToPlayer(@PathVariable Long playerId, @RequestBody PlayerAssignDTO playerAssignDTO, @RequestHeader("Authorization") String token) {
         String[] tokens = splitToken(token);
         if(tokens[0].equals("Bearer")){
-            playerService.updatePlayerAssociation(playerId,playerPutDTO,tokens[1]);
+            playerService.updatePlayerAssociation(playerId, playerAssignDTO,tokens[1]);
         } else {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
@@ -44,10 +44,10 @@ public class PlayerController {
 
     @PostMapping("/backroomers")
     @ResponseStatus(HttpStatus.OK)
-    public PlayerGetDTO createBackroomer(@RequestHeader("Authorization") String token, PlayerPutDTO playerPutDTO){
+    public PlayerGetDTO createBackroomer(@RequestHeader("Authorization") String token, PlayerAssignDTO playerAssignDTO){
         String[] tokens = splitToken(token);
         if(tokens[0].equals("Bearer")){
-            Backroomer b = playerService.createBackroomer(tokens[1], playerPutDTO);
+            Backroomer b = playerService.createBackroomer(tokens[1], playerAssignDTO);
             return PlayerDTOMapper.INSTANCE.convertEntitytoPlayerGetDTO(b);
         } else {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
