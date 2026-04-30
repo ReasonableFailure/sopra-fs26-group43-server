@@ -1,11 +1,13 @@
 package ch.uzh.ifi.hase.soprafs26.rest.scenariodto;
 
+import ch.uzh.ifi.hase.soprafs26.constant.ScenarioStatus;
+
 public class ScenarioPutDTO {
     private String title;
     private String description;
-    private Boolean active;
-    private int dayNumber;
-    private int exchangeRate;
+    private ScenarioStatus status;
+    private Integer dayNumber;
+    private Integer exchangeRate;
 
     public String getTitle() {
         return title;
@@ -23,27 +25,27 @@ public class ScenarioPutDTO {
         this.description = description;
     }
 
-    public Boolean getActive() {
-        return active;
+    public ScenarioStatus getStatus() {
+        return status;
     }
 
-    public void setActive(Boolean active) {
-        this.active = active;
+    public void setStatus(ScenarioStatus status) {
+        this.status = status;
     }
 
-    public int getDayNumber() {
+    public Integer getDayNumber() {
         return dayNumber;
     }
 
-    public void setDayNumber(int dayNumber) {
+    public void setDayNumber(Integer dayNumber) {
         this.dayNumber = dayNumber;
     }
 
-    public int getExchangeRate() {
+    public Integer getExchangeRate() {
         return exchangeRate;
     }
 
-    public void setExchangeRate(int exchangeRate) {
+    public void setExchangeRate(Integer exchangeRate) {
         this.exchangeRate = exchangeRate;
     }
 }

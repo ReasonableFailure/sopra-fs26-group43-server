@@ -1,5 +1,6 @@
 package ch.uzh.ifi.hase.soprafs26.entity;
 import  jakarta.persistence.*;
+import ch.uzh.ifi.hase.soprafs26.constant.ScenarioStatus;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -15,8 +16,9 @@ public class Scenario implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable=false, unique=true)
     private Long id;
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private boolean active;
+    private ScenarioStatus status;
     @Column(nullable = true)
     private String description;
     @Column(nullable = false)
@@ -67,12 +69,12 @@ public class Scenario implements Serializable {
         this.id = id;
     }
 
-    public boolean getActive() {
-        return active;
+    public ScenarioStatus getStatus() {
+        return status;
     }
 
-    public void setActive(boolean active) {
-        this.active = active;
+    public void setStatus(ScenarioStatus status) {
+        this.status = status;
     }
 
     public String getDescription() {

@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.web.server.ResponseStatusException;
 
+import ch.uzh.ifi.hase.soprafs26.constant.ScenarioStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.NewsStory;
 import ch.uzh.ifi.hase.soprafs26.entity.Pronouncement;
 import ch.uzh.ifi.hase.soprafs26.entity.Role;
@@ -84,7 +85,7 @@ public class NewsServiceIntegrationTest {
 		testScenario = new Scenario();
 		testScenario.setTitle("Test Scenario");
 		testScenario.setDescription("Test scenario description");
-		testScenario.setActive(true);
+		testScenario.setStatus(ScenarioStatus.UNSTARTED);
 		testScenario.setPlayers(new ArrayList<>());
 		testScenario.setHistory(new ArrayList<>());
 		testScenario.getPlayers().add(testRole);

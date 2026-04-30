@@ -1,11 +1,13 @@
 package ch.uzh.ifi.hase.soprafs26.rest.scenariodto;
 
+import ch.uzh.ifi.hase.soprafs26.constant.ScenarioStatus;
+
 public class ScenarioGetDTO {
 
     private Long id;
     private String title;
     private String description;
-    private Boolean active;
+    private ScenarioStatus status;
     private int dayNumber;
     private int exchangeRate;
     private String directorToken;
@@ -35,12 +37,12 @@ public class ScenarioGetDTO {
         this.description = description;
     }
 
-    public Boolean getActive() {
-        return active;
+    public ScenarioStatus getStatus() {
+        return status;
     }
 
-    public void setActive(Boolean active) {
-        this.active = active;
+    public void setStatus(ScenarioStatus status) {
+        this.status = status;
     }
 
     public int getDayNumber() {

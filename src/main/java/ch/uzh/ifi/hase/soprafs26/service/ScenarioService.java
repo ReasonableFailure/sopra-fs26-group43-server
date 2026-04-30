@@ -7,6 +7,7 @@ import ch.uzh.ifi.hase.soprafs26.rest.mapper.ScenarioDTOMapper;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioPutDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioMastodonDTO;
+import ch.uzh.ifi.hase.soprafs26.constant.ScenarioStatus;
 import ch.uzh.ifi.hase.soprafs26.integration.MastodonClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +51,7 @@ public class ScenarioService {
         //checkIfValidToken(token);
         Scenario newScenario = ScenarioDTOMapper.INSTANCE.convertScenarioPostDTOtoEntity(scenarioPostDTO);
         newScenario.setDayNumber(0);
-        newScenario.setActive(true);
+        newScenario.setStatus(ScenarioStatus.UNSTARTED);
         newScenario.setPlayers(new ArrayList<Player>());
         newScenario.setHistory(new ArrayList<Communication>());
         newScenario.setDirector(playerService.createDirector(token));
@@ -64,9 +65,25 @@ public class ScenarioService {
         scenarioRepository.delete(toDelete);
         scenarioRepository.flush();
     }
-    public void updateScenario(String token, Long scenarioId, ScenarioPutDTO scenarioPutDTO){
-        Scenario toUpdate = getScenarioById(token,scenarioId);
-        ScenarioDTOMapper.INSTANCE.convertScenarioPutDTOtoEntity(scenarioPutDTO, toUpdate);
+
+    public void updateScenario(String token, Long scenarioId, ScenarioPutDTO dto){
+        Scenario s = getScenarioById(token, scenarioId);
+
+        if (dto.getTitle() != null) {
+            s.setTitle(dto.getTitle());
+        }
+        if (dto.getDescription() != null) {
+            s.setDescription(dto.getDescription());
+        }
+        if (dto.getStatus() != null) {
+            s.setStatus(dto.getStatus());
+        }
+        if (dto.getDayNumber() != null) {
+            s.setDayNumber(dto.getDayNumber());
+        }
+        if (dto.getExchangeRate() != null) {
+            s.setExchangeRate(dto.getExchangeRate());
+        }
     }
 
     public void addPlayerToScenario(String token, Long scenarioId, Long playerId){

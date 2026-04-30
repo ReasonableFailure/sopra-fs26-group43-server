@@ -9,6 +9,7 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.web.server.ResponseStatusException;
 
 import ch.uzh.ifi.hase.soprafs26.constant.CommsStatus;
+import ch.uzh.ifi.hase.soprafs26.constant.ScenarioStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.Message;
 import ch.uzh.ifi.hase.soprafs26.entity.Role;
 import ch.uzh.ifi.hase.soprafs26.entity.Scenario;
@@ -80,8 +81,8 @@ public class MessageServiceIntegrationTest {
 		testScenario = new Scenario();
 		testScenario.setTitle("Test Scenario");
 		testScenario.setDescription("Test scenario description");
-		testScenario.setActive(true);
-		testScenario.setDayNumber(1);
+		testScenario.setStatus(ScenarioStatus.UNSTARTED);
+		testScenario.setDayNumber(0);
 		testScenario.setExchangeRate(1);
 		testScenario.setPlayers(new ArrayList<>());
 		testScenario.setHistory(new ArrayList<>());
