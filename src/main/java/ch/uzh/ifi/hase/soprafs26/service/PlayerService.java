@@ -91,6 +91,10 @@ public class PlayerService {
         newRole.setPointsBalance(0);
         newRole.setMessageCount(scenario.getStartingMessageCount());
         newRole.setToken(randomUUID().toString());
+        newRole.setNumberDirectives(0);
+        newRole.setNumberMessages(0);
+        newRole.setNumberPronouncements(0);
+        newRole.setTotalTextLength(0);
         roleRepository.save(newRole);
         roleRepository.flush();
         scenario.addPlayer(newRole);

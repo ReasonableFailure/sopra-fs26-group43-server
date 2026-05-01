@@ -101,6 +101,11 @@ public class MessageService {
                     HttpStatus.BAD_REQUEST, "Status must not be null");
         }
 
+        Role creator = message.getCreator();
+        creator.setNumberMessages(creator.getNumberMessages() + 1);
+        creator.setTotalTextLength(creator.getTotalTextLength() + message.totalTextLength());
+        roleRepository.save(creator);
+
         message.setStatus(putDTO.getStatus());
 
         messageRepository.save(message);

@@ -24,6 +24,14 @@ public class Role extends Player{
     private byte[] portrait;
     @Column(unique = false, nullable = true)
     private Long assignedCabinet;
+    @Column(unique=false,nullable=false)
+    private int numberDirectives;
+    @Column(unique=false,nullable=false)
+    private int numberMessages;
+    @Column(unique=false,nullable=false)
+    private int numberPronouncements;
+    @Column(unique=false,nullable=false)
+    private int totalTextLength;
 
     public void die(){
         this.alive = false;
@@ -125,5 +133,35 @@ public class Role extends Player{
         this.assignedCabinet = assignedCabinet;
     }
 
+    public int getNumberDirectives() {
+        return this.numberDirectives;
+    }
 
+    public void setNumberDirectives(int numberDirectives) {
+        this.numberDirectives = numberDirectives; 
+    }
+
+    public int getNumberMessages() {
+        return this.numberMessages;
+    }
+
+    public void setNumberMessages(int numberMessages) {
+        this.numberMessages = numberMessages;
+    }
+
+    public int getNumberPronouncements() {
+        return this.numberPronouncements;
+    }
+
+    public void setNumberPronouncements(int numberPronouncements) {
+        this.numberPronouncements = numberPronouncements;
+    }
+
+    public int getTotalTextLength() {
+        return this.totalTextLength;
+    }
+
+    public void setTotalTextLength(int totalTextLength) {
+        this.totalTextLength = totalTextLength;
+    }
 }

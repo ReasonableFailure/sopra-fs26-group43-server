@@ -31,6 +31,10 @@ public abstract class Communication implements Serializable {
     @JoinColumn(name = "scenario_id", nullable = false)
     private Scenario scenario;
 
+    public int totalTextLength() {
+        return title.length() + body.length();
+    }
+
     public Long getId() {
         return id;
     }

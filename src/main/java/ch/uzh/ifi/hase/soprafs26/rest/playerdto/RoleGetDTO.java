@@ -11,6 +11,10 @@ public class RoleGetDTO {
     private int totalPoints;
     private int pointsBalance;
     private byte[] portrait;
+    private int numberDirectives;
+    private int numberMessages;
+    private int numberPronouncements;
+    private int totalTextLength;
 
     public Long getId() {
         return id;
@@ -89,5 +93,37 @@ public class RoleGetDTO {
 
     public void setPortrait(byte[] portrait) {
         this.portrait = portrait;
+    }
+
+    public int getNumberDirectives() {
+        return numberDirectives;
+    }
+
+    public void setNumberDirectives(int numberDirectives) {
+        this.numberDirectives = numberDirectives;
+    }
+
+    public int getNumberMessages() {
+        return numberMessages;
+    }
+
+    public void setNumberMessages(int numberMessages) {
+        this.numberMessages = numberMessages;
+    }
+
+    public int getNumberPronouncements() {
+        return numberPronouncements;
+    }
+
+    public void setNumberPronouncements(int numberPronouncements) {
+        this.numberPronouncements = numberPronouncements;
+    }
+
+    public int getTotalTextLength() {
+        return totalTextLength;
+    }
+
+    public void setTotalTextLength(int totalTextLength) {
+        this.totalTextLength = totalTextLength;
     }
 }

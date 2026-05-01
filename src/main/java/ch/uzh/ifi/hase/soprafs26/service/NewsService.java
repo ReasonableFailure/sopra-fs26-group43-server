@@ -58,6 +58,10 @@ public class NewsService {
             p.setAuthor(author);
             p.setScenario(scenario);
 
+            author.setNumberPronouncements(author.getNumberPronouncements() + 1);
+            author.setTotalTextLength(author.getTotalTextLength() + p.totalTextLength());
+            roleRepository.save(author);
+
             entity = p;
 
         } else {

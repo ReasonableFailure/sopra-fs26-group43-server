@@ -83,6 +83,11 @@ public class DirectiveService {
         Directive directive = directiveRepository.findById(directiveId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Directive not found"));
+        
+        Role creator = directive.getCreator();
+        creator.setNumberDirectives(creator.getNumberDirectives() + 1);
+        creator.setTotalTextLength(creator.getTotalTextLength() + directive.totalTextLength());
+        roleRepository.save(creator);
 
         if (putDTO.getStatus() == null) {
             throw new ResponseStatusException(
