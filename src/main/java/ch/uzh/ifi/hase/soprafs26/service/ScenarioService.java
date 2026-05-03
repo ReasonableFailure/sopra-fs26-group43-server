@@ -84,6 +84,8 @@ public class ScenarioService {
         if (dto.getExchangeRate() != null) {
             s.setExchangeRate(dto.getExchangeRate());
         }
+        scenarioRepository.save(s);
+        scenarioRepository.flush();
     }
 
     public void addPlayerToScenario(String token, Long scenarioId, Long playerId){

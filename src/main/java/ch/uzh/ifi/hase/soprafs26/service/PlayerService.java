@@ -76,9 +76,32 @@ public class PlayerService {
     }
 
     public void updateRole(String token, RolePutDTO rolePutDTO, Long roleId){
-        checkToken(token, "Director");
-        Role role = roleRepository.findById(roleId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Character with id %d not found", roleId)));
-        PlayerDTOMapper.INSTANCE.convertRolePutDTOtoEntity(rolePutDTO, role);
+        //checkToken(token, "Director");
+        Role r = getRole(token, roleId);
+
+        if (rolePutDTO.getName() != null) {
+            r.setName(rolePutDTO.getName());
+        }
+
+        if (rolePutDTO.getTitle() != null) {
+            r.setTitle(rolePutDTO.getTitle());
+        }
+
+        if (rolePutDTO.getDescription() != null) {
+            r.setDescription(rolePutDTO.getDescription());
+        }
+
+        if (rolePutDTO.getPortrait() != null) {
+            r.setPortrait(rolePutDTO.getPortrait());
+        }
+
+        if (rolePutDTO.getSecret() != null) {
+            r.setSecret(rolePutDTO.getSecret());
+        }
+
+        r.setAlive(rolePutDTO.isAlive()); 
+        roleRepository.save(r);
+        roleRepository.flush();
     }
 
     public Role createRole(String token, RolePostDTO rolePostDTO){

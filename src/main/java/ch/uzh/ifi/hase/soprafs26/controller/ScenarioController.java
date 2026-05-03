@@ -68,7 +68,7 @@ public class ScenarioController {
         scenarioService.deleteScenario(token,scenarioId);
     }
 
-    @GetMapping("/characters/{scenarioId}")
+    @GetMapping("/characters/scenario/{scenarioId}")
     public List<RoleGetDTO> retrieveAllRoles(@PathVariable Long scenarioId, @RequestHeader("Authorization") String token){
         List<Role> list = scenarioService.getRoles(scenarioId,token);
         ArrayList<RoleGetDTO> toReturn = new ArrayList<RoleGetDTO>();

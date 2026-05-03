@@ -34,22 +34,23 @@ public class PlayerController {
     @PutMapping("/characters/{characterId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @ResponseBody
-
     public void updateRole(@RequestBody RolePutDTO rolePutDTO, @RequestHeader("Authorization") String token, @PathVariable Long characterId) {
-        String[] tokens = splitToken(token);
+        playerService.updateRole(token, rolePutDTO,characterId);
+        /*String[] tokens = splitToken(token);
         if(tokens[0].equals("Director")){
             playerService.updateRole(tokens[1], rolePutDTO,characterId);
         } else {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
+        */
     }
 
-    @GetMapping("/characters/{characterId}/detail")
-    @ResponseStatus
+    @GetMapping("/characters/{characterId}")
+    @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public RoleGetDTO getRole(@RequestHeader("Authorization") String token, @PathVariable Long characterId) {
-        String[] tokens = splitToken(token);
-        return PlayerDTOMapper.INSTANCE.convertEntitytoRoleGetDTO(playerService.getRole(tokens[1],characterId));
+        //String[] tokens = splitToken(token);
+        return PlayerDTOMapper.INSTANCE.convertEntitytoRoleGetDTO(playerService.getRole(token,characterId));
     }
 
     @PostMapping("/characters")

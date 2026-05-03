@@ -6,7 +6,7 @@ public class RolePutDTO {
     private String description;
     private String secret;
     private byte[] portrait;
-    private Long userId;
+    private boolean alive;
 
     public String getName() {
         return name;
@@ -48,11 +48,11 @@ public class RolePutDTO {
         this.portrait = portrait;
     }
 
-    public Long getUserId() {
-        return userId;
+    public boolean isAlive() {
+        return alive;
     }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
+    public void setAlive(boolean alive) {
+        this.alive = alive;
     }
 }
