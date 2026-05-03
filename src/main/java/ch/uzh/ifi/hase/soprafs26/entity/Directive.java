@@ -1,6 +1,7 @@
 package ch.uzh.ifi.hase.soprafs26.entity;
 
 import ch.uzh.ifi.hase.soprafs26.constant.CommsStatus;
+import ch.uzh.ifi.hase.soprafs26.constant.DirectiveCategory;
 import jakarta.persistence.*;
 
 @Entity
@@ -16,6 +17,10 @@ public class Directive extends Communication {
 
     @Column(nullable = true)
     private String response;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private DirectiveCategory category;
 
     public CommsStatus getStatus() {
         return status;
@@ -39,5 +44,13 @@ public class Directive extends Communication {
 
     public void setResponse(String response) {
         this.response = response;
+    }
+
+    public DirectiveCategory getCategory() {
+        return category;
+    }
+
+    public void setCategory(DirectiveCategory category) {
+        this.category = category;
     }
 }

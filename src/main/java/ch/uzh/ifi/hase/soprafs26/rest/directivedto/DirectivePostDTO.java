@@ -1,4 +1,5 @@
 package ch.uzh.ifi.hase.soprafs26.rest.directivedto;
+import ch.uzh.ifi.hase.soprafs26.constant.DirectiveCategory;
 
 public class DirectivePostDTO {
 
@@ -6,6 +7,7 @@ public class DirectivePostDTO {
     private String body;
     private Long creatorId;
     private Long scenarioId;
+    private DirectiveCategory category;
 
     public String getTitle() {
         return title;
@@ -37,5 +39,13 @@ public class DirectivePostDTO {
 
     public void setScenarioId(Long scenarioId) {
         this.scenarioId = scenarioId;
+    }
+
+    public DirectiveCategory getCategory() {
+        return category;
+    }
+
+    public void setCategory(DirectiveCategory category) {
+        this.category = category;
     }
 }
