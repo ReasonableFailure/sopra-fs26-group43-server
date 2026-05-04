@@ -1,8 +1,6 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
 import ch.uzh.ifi.hase.soprafs26.entity.*;
-import ch.uzh.ifi.hase.soprafs26.repository.PlayerRepository;
-import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.ScenarioDTOMapper;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioPutDTO;
@@ -47,14 +45,15 @@ public class ScenarioService {
         return this.scenarioRepository.findById(scenarioId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario with id " + scenarioId + " not found"));
     }
 
+    @Transactional
     public Scenario createScenario(String token, ScenarioPostDTO scenarioPostDTO){
-        //checkIfValidToken(token);
+        //TODO: validate user's directorToken
         Scenario newScenario = ScenarioDTOMapper.INSTANCE.convertScenarioPostDTOtoEntity(scenarioPostDTO);
         newScenario.setDayNumber(0);
         newScenario.setStatus(ScenarioStatus.UNSTARTED);
         newScenario.setPlayers(new ArrayList<Player>());
         newScenario.setHistory(new ArrayList<Communication>());
-        newScenario.setDirector(playerService.createDirector(token));
+        newScenario.setDirector(playerService.getDirectorByToken(token));
         scenarioRepository.save(newScenario);
         scenarioRepository.flush();
         return newScenario;
@@ -88,7 +87,7 @@ public class ScenarioService {
 
     public void addPlayerToScenario(String token, Long scenarioId, Long playerId){
         userService.checkIfValidToken(token);
-        Role toAdd = playerService.getRole(token,playerId);
+        Role toAdd = playerService.getRoleById(token,playerId);
         Scenario scenario = getScenarioById(token,scenarioId);
         toAdd = playerService.updateMessagingStats(playerId, scenario.getStartingMessageCount());
         scenario.addPlayer(toAdd);

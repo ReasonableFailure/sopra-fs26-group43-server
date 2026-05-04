@@ -75,7 +75,7 @@ public class UserService {
         if(!checkIfUserExistsByID(user.getId())){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User with id %d not found", user.getId()));
         }
-        User fromStore = userRepository.findByUsername(user.getUsername());
+        User fromStore = userRepository.findByUsername(user.getUsername()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "This user cannot be found with this name"));
         fromStore.setToken(UUID.randomUUID().toString());
         fromStore.setStatus(UserStatus.ONLINE);
         fromStore = userRepository.save(fromStore);
@@ -89,7 +89,7 @@ public class UserService {
         if(!checkIfUserExistsByID(ID)){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User with id %d not found", ID));
         }
-        User requestsLogout = userRepository.findByToken(token);
+        User requestsLogout = userRepository.findByToken(token).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User with id %d not found", ID)));
         requestsLogout.setStatus(UserStatus.OFFLINE);
         requestsLogout.setToken(null);
         requestsLogout.setPlaying(false);
@@ -141,7 +141,7 @@ public class UserService {
     }
 
     private boolean checkIfUsernameTaken(String uname){
-        User foundByUname = userRepository.findByUsername(uname);
+        User foundByUname = userRepository.findByUsername(uname).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "A user by this username cannot be found."));
         if (foundByUname == null) {
             return false;
         }
@@ -150,7 +150,7 @@ public class UserService {
     /*
     * pre-condition: user must exist*/
     private boolean checkPwd(String uname, String pwd){
-        User foundByUname = userRepository.findByUsername(uname);
+        User foundByUname = userRepository.findByUsername(uname).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "A user by this username cannot be found."));
         if (foundByUname.getPassword().equals(pwd)){
             return true;
         }
@@ -164,13 +164,13 @@ public class UserService {
 
     protected User getByToken(String token){
         checkIfValidToken(token);
-        return userRepository.findByToken(token);
+        return userRepository.findByToken(token).orElseThrow(()->new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("User with this token not found")));
     }
 
     protected void checkIfValidToken(String token){
-        if (token == null || token.isEmpty()) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("Invalid token"));
-        User foundByToken = userRepository.findByToken(token);
-        if (foundByToken.getToken() == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("Invalid token"));
+        if (token == null || token.isEmpty()) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("Token not there"));
+        User foundByToken = userRepository.findByToken(token).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User with this token not found")));
+        if (foundByToken.getToken() == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("No user with this token"));
     }
 
 }
