@@ -50,19 +50,21 @@ public class UserService {
         if(!isValidProfileData(newUser.getUsername(),newUser.getPassword())){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Invalid username or password"));
         }
-        if(checkIfUsernameTaken(newUser.getUsername())){
-            throw new ResponseStatusException(HttpStatus.CONFLICT, String.format("Username already taken"));
+        try{
+            checkIfUsernameTaken(newUser.getUsername());
+            throw new  ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Username is already taken"));
+        } catch(ResponseStatusException e){
+            newUser.setToken(UUID.randomUUID().toString());
+            newUser.setStatus(UserStatus.ONLINE);
+            newUser.setCreationDate(new Date());
+            newUser.setPlaying(false);
+            // saves the given entity but data is only persisted in the database once
+            // flush() is called
+            newUser = userRepository.save(newUser);
+            userRepository.flush();
+            log.debug("Created Information for User: {}", newUser);
+            return newUser;
         }
-        newUser.setToken(UUID.randomUUID().toString());
-        newUser.setStatus(UserStatus.ONLINE);
-        newUser.setCreationDate(new Date());
-        newUser.setPlaying(false);
-        // saves the given entity but data is only persisted in the database once
-        // flush() is called
-        newUser = userRepository.save(newUser);
-        userRepository.flush();
-        log.debug("Created Information for User: {}", newUser);
-        return newUser;
     }
 
     public User loginUser(User user){
@@ -140,12 +142,8 @@ public class UserService {
         return isValid;
     }
 
-    private boolean checkIfUsernameTaken(String uname){
-        User foundByUname = userRepository.findByUsername(uname).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "A user by this username cannot be found."));
-        if (foundByUname == null) {
-            return false;
-        }
-        return true;
+    private void checkIfUsernameTaken(String uname){
+        userRepository.findByUsername(uname).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "A user by this username cannot be found."));
     }
     /*
     * pre-condition: user must exist*/
