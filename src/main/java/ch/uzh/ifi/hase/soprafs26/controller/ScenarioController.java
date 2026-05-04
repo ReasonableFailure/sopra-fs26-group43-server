@@ -1,7 +1,9 @@
 package ch.uzh.ifi.hase.soprafs26.controller;
 
+import ch.uzh.ifi.hase.soprafs26.entity.Director;
 import ch.uzh.ifi.hase.soprafs26.entity.Role;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.PlayerDTOMapper;
+import ch.uzh.ifi.hase.soprafs26.rest.playerdto.PlayerGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RoleGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioPutDTO;
@@ -58,6 +60,7 @@ public class ScenarioController {
         return ScenarioDTOMapper.INSTANCE.convertEntityToScenarioGetDTO(scenario);
     }
 
+
     @PutMapping("/scenarios/{scenarioId}")
     public void updateScenario(@RequestHeader("Authorization") String token, @PathVariable Long scenarioId, @RequestBody ScenarioPutDTO scenarioPutDTO){
         scenarioService.updateScenario(token,scenarioId,scenarioPutDTO);
@@ -96,7 +99,7 @@ public class ScenarioController {
             @RequestHeader("Authorization") String token,
             @RequestBody ScenarioMastodonDTO dto) {
 
-        //validate(token, "Director");
+        validate(token, "Director");
 
         scenarioService.updateMastodonConfig(scenarioId, dto);
     }
