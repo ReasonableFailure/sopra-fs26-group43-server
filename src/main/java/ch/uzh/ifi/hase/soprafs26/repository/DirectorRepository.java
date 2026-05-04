@@ -4,7 +4,9 @@ import ch.uzh.ifi.hase.soprafs26.entity.Director;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository("directorRepository")
 public interface DirectorRepository extends JpaRepository<Director, Long>{
-    Director findByToken(String token);
+    Optional<Director> findByToken(String token);
 }

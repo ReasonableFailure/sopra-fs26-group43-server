@@ -12,5 +12,5 @@ import java.util.Optional;
 
 @Repository("playerRepository")
 public interface PlayerRepository extends JpaRepository<Player, Long>{
-    Player findByToken(String token);
+    Optional<Player> findByToken(String token);
 }

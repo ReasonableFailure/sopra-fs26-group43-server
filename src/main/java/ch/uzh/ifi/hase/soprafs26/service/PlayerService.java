@@ -53,9 +53,13 @@ public class PlayerService {
         this.mastodonClient = mastodonClient;
     }
 
-    public Role getRole(String token, Long roleId)  {
-        //checkToken(token,"any");
+    public Role getRoleById(String token, Long roleId)  {
+        checkToken(token,"any");
         return roleRepository.findById(roleId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Role with id %d not found", roleId)));
+    }
+    public Director getDirectorByToken(String directorToken){
+        checkToken(directorToken,"Director");
+        return directorRepository.findByToken(directorToken).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "This director does not exist"));
     }
 
     public Role updateMessagingStats(Long roleId, int initialMessageCount){
@@ -141,36 +145,33 @@ public class PlayerService {
         return new ArrayList<>(interlocutors);
     }
 
-    public Director createDirector(String userToken){
+    public Director createDirector(String userToken,Long userId){
         userService.checkIfValidToken(userToken);
         Director d = new Director();
         d.setToken(randomUUID().toString());
-        d.setUser(userService.getByToken(userToken));
+        d.setUser(userService.getProfileById(userId,userToken));
         directorRepository.save(d);
         directorRepository.flush();
         return d;
     }
 
     public void checkToken(String token, @NonNull String type){
-        Role toReturn = roleRepository.findByToken(token);
-        Backroomer toReturnBackroomer = backroomerRepository.findByToken(token);
-        Director toReturnDirector = directorRepository.findByToken(token);
-        Player toReturnPlayer = playerRepository.findByToken(token);
-        if(type.equals("Role") && toReturn == null){
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-        } else if(type.equals("Backroomer") && toReturnBackroomer == null && toReturnDirector == null){
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-        } else if (type.equals("Director") && toReturnDirector == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-        } else if (type.equals("any") && toReturnPlayer == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+
+        if(type.equals("Role")){
+            roleRepository.findByToken(token).orElseThrow(()-> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "This roleToken is invalid"));
+        } else if(type.equals("Backroomer")){
+            backroomerRepository.findByToken(token).orElseThrow(()-> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "this backroomerToken is invalid"));
+        } else if (type.equals("Director")) {
+            directorRepository.findByToken(token).orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "This directorToken is not valid"));
+        } else if (type.equals("any")) {
+            playerRepository.findByToken(token).orElseThrow(()-> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "This generic token isn't valid"));
         }
     }
 
     @Transactional
     public Role syncPointsAndGetRole(String authToken, Long scenarioId, Long characterId) {
 
-        Role role = getRole(authToken, characterId);
+        Role role = getRoleById(authToken, characterId);
 
         Scenario scenario = scenarioRepository.findById(scenarioId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
