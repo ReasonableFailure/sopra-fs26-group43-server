@@ -14,7 +14,7 @@ import java.util.Map;
 @Service
 public class MastodonClient {
 
-    public String postStatus(String baseUrl, String token, String content) {
+    public static String postStatus(String baseUrl, String token, String content) {
 
         if (baseUrl == null || token == null) {
             return null;
