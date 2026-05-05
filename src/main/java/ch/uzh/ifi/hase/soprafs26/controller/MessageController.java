@@ -80,10 +80,16 @@ public class MessageController {
             @PathVariable Long characterAId,
             @PathVariable Long characterBId) {
 
-        //validate(token, "any");
+        // P0 still needs to re-enable validate(token, "any") here. For now we
+        // use splitToken to extract the bare token (and reject malformed
+        // prefixes); the service layer authorizes the caller against the
+        // (a, b) pair and filters PENDING/REJECTED messages addressed to the
+        // recipient. See B1.
+        String[] tokens = splitToken(token);
+        String callerToken = tokens[1];
 
         List<Message> messages =
-                messageService.getMessagesBetween(characterAId, characterBId);
+                messageService.getMessagesBetween(callerToken, characterAId, characterBId);
 
         return messages.stream()
                 .map(MessageDTOMapper.INSTANCE::convertEntityToGetDTO)
