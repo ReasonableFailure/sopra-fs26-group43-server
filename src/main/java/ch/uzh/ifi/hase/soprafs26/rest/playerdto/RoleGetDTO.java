@@ -6,7 +6,7 @@ public class RoleGetDTO {
     private String title;
     private String description;
     private String secret;
-    private boolean isAlive;
+    private boolean alive;
     private int messageCount;
     private int totalPoints;
     private int pointsBalance;
@@ -57,11 +57,11 @@ public class RoleGetDTO {
     }
 
     public boolean isAlive() {
-        return isAlive;
+        return alive;
     }
 
     public void setAlive(boolean alive) {
-        isAlive = alive;
+        this.alive = alive;
     }
 
     public int getMessageCount() {

@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import tools.jackson.databind.node.StringNode;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -34,12 +35,14 @@ public class PlayerController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @ResponseBody
     public void updateRole(@RequestBody RolePutDTO rolePutDTO, @RequestHeader("Authorization") String token, @PathVariable Long characterId) {
-        String[] tokens = splitToken(token);
+        playerService.updateRole(token, rolePutDTO,characterId);
+        /*String[] tokens = splitToken(token);
         if(tokens[0].equals("Director")){
             playerService.updateRole(tokens[1], rolePutDTO,characterId);
         } else {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
+        */
     }
 
     @GetMapping("/characters/{characterId}/detail")
@@ -91,7 +94,7 @@ public class PlayerController {
                 .map(PlayerDTOMapper.INSTANCE::convertEntitytoRoleGetDTO)
                 .toList();
     }
-  
+
     @GetMapping("/characters/{scenarioId}/{characterId}/points")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody

@@ -28,11 +28,13 @@ public class ScenarioService {
     private final PlayerService playerService;
     private final UserService userService;
     private final ScenarioRepository scenarioRepository;
+    private final NewsService newsService;
 
-    public ScenarioService(@Qualifier("scenarioRepository") ScenarioRepository scenarioRepository, @Qualifier("userService") UserService userService, @Qualifier("playerService") PlayerService playerService) {
+    public ScenarioService(@Qualifier("scenarioRepository") ScenarioRepository scenarioRepository, @Qualifier("userService") UserService userService, @Qualifier("playerService") PlayerService playerService, @Qualifier("newsService") NewsService newsService) {
         this.scenarioRepository = scenarioRepository;
         this.userService = userService;
         this.playerService = playerService;
+        this.newsService = newsService;
     }
 
     public List<Scenario> getScenarios(String token) {
@@ -83,6 +85,8 @@ public class ScenarioService {
         if (dto.getExchangeRate() != null) {
             s.setExchangeRate(dto.getExchangeRate());
         }
+        scenarioRepository.save(s);
+        scenarioRepository.flush();
     }
 
     public void addPlayerToScenario(String token, Long scenarioId, Long playerId){
@@ -139,6 +143,22 @@ public class ScenarioService {
         );
 
         scenario.setMastodonProfileUrl(profileUrl);
+
+         List<NewsStory> newsList = newsService.getNewsByScenario(scenarioId);
+
+        for (NewsStory news : newsList) {
+            try {
+                String content = news.formatSelf();
+
+                MastodonClient.postStatus(
+                        dto.getMastodonBaseUrl(),
+                        dto.getMastodonAccessToken(),
+                        content
+                );
+            } catch (Exception e) {
+                System.err.println("Failed to post news id " + news.getId());
+            }
+        }
 
         scenarioRepository.save(scenario);
     }
