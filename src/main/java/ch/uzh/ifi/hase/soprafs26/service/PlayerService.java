@@ -99,7 +99,10 @@ public class PlayerService {
             r.setSecret(rolePutDTO.getSecret());
         }
 
-        r.setAlive(rolePutDTO.isAlive()); 
+        if (rolePutDTO.isAlive() != null) {
+            r.setAlive(rolePutDTO.isAlive());
+        }
+
         roleRepository.save(r);
         roleRepository.flush();
     }

@@ -145,7 +145,7 @@ public class ScenarioService {
 
         scenario.setMastodonProfileUrl(profileUrl);
 
-         List<NewsStory> newsList = newsService.getNewsByScenario(scenarioId);
+        List<NewsStory> newsList = newsService.getNewsByScenario(scenarioId);
 
         for (NewsStory news : newsList) {
             try {
