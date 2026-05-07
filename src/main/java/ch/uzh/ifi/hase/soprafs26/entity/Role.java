@@ -20,6 +20,7 @@ public class Role extends Player{
     private int totalPoints;
     @Column(unique=false,nullable=true)
     private int pointsBalance;
+    @Lob
     @Column(unique=false,nullable=true)
     private byte[] portrait;
     @Column(unique = false, nullable = true)

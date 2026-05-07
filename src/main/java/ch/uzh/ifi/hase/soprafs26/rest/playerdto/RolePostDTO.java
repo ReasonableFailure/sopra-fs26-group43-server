@@ -5,6 +5,7 @@ public class RolePostDTO {
     private String title;
     private String description;
     private String secret;
+    private String portrait;
     private Long scenarioId;
 
     public String getName() { return name; }
@@ -18,6 +19,9 @@ public class RolePostDTO {
 
     public String getSecret() { return secret; }
     public void setSecret(String secret) { this.secret = secret; }
+
+    public String getPortrait() { return portrait; }
+    public void setPortrait(String portrait) { this.portrait = portrait; }
 
     public Long getScenarioId() { return scenarioId; }
     public void setScenarioId(Long scenarioId) { this.scenarioId = scenarioId; }

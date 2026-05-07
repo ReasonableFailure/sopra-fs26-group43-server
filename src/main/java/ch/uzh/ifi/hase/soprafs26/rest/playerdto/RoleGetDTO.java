@@ -10,7 +10,7 @@ public class RoleGetDTO {
     private int messageCount;
     private int totalPoints;
     private int pointsBalance;
-    private byte[] portrait;
+    private String portrait;
     private int numberDirectives;
     private int numberMessages;
     private int numberPronouncements;
@@ -87,11 +87,11 @@ public class RoleGetDTO {
         this.pointsBalance = pointsBalance;
     }
 
-    public byte[] getPortrait() {
+    public String getPortrait() {
         return portrait;
     }
 
-    public void setPortrait(byte[] portrait) {
+    public void setPortrait(String portrait) {
         this.portrait = portrait;
     }
 
