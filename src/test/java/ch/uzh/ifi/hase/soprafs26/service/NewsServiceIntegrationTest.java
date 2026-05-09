@@ -16,7 +16,6 @@ import ch.uzh.ifi.hase.soprafs26.entity.NewsStory;
 import ch.uzh.ifi.hase.soprafs26.entity.Pronouncement;
 import ch.uzh.ifi.hase.soprafs26.entity.Role;
 import ch.uzh.ifi.hase.soprafs26.entity.Scenario;
-import ch.uzh.ifi.hase.soprafs26.integration.MastodonClient;
 import ch.uzh.ifi.hase.soprafs26.repository.NewsRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.RoleRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.ScenarioRepository;
@@ -33,18 +32,6 @@ import static org.mockito.Mockito.when;
 @WebAppConfiguration
 @SpringBootTest
 public class NewsServiceIntegrationTest {
-
-	@TestConfiguration
-	static class MastodonClientTestConfiguration {
-		@Bean
-		@Primary
-		public MastodonClient mastodonClient() {
-			MastodonClient mockClient = mock(MastodonClient.class);
-			when(mockClient.postStatus(anyString(), anyString(), anyString()))
-					.thenReturn("test-status-id-123");
-			return mockClient;
-		}
-	}
 
 	@Qualifier("newsRepository")
 	@Autowired

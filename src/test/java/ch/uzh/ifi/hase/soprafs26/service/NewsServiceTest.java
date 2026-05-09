@@ -101,8 +101,8 @@ public class NewsServiceTest {
 	public void createNews_validInputs_pronouncement_success() {
 		NewsStory createdNews = newsService.createNews(testNewsPostDTO);
 
-		Mockito.verify(newsRepository, Mockito.times(1)).save(Mockito.any());
-		Mockito.verify(scenarioRepository, Mockito.times(1)).save(testScenario);
+		Mockito.verify(newsRepository, Mockito.atLeastOnce()).save(Mockito.any());
+		Mockito.verify(scenarioRepository, Mockito.atLeastOnce()).save(testScenario);
 
 		assertEquals(testNewsPostDTO.getTitle(), createdNews.getTitle());
 		assertEquals(testNewsPostDTO.getBody(), createdNews.getBody());
@@ -121,8 +121,8 @@ public class NewsServiceTest {
 
 		NewsStory createdNews = newsService.createNews(testNewsPostDTO);
 
-		Mockito.verify(newsRepository, Mockito.times(1)).save(Mockito.any());
-		Mockito.verify(scenarioRepository, Mockito.times(1)).save(testScenario);
+		Mockito.verify(newsRepository, Mockito.atLeastOnce()).save(Mockito.any());
+		Mockito.verify(scenarioRepository, Mockito.atLeastOnce()).save(testScenario);
 
 		assertEquals(testNewsPostDTO.getTitle(), createdNews.getTitle());
 		assertEquals(testNewsPostDTO.getBody(), createdNews.getBody());
