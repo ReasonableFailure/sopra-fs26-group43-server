@@ -13,6 +13,7 @@ public class DirectiveGetDTO {
     private CommsStatus status;
     private Long creatorId;
     private DirectiveCategory category;
+    private String response;
     
     public Long getId() {
         return id;
@@ -68,5 +69,13 @@ public class DirectiveGetDTO {
 
     public void setCategory(DirectiveCategory category) {
         this.category = category;
+    }
+
+    public String getResponse() {
+        return response;
+    }
+
+    public void setResponse(String response) {
+        this.response = response;
     }
 }
