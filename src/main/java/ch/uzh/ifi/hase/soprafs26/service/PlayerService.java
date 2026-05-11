@@ -1,5 +1,6 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
+import ch.uzh.ifi.hase.soprafs26.constant.ScenarioStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.*;
 import ch.uzh.ifi.hase.soprafs26.repository.*;
 import ch.uzh.ifi.hase.soprafs26.integration.MastodonClient;
@@ -114,6 +115,7 @@ public class PlayerService {
         Scenario scenario = scenarioRepository.findById(rolePostDTO.getScenarioId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario not found"));
         Role newRole = PlayerDTOMapper.INSTANCE.convertRolePostDTOtoEntity(rolePostDTO);
+        newRole.setScenario(scenario);
         newRole.setAlive(true);
         newRole.setTotalPoints(0);
         newRole.setPointsBalance(0);
@@ -138,6 +140,8 @@ public class PlayerService {
     public Backroomer createBackroomer(PlayerPutDTO playerPutDTO){
         Backroomer b = new Backroomer();
         b.setToken(randomUUID().toString());
+        b.setUser(userService.getProfileById(playerPutDTO.getNewAssignedUserId()));
+        b.setScenario(scenario);
         b.setDelegatedCharacters(new ArrayList<Role>());
         backroomerRepository.save(b);
         backroomerRepository.flush();
@@ -171,6 +175,50 @@ public class PlayerService {
     }
 
     public Director createDirector(Long userId){
+    public Role claimCharacter(String userToken, Long scenarioId, Long characterId) {
+        userService.validateUserToken(userToken);
+        User user = userService.getByToken(userToken);
+        Scenario scenario = scenarioRepository.findById(scenarioId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario not found"));
+        if (scenario.getStatus() == ScenarioStatus.COMPLETED) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Scenario has ended");
+        }
+        if (playerRepository.findFirstByUser_IdAndScenario_Id(user.getId(), scenarioId).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Already engaged in this scenario");
+        }
+        Role role = roleRepository.findById(characterId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Character not found"));
+        if (role.getUser() != null) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Character already taken");
+        }
+        role.setUser(user);
+        if (role.getToken() == null) {
+            role.setToken(randomUUID().toString());
+        }
+        return roleRepository.save(role);
+    }
+
+    public Backroomer becomeBackroomer(String userToken, Long scenarioId) {
+        userService.validateUserToken(userToken);
+        User user = userService.getByToken(userToken);
+        Scenario scenario = scenarioRepository.findById(scenarioId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario not found"));
+        if (scenario.getStatus() == ScenarioStatus.COMPLETED) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Scenario has ended");
+        }
+        if (playerRepository.findFirstByUser_IdAndScenario_Id(user.getId(), scenarioId).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Already engaged in this scenario");
+        }
+        Backroomer b = new Backroomer();
+        b.setUser(user);
+        b.setScenario(scenario);
+        b.setToken(randomUUID().toString());
+        b.setDelegatedCharacters(new ArrayList<Role>());
+        return backroomerRepository.save(b);
+    }
+
+    public Director createDirector(String userToken, Scenario scenario){
+        userService.checkIfValidToken(userToken);
         Director d = new Director();
         d.setToken(randomUUID().toString());
         System.out.println("The user to be assigned is:" + userId);

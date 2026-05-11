@@ -19,9 +19,13 @@ abstract public class Player implements Serializable {
     @Column(nullable = false,unique = true)
     private String token;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "userId")
     private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "scenario_id")
+    private Scenario scenario;
 
     public Long getId() {
         return id;
@@ -37,6 +41,14 @@ abstract public class Player implements Serializable {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public Scenario getScenario() {
+        return scenario;
+    }
+
+    public void setScenario(Scenario scenario) {
+        this.scenario = scenario;
     }
 
     public String getToken() {
