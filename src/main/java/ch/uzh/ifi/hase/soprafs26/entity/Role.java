@@ -54,6 +54,13 @@ public class Role extends Player{
         messageCount--;
     }
 
+    public void useMessageSlot() {
+        if (messageCount <= 0) {
+            throw new IllegalStateException("No message slots available");
+        }
+        messageCount--;
+    }
+
     public String getName() {
         return this.name;
     }
