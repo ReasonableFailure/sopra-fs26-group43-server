@@ -128,6 +128,13 @@ public class MessageService {
         return messageRepository.findConversation(characterAId, characterBId);
     }
 
+    public void deleteMessage(Long messageId) {
+        if (!messageRepository.existsById(messageId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Message not found");
+        }
+        messageRepository.deleteById(messageId);
+    }
+
     public List<MessagePairDTO> getMessagePairsByScenario(Long scenarioId) {
 
         if (!scenarioRepository.existsById(scenarioId)) {

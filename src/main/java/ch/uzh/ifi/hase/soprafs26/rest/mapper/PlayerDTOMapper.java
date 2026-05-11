@@ -13,7 +13,14 @@ import org.mapstruct.factory.Mappers;
 
     Role convertRolePutDTOtoEntity(RolePutDTO rolePutDTO, @MappingTarget Role role);
 
+    @Mapping(source = "token", target = "roleToken")
     RoleGetDTO convertEntitytoRoleGetDTO(Role role);
+
+    @AfterMapping
+    default void addRolePrefix(@MappingTarget RoleGetDTO roleGetDTO, Role entity) {
+        if (entity.getToken() == null) return;
+        roleGetDTO.setRoleToken("Role " + entity.getToken());
+    }
 
     Player convertPlayerPutDTOtoEntity(PlayerPutDTO playerPutDTO, @MappingTarget Player player);
 

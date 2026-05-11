@@ -26,7 +26,9 @@ public class ScenarioPostDTO {
         return description;
     }
 
-    public void setDescription(String description) {}
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
     public int getStartingMessageCount() {
         return startingMessageCount;

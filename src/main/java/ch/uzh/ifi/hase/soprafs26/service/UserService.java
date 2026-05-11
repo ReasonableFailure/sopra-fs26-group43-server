@@ -83,13 +83,13 @@ public class UserService {
         if(!isValidProfileData(user.getUsername(),user.getPassword())){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Invalid username or password"));
         }
+        User fromStore = userRepository.findByUsername(user.getUsername());
+        if(fromStore == null){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User with username %s not found", user.getUsername()));
+        }
         if(!checkPwd(user.getUsername(),user.getPassword())){
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("Invalid token"));
         }
-        if(!checkIfUserExistsByID(user.getId())){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User with id %d not found", user.getId()));
-        }
-        User fromStore = userRepository.findByUsername(user.getUsername());
         fromStore.setToken(UUID.randomUUID().toString());
         fromStore.setStatus(UserStatus.ONLINE);
         fromStore = userRepository.save(fromStore);
@@ -98,16 +98,32 @@ public class UserService {
     }
 
     public void logoutUser(Long ID, String token){
-        //200, 401, 404
+        //200, 401, 403, 404
         checkIfValidToken(token);
-        if(!checkIfUserExistsByID(ID)){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User with id %d not found", ID));
-        }
         User requestsLogout = userRepository.findByToken(token);
+        if (requestsLogout == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token");
+        }
+        if (!requestsLogout.getId().equals(ID)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Path user does not match token holder");
+        }
         requestsLogout.setStatus(UserStatus.OFFLINE);
         requestsLogout.setToken(null);
         requestsLogout.setPlaying(false);
         userRepository.save(requestsLogout);
+        userRepository.flush();
+    }
+
+    public void deleteUser(Long ID, String token){
+        checkIfValidToken(token);
+        User requester = userRepository.findByToken(token);
+        if (requester == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token");
+        }
+        if (!requester.getId().equals(ID)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cannot delete another user");
+        }
+        userRepository.deleteById(ID);
         userRepository.flush();
     }
 
@@ -184,7 +200,7 @@ public class UserService {
     protected void checkIfValidToken(String token){
         if (token == null || token.isEmpty()) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("Invalid token"));
         User foundByToken = userRepository.findByToken(token);
-        if (foundByToken.getToken() == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("Invalid token"));
+        if (foundByToken == null || foundByToken.getToken() == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("Invalid token"));
     }
 
     public void validateUserToken(String token) {

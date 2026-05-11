@@ -65,13 +65,25 @@ public class ScenarioService {
     }
 
     public void deleteScenario(String token, Long scenarioId){
-        Scenario toDelete = getScenarioById(token,scenarioId);
+        Scenario toDelete = getScenarioById(token, scenarioId);
+        requireDirector(token, toDelete);
         scenarioRepository.delete(toDelete);
         scenarioRepository.flush();
     }
 
+    private void requireDirector(String userToken, Scenario scenario){
+        User requester = userService.getByToken(userToken);
+        Director director = scenario.getDirector();
+        if (director == null
+                || director.getUser() == null
+                || !director.getUser().getId().equals(requester.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only the director can modify this scenario");
+        }
+    }
+
     public void updateScenario(String token, Long scenarioId, ScenarioPutDTO dto){
         Scenario s = getScenarioById(token, scenarioId);
+        requireDirector(token, s);
 
         if (dto.getTitle() != null) {
             s.setTitle(dto.getTitle());
@@ -133,10 +145,11 @@ public class ScenarioService {
         return toReturn;
     }
 
-    public void updateMastodonConfig(Long scenarioId, ScenarioMastodonDTO dto) {
+    public void updateMastodonConfig(String userToken, Long scenarioId, ScenarioMastodonDTO dto) {
         Scenario scenario = scenarioRepository.findById(scenarioId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Scenario not found"));
+        requireDirector(userToken, scenario);
 
         scenario.setMastodonBaseUrl(dto.getMastodonBaseUrl());
         scenario.setMastodonAccessToken(dto.getMastodonAccessToken());

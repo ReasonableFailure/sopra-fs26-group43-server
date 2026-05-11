@@ -110,4 +110,11 @@ public class NewsService {
 
         return newsRepository.findByScenarioIdOrderByCreatedAtAsc(scenarioId);
     }
+
+    public void deleteNews(Long newsId) {
+        if (!newsRepository.existsById(newsId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "News item not found");
+        }
+        newsRepository.deleteById(newsId);
+    }
 }

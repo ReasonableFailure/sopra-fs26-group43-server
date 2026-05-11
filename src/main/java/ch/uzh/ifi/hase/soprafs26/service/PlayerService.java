@@ -67,9 +67,9 @@ public class PlayerService {
         return toChange;
     }
 
-    public PlayerGetDTO updatePlayerAssociation(Long playerId, PlayerPutDTO playerPutDTO, String token){
+    public PlayerGetDTO updatePlayerAssociation(Long playerId, PlayerPutDTO playerPutDTO, String userToken){
         //Assigns a user to an existing Player or child class
-        checkToken(token,"any");
+        userService.validateUserToken(userToken);
         Player player = playerRepository.findById(playerId).orElseThrow(() -> new ResponseStatusException(HttpStatusCode.valueOf(404), String.format("User %d cannot be assigned to player %d, this player does not exist", playerPutDTO.getNewAssignedUserId(), playerId)));
         player = PlayerDTOMapper.INSTANCE.convertPlayerPutDTOtoEntity(playerPutDTO, player);
         playerRepository.save(player);
@@ -268,9 +268,9 @@ public class PlayerService {
     }
 
     @Transactional
-    public Role buyMessage(String token, Long scenarioId, Long characterId) {
+    public Role buyMessage(String userToken, Long scenarioId, Long characterId) {
 
-        //checkToken(token, "Role");
+        userService.validateUserToken(userToken);
 
         Role role = roleRepository.findById(characterId)
             .orElseThrow(() -> new ResponseStatusException(

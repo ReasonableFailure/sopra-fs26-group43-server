@@ -24,12 +24,7 @@ public class PlayerController {
     }
     @PutMapping("/player/{playerId}")
     public void assignUserToPlayer(@PathVariable Long playerId, @RequestBody PlayerPutDTO playerPutDTO,  @RequestHeader("Authorization") String token) {
-        String[] tokens = splitToken(token);
-        if(tokens[0].equals("Bearer")){
-            playerService.updatePlayerAssociation(playerId,playerPutDTO,tokens[1]);
-        } else {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-        }
+        playerService.updatePlayerAssociation(playerId, playerPutDTO, stripBearer(token));
     }
 
     @PutMapping("/characters/{characterId}")
@@ -147,14 +142,9 @@ public class PlayerController {
             @PathVariable Long scenarioId,
             @PathVariable Long characterId) {
 
-        /*String[] tokens = splitToken(token);
-
-        if (!tokens[0].equals("Role")) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-        }
-        */
+        String userToken = stripBearer(token);
         Role updatedRole =
-            playerService.buyMessage(token, scenarioId, characterId);
+            playerService.buyMessage(userToken, scenarioId, characterId);
 
         return PlayerDTOMapper.INSTANCE.convertEntitytoRoleGetDTO(updatedRole);
     }

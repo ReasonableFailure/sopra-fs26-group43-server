@@ -11,6 +11,15 @@ public class DirectiveGetDTO {
     private Instant createdAt;
     private CommsStatus status;
     private Long creatorId;
+    private String response;
+
+    public String getResponse() {
+        return response;
+    }
+
+    public void setResponse(String response) {
+        this.response = response;
+    }
 
     public Long getId() {
         return id;

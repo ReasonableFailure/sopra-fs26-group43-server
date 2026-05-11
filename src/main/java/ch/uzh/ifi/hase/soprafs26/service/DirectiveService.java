@@ -119,4 +119,11 @@ public class DirectiveService {
 
         return directiveRepository.findByCreatorId(characterId);
     }
+
+    public void deleteDirective(Long directiveId) {
+        if (!directiveRepository.existsById(directiveId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Directive not found");
+        }
+        directiveRepository.deleteById(directiveId);
+    }
 }

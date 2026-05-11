@@ -3,10 +3,10 @@ package ch.uzh.ifi.hase.soprafs26.controller;
 import ch.uzh.ifi.hase.soprafs26.entity.Directive;
 import ch.uzh.ifi.hase.soprafs26.rest.directivedto.*;
 import ch.uzh.ifi.hase.soprafs26.service.DirectiveService;
-import ch.uzh.ifi.hase.soprafs26.service.PlayerService;
-import static ch.uzh.ifi.hase.soprafs26.controller.PlayerController.splitToken;
+import ch.uzh.ifi.hase.soprafs26.service.UserService;
 import ch.uzh.ifi.hase.soprafs26.mapper.DirectiveDTOMapper;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
 import java.util.List;
@@ -14,12 +14,12 @@ import java.util.List;
 public class DirectiveController {
 
     private final DirectiveService directiveService;
-    private final PlayerService playerService;
+    private final UserService userService;
 
     DirectiveController(DirectiveService directiveService,
-                        PlayerService playerService) {
+                        UserService userService) {
         this.directiveService = directiveService;
-        this.playerService = playerService;
+        this.userService = userService;
     }
 
     @PostMapping("/directives")
@@ -28,7 +28,7 @@ public class DirectiveController {
             @RequestHeader("Authorization") String token,
             @RequestBody DirectivePostDTO postDTO) {
 
-        //validate(token, "Role");
+        requireUser(token);
 
         Directive directive = directiveService.createDirective(postDTO);
 
@@ -41,7 +41,7 @@ public class DirectiveController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long directiveId) {
 
-        //validate(token, "any");
+        requireUser(token);
 
         Directive directive = directiveService.getDirectiveById(directiveId);
 
@@ -55,9 +55,20 @@ public class DirectiveController {
             @PathVariable Long directiveId,
             @RequestBody DirectivePutDTO putDTO) {
 
-        //validate(token, "Backroomer");
+        requireUser(token);
 
         directiveService.updateDirectiveStatus(directiveId, putDTO);
+    }
+
+    @DeleteMapping("/directives/{directiveId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteDirective(
+            @RequestHeader("Authorization") String token,
+            @PathVariable Long directiveId) {
+
+        requireUser(token);
+
+        directiveService.deleteDirective(directiveId);
     }
 
     @GetMapping("/directives/scenario/{scenarioId}")
@@ -66,7 +77,7 @@ public class DirectiveController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long scenarioId) {
 
-        //validate(token, "any");
+        requireUser(token);
 
         List<Directive> directives = directiveService.getDirectivesByScenario(scenarioId);
 
@@ -81,7 +92,7 @@ public class DirectiveController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long characterId) {
 
-        //validate(token, "any");
+        requireUser(token);
 
         List<Directive> directives = directiveService.getDirectivesByCreator(characterId);
 
@@ -90,9 +101,10 @@ public class DirectiveController {
                 .toList();
     }
 
-    private String validate(String header, String type) {
-        String[] tokens = splitToken(header);
-        playerService.checkToken(tokens[1], type);
-        return tokens[1];
+    private void requireUser(String header) {
+        if (header == null || !header.startsWith("Bearer ")) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
+        userService.validateUserToken(header.substring(7));
     }
 }
