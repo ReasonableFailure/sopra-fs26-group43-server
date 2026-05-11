@@ -170,11 +170,12 @@ public class PlayerService {
         return new ArrayList<>(interlocutors);
     }
 
-    public Director createDirector(String userToken,Long userId){
-        userService.validateUserToken(userToken);
+    public Director createDirector(Long userId){
         Director d = new Director();
         d.setToken(randomUUID().toString());
-        d.setUser(userService.getProfileById(userId,userToken));
+        System.out.println("The user to be assigned is:" + userId);
+        d.setUser(userService.getProfileById(userId));
+        System.out.println("user has been found and assigned");
         directorRepository.save(d);
         directorRepository.flush();
         return d;
@@ -263,31 +264,31 @@ public class PlayerService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token is empty");
         }
         String[] tokens = fromHeader.split(" ");
-        if (!tokens[0].equalsIgnoreCase(intendedRole) && !tokens[0].equalsIgnoreCase("any")) { //allow any of the player roles through
+        if (!tokens[0].equalsIgnoreCase(intendedRole) && !intendedRole.equalsIgnoreCase("any")) { //allow any of the player roles through
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Your role in the scenario is not permitted to perform this action!");
         }else{
             if(tokens[0].equalsIgnoreCase("director")){
                 Director director = directorRepository.findByToken(tokens[0]).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "This director player does not exist"));
-                if(!director.getToken().equals(tokens[0])){
+                if(!director.getToken().equals(tokens[1])){
                     throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Wrong director player token");
                 }
             } else if(tokens[0].equalsIgnoreCase("backroomer")){
                 Backroomer backroomer = backroomerRepository.findByToken(tokens[0]).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "This backroomer player does not exist"));
-                if(!backroomer.getToken().equals(tokens[0])){
+                if(!backroomer.getToken().equals(tokens[1])){
                     throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Wrong backroomer player token");
                 }
             } else if(tokens[0].equalsIgnoreCase("role")) {
-                Role role = roleRepository.findByToken(tokens[0]).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "This character player does not exist"));
+                Role role = roleRepository.findByToken(tokens[1]).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "This character player does not exist"));
                 if (!role.getToken().equals(tokens[0])) {
                     throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Wrong character player token");
                 }
             } else if(tokens[0].equalsIgnoreCase("any")) {
-                Player player = playerRepository.findByToken(tokens[0]).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "This player does not exist"));
+                Player player = playerRepository.findByToken(tokens[1]).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "This player does not exist"));
                 if(!player.getToken().equals(tokens[0])){
                     throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Wrong player token");
                 }
             } else if(tokens[0].equalsIgnoreCase("Bearer")){
-                userService.validateUserToken(tokens[0]);
+                userService.validateUserToken(tokens[1]);
             }
         }
         return tokens[1];

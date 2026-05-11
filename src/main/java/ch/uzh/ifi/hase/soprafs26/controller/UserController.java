@@ -49,16 +49,18 @@ public class UserController {
     @ResponseBody
     public UserGetDTO retrieveUser(@PathVariable Long userid, @RequestHeader("Authorization") String token){
         String strippedToken = stripPrefix(token);
-        User user = userService.getProfileById(userid,strippedToken);
+        userService.validateUserToken(strippedToken);
+        User user = userService.getProfileById(userid);
         return UserDTOMapper.INSTANCE.convertEntityToUserGetDTO(user);
     }
 
     @PutMapping("/users/{userid}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void updateUser(@PathVariable Long userid, @RequestHeader("Authorization") String token, @RequestBody UserPutDTO userPutDTO){
-        User holdsUpdateData = UserDTOMapper.INSTANCE.convertUserPutDTOtoEntity(userPutDTO);
         String strippedToken = stripPrefix(token);
-        userService.updateProfile(strippedToken, userid, holdsUpdateData);
+        userService.validateUserToken(strippedToken);
+        User holdsUpdateData = UserDTOMapper.INSTANCE.convertUserPutDTOtoEntity(userPutDTO);
+        userService.updateProfile(userid, holdsUpdateData);
     }
 
     @PostMapping("/login")
@@ -74,7 +76,8 @@ public class UserController {
     @ResponseStatus(HttpStatus.OK)
     public void logout(@PathVariable Long userid, @RequestHeader("Authorization") String token){
         String strippedToken = stripPrefix(token);
-        userService.logoutUser(userid,strippedToken);
+        userService.validateUserToken(strippedToken);
+        userService.logoutUser(userid);
     }
 
     @GetMapping("/users")
@@ -83,7 +86,8 @@ public class UserController {
     public List<UserGetDTO> getAllUsers(@RequestHeader("Authorization") String token) {
         // fetch all users in the internal representation
         String strippedToken = stripPrefix(token);
-        List<User> users = userService.getUsers(strippedToken);
+        userService.validateUserToken(strippedToken);
+        List<User> users = userService.getUsers();
         List<UserGetDTO> userGetDTOs = new ArrayList<>();
 
         // convert each user to the API representation

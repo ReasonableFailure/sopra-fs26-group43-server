@@ -35,8 +35,8 @@ public class ScenarioController {
     @ResponseBody
     public List<ScenarioGetDTO> getAllScenarios(@RequestHeader("Authorization") String token) {
         // fetch all scenarios in the internal representation
-        String validatedToken = playerService.validate(token, "any");
-        List<Scenario> scenarios = scenarioService.getScenarios(validatedToken);
+        String validatedToken = playerService.validate(token, "Bearer");
+        List<Scenario> scenarios = scenarioService.getScenarios();
         List<ScenarioGetDTO> scenarioGetDTOs = new ArrayList<>();
 
         // convert each scenario to the API representation
@@ -48,7 +48,7 @@ public class ScenarioController {
 
     @PostMapping("/scenarios")
     public ScenarioGetDTO createScenario(@RequestBody ScenarioPostDTO scenarioPostDTO, @RequestHeader("Authorization") String token){
-        playerService.validate(token, "Bearer");
+        playerService.validate(token, "Director");
         Scenario created = scenarioService.createScenario(token,scenarioPostDTO);
         return ScenarioDTOMapper.INSTANCE.convertEntityToScenarioGetDTO(created);
     }

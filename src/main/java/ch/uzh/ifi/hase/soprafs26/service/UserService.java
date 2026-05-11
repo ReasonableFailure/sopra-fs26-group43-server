@@ -36,13 +36,11 @@ public class UserService {
 		this.userRepository = userRepository;
 	}
 
-	public List<User> getUsers(String token) {
-        validateUserToken(token);
+	public List<User> getUsers() {
 		return this.userRepository.findAll();
 	}
 
-    public User getProfileById(Long idToBeFound, String authToken){
-        validateUserToken(authToken);
+    public User getProfileById(Long idToBeFound ){
         return userRepository.findById(idToBeFound).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User with id %d not found", idToBeFound)));
     }
 
@@ -80,11 +78,10 @@ public class UserService {
         return fromStore;
     }
 
-    public void logoutUser(Long ID, String token){
+    public void logoutUser(Long Id){
         //200, 401, 404
-        validateUserToken(token);
-        checkIfUserExistsByID(ID);
-        User requestsLogout = userRepository.findByToken(token).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User with id %d not found", ID)));
+        checkIfUserExistsByID(Id);
+        User requestsLogout = userRepository.findById(Id).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User with id %d not found", Id)));
         requestsLogout.setStatus(UserStatus.OFFLINE);
         requestsLogout.setToken(null);
         requestsLogout.setPlaying(false);
@@ -92,8 +89,8 @@ public class UserService {
         userRepository.flush();
     }
 
-    public void updateProfile(String token, Long id, User holdsUpdate) {
-        validateUserToken(token);
+    public void updateProfile(Long id, User holdsUpdate) {
+
         checkIfUserExistsByID(id);
         isValidProfileData(holdsUpdate.getUsername(),holdsUpdate.getPassword());
         User toBeModified = userRepository.findById(id).get();
@@ -158,7 +155,7 @@ public class UserService {
     public void validateUserToken(String token){
         if (token == null || token.isEmpty()) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("Token not there"));
         System.out.println(token);
-        User foundByToken = userRepository.findByToken(token).orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("This is not a valid token")));
+        User foundByToken = userRepository.findByToken(token).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("This user does not exist!")));
         if (foundByToken.getToken() == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("This token is not associated with any user."));
         if(!token.equals(foundByToken.getToken())) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("Wrong token"));
     }
