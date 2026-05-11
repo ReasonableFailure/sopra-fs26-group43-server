@@ -82,7 +82,7 @@ public class MessageController {
         playerService.validate(token, "any");
 
         List<Message> messages =
-                messageService.getMessagesBetween(characterAId, characterBId);
+                messageService.getMessagesBetween(callerToken, characterAId, characterBId);
 
         return messages.stream()
                 .map(MessageDTOMapper.INSTANCE::convertEntityToGetDTO)

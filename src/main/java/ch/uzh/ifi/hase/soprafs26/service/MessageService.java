@@ -27,15 +27,18 @@ public class MessageService {
     private final MessageRepository messageRepository;
     private final ScenarioRepository scenarioRepository;
     private final RoleRepository roleRepository;
+    private final PlayerRepository playerRepository;
 
     public MessageService(
             @Qualifier("messageRepository") MessageRepository messageRepository,
             @Qualifier("scenarioRepository") ScenarioRepository scenarioRepository,
-            @Qualifier("roleRepository") RoleRepository roleRepository
+            @Qualifier("roleRepository") RoleRepository roleRepository,
+            @Qualifier("playerRepository") PlayerRepository playerRepository
     ) {
         this.messageRepository = messageRepository;
         this.scenarioRepository = scenarioRepository;
         this.roleRepository = roleRepository;
+        this.playerRepository = playerRepository;
     }
 
     public Message createMessage(MessagePostDTO postDTO) {
@@ -111,7 +114,7 @@ public class MessageService {
         messageRepository.save(message);
     }
 
-    public List<Message> getMessagesBetween(Long characterAId, Long characterBId) {
+    public List<Message> getMessagesBetween(String callerToken, Long characterAId, Long characterBId) {
 
         if (!roleRepository.existsById(characterAId) ||
                 !roleRepository.existsById(characterBId)) {
@@ -125,7 +128,33 @@ public class MessageService {
                     HttpStatus.BAD_REQUEST, "Cannot retrieve conversation with self");
         }
 
-        return messageRepository.findConversation(characterAId, characterBId);
+        Player caller = playerRepository.findByToken(callerToken);
+        if (caller == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED, "Unknown caller token");
+        }
+
+        List<Message> raw = messageRepository.findConversation(characterAId, characterBId);
+
+        // Backroomer (and Director, which extends Backroomer) need full visibility
+        // for moderation. Cross-scenario scope checks are deferred to B2.
+        if (caller instanceof Backroomer) {
+            return raw;
+        }
+
+        // Player Roles may only view conversations they participate in,
+        // and may only see messages they sent or messages addressed to them
+        // that have been approved (status == ACCEPTED).
+        Long callerId = caller.getId();
+        if (!callerId.equals(characterAId) && !callerId.equals(characterBId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN, "Only conversation participants may view this thread");
+        }
+
+        return raw.stream()
+                .filter(m -> m.getCreator().getId().equals(callerId)
+                          || m.getStatus() == CommsStatus.ACCEPTED)
+                .toList();
     }
 
     public List<MessagePairDTO> getMessagePairsByScenario(Long scenarioId) {

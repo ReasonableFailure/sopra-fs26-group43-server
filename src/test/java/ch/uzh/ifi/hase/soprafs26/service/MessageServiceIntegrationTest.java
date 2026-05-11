@@ -229,7 +229,9 @@ public class MessageServiceIntegrationTest {
 
 		messageService.createMessage(postDTO);
 
-		List<Message> result = messageService.getMessagesBetween(testCreator.getId(), testRecipient.getId());
+		// Caller is the creator, so they can see their own PENDING message.
+		List<Message> result = messageService.getMessagesBetween(
+				testCreator.getToken(), testCreator.getId(), testRecipient.getId());
 
 		assertEquals(1, result.size());
 		assertEquals(testCreator.getId(), result.get(0).getCreator().getId());
@@ -239,7 +241,8 @@ public class MessageServiceIntegrationTest {
 	@Test
 	public void getMessagesBetween_charactersNotFound_throwsException() {
 		assertThrows(ResponseStatusException.class,
-				() -> messageService.getMessagesBetween(999L, testRecipient.getId()));
+				() -> messageService.getMessagesBetween(
+						testCreator.getToken(), 999L, testRecipient.getId()));
 	}
 
 	@Test
