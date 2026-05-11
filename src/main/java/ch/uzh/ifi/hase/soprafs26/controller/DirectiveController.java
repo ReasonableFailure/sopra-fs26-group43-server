@@ -4,7 +4,6 @@ import ch.uzh.ifi.hase.soprafs26.entity.Directive;
 import ch.uzh.ifi.hase.soprafs26.rest.directivedto.*;
 import ch.uzh.ifi.hase.soprafs26.service.DirectiveService;
 import ch.uzh.ifi.hase.soprafs26.service.PlayerService;
-import static ch.uzh.ifi.hase.soprafs26.controller.PlayerController.splitToken;
 import ch.uzh.ifi.hase.soprafs26.mapper.DirectiveDTOMapper;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
@@ -28,7 +27,7 @@ public class DirectiveController {
             @RequestHeader("Authorization") String token,
             @RequestBody DirectivePostDTO postDTO) {
 
-        //validate(token, "Role");
+        playerService.validate(token, "Role");
 
         Directive directive = directiveService.createDirective(postDTO);
 
@@ -41,7 +40,7 @@ public class DirectiveController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long directiveId) {
 
-        //validate(token, "any");
+        playerService.validate(token, "any");
 
         Directive directive = directiveService.getDirectiveById(directiveId);
 
@@ -55,7 +54,7 @@ public class DirectiveController {
             @PathVariable Long directiveId,
             @RequestBody DirectivePutDTO putDTO) {
 
-        //validate(token, "Backroomer");
+        playerService.validate(token, "Backroomer");
 
         directiveService.updateDirectiveStatus(directiveId, putDTO);
     }
@@ -66,7 +65,7 @@ public class DirectiveController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long scenarioId) {
 
-        //validate(token, "any");
+        playerService.validate(token, "any");
 
         List<Directive> directives = directiveService.getDirectivesByScenario(scenarioId);
 
@@ -81,7 +80,7 @@ public class DirectiveController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long characterId) {
 
-        //validate(token, "any");
+        playerService.validate(token, "any");
 
         List<Directive> directives = directiveService.getDirectivesByCreator(characterId);
 
@@ -90,9 +89,4 @@ public class DirectiveController {
                 .toList();
     }
 
-    private String validate(String header, String type) {
-        String[] tokens = splitToken(header);
-        playerService.checkToken(tokens[1], type);
-        return tokens[1];
-    }
 }

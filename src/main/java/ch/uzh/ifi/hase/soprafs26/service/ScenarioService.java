@@ -38,18 +38,17 @@ public class ScenarioService {
     }
 
     public List<Scenario> getScenarios(String token) {
-        userService.checkIfValidToken(token);
         return this.scenarioRepository.findAll();
     }
 
-    public Scenario getScenarioById(String token, Long scenarioId) {
-        userService.checkIfValidToken(token);
+    public Scenario getScenarioById(Long scenarioId) {
+
         return this.scenarioRepository.findById(scenarioId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario with id " + scenarioId + " not found"));
     }
 
     @Transactional
     public Scenario createScenario(String token, ScenarioPostDTO scenarioPostDTO){
-        //TODO: validate user's directorToken
+        //TODO: there must be some way to identify the director creating the scenario
         Scenario newScenario = ScenarioDTOMapper.INSTANCE.convertScenarioPostDTOtoEntity(scenarioPostDTO);
         newScenario.setDayNumber(0);
         newScenario.setStatus(ScenarioStatus.UNSTARTED);
@@ -61,14 +60,14 @@ public class ScenarioService {
         return newScenario;
     }
 
-    public void deleteScenario(String token, Long scenarioId){
-        Scenario toDelete = getScenarioById(token,scenarioId);
+    public void deleteScenario(Long scenarioId){
+        Scenario toDelete = getScenarioById(scenarioId);
         scenarioRepository.delete(toDelete);
         scenarioRepository.flush();
     }
 
-    public void updateScenario(String token, Long scenarioId, ScenarioPutDTO dto){
-        Scenario s = getScenarioById(token, scenarioId);
+    public void updateScenario(Long scenarioId, ScenarioPutDTO dto){
+        Scenario s = getScenarioById(scenarioId);
 
         if (dto.getTitle() != null) {
             s.setTitle(dto.getTitle());
@@ -89,25 +88,24 @@ public class ScenarioService {
         scenarioRepository.flush();
     }
 
-    public void addPlayerToScenario(String token, Long scenarioId, Long playerId){
-        userService.checkIfValidToken(token);
-        Role toAdd = playerService.getRoleById(token,playerId);
-        Scenario scenario = getScenarioById(token,scenarioId);
+    public void addPlayerToScenario(Long scenarioId, Long playerId){
+
+        Role toAdd = playerService.getRoleById(playerId);
+        Scenario scenario = getScenarioById(scenarioId);
         toAdd = playerService.updateMessagingStats(playerId, scenario.getStartingMessageCount());
         scenario.addPlayer(toAdd);
         scenarioRepository.save(scenario);
         scenarioRepository.flush();
     }
 
-    public void addCommunicationToHistory(String token, Long scenarioId, Long communicationId){
-        Scenario toAddTo =  getScenarioById(token,scenarioId);
+    public void addCommunicationToHistory(Long scenarioId, Long communicationId){
+        Scenario toAddTo =  getScenarioById(scenarioId);
         toAddTo.addComm(null);
         //TODO: @HalaiRhea
     }
 
-    public List<Role> getRoles(Long scenarioId, String token) {
-        userService.checkIfValidToken(token);
-        Scenario scenario = getScenarioById(token,scenarioId);
+    public List<Role> getRoles(Long scenarioId) {
+        Scenario scenario = getScenarioById(scenarioId);
         List<Role> toReturn = new ArrayList<Role>();
         for(Player player : scenario.getPlayers()){
             if(player instanceof Role){
@@ -117,9 +115,9 @@ public class ScenarioService {
         return toReturn;
     }
 
-    public List<Role> getRolesPerCabinet(Long scenarioId, Long cabinetId, String token){
-        userService.checkIfValidToken(token);
-        Scenario scenario = getScenarioById(token,scenarioId);
+    public List<Role> getRolesPerCabinet(Long scenarioId, Long cabinetId){
+
+        Scenario scenario = getScenarioById(scenarioId);
         List<Role> toReturn = new ArrayList<Role>();
         for(Player player : scenario.getPlayers()){
             if(player instanceof Role && (((Role) player).getAssignedCabinet() == cabinetId)){

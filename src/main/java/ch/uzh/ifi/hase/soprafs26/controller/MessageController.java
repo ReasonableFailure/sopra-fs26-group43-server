@@ -4,7 +4,6 @@ import ch.uzh.ifi.hase.soprafs26.entity.Message;
 import ch.uzh.ifi.hase.soprafs26.rest.messagedto.*;
 import ch.uzh.ifi.hase.soprafs26.service.MessageService;
 import ch.uzh.ifi.hase.soprafs26.service.PlayerService;
-import static ch.uzh.ifi.hase.soprafs26.controller.PlayerController.splitToken;
 import ch.uzh.ifi.hase.soprafs26.mapper.MessageDTOMapper;
 
 import org.springframework.web.bind.annotation.*;
@@ -30,7 +29,7 @@ public class MessageController {
             @RequestHeader("Authorization") String token,
             @RequestBody MessagePostDTO postDTO) {
 
-        //validate(token, "Role");
+        playerService.validate(token, "Role");
 
         Message message = messageService.createMessage(postDTO);
 
@@ -43,7 +42,7 @@ public class MessageController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long messageId) {
 
-        //validate(token, "any");
+        playerService.validate(token, "any");
 
         Message message = messageService.getMessageById(messageId);
 
@@ -57,7 +56,7 @@ public class MessageController {
             @PathVariable Long messageId,
             @RequestBody MessagePutDTO putDTO) {
 
-        //validate(token, "Backroomer");
+        playerService.validate(token, "Backroomer");
 
         messageService.updateMessageStatus(messageId, putDTO);
     }
@@ -68,7 +67,7 @@ public class MessageController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long scenarioId) {
 
-        //validate(token, "any");
+        playerService.validate(token, "any");
 
         return messageService.getMessagePairsByScenario(scenarioId);
     }
@@ -80,7 +79,7 @@ public class MessageController {
             @PathVariable Long characterAId,
             @PathVariable Long characterBId) {
 
-        //validate(token, "any");
+        playerService.validate(token, "any");
 
         List<Message> messages =
                 messageService.getMessagesBetween(characterAId, characterBId);
@@ -90,9 +89,4 @@ public class MessageController {
                 .toList();
     }
 
-    private String validate(String header, String type) {
-        String[] tokens = splitToken(header);
-        playerService.checkToken(tokens[1], type);
-        return tokens[1];
-    }
 }

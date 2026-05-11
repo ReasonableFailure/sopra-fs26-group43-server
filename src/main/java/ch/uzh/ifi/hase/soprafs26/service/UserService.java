@@ -37,12 +37,12 @@ public class UserService {
 	}
 
 	public List<User> getUsers(String token) {
-        checkIfValidToken(token);
+        validateUserToken(token);
 		return this.userRepository.findAll();
 	}
 
     public User getProfileById(Long idToBeFound, String authToken){
-        checkIfValidToken(authToken);
+        validateUserToken(authToken);
         return userRepository.findById(idToBeFound).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User with id %d not found", idToBeFound)));
     }
 
@@ -69,14 +69,9 @@ public class UserService {
 
     public User loginUser(User user){
         if(!isValidProfileData(user.getUsername(),user.getPassword())){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Invalid username or password"));
-        }
-        if(!checkPwd(user.getUsername(),user.getPassword())){
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("Invalid token"));
-        }
-        if(!checkIfUserExistsByID(user.getId())){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User with id %d not found", user.getId()));
-        }
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Invalid username or password"));        }
+        checkPwd(user.getUsername(),user.getPassword());
+        checkIfUserExistsByID(user.getId());
         User fromStore = userRepository.findByUsername(user.getUsername()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "This user cannot be found with this name"));
         fromStore.setToken(UUID.randomUUID().toString());
         fromStore.setStatus(UserStatus.ONLINE);
@@ -87,10 +82,8 @@ public class UserService {
 
     public void logoutUser(Long ID, String token){
         //200, 401, 404
-        checkIfValidToken(token);
-        if(!checkIfUserExistsByID(ID)){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User with id %d not found", ID));
-        }
+        validateUserToken(token);
+        checkIfUserExistsByID(ID);
         User requestsLogout = userRepository.findByToken(token).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User with id %d not found", ID)));
         requestsLogout.setStatus(UserStatus.OFFLINE);
         requestsLogout.setToken(null);
@@ -100,13 +93,9 @@ public class UserService {
     }
 
     public void updateProfile(String token, Long id, User holdsUpdate) {
-        checkIfValidToken(token);
-        if(!checkIfUserExistsByID(id)){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User with id %d not found", id));
-        }
-        if(!isValidProfileData(holdsUpdate.getUsername(),holdsUpdate.getPassword())){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Invalid username or password"));
-        }
+        validateUserToken(token);
+        checkIfUserExistsByID(id);
+        isValidProfileData(holdsUpdate.getUsername(),holdsUpdate.getPassword());
         User toBeModified = userRepository.findById(id).get();
         toBeModified.setUsername(holdsUpdate.getUsername());
         toBeModified.setPassword(holdsUpdate.getPassword());
@@ -143,32 +132,35 @@ public class UserService {
     }
 
     private void checkIfUsernameTaken(String uname){
-        userRepository.findByUsername(uname).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "A user by this username cannot be found."));
+        if(userRepository.findByUsername(uname).isPresent()){
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Username is already taken");
+        }
+
     }
     /*
     * pre-condition: user must exist*/
-    private boolean checkPwd(String uname, String pwd){
-        User foundByUname = userRepository.findByUsername(uname).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "A user by this username cannot be found."));
-        if (foundByUname.getPassword().equals(pwd)){
-            return true;
+    private void checkPwd(String uname, String pwd){
+        User toValidate = userRepository.findByUsername(uname).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "This user cannot be found with this name"));
+        if(!pwd.equals(toValidate.getPassword())){
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Wrong Password!");
         }
-        return false;
     }
 
-    private boolean checkIfUserExistsByID(Long ID){
-        User foundById = userRepository.findById(ID).orElse(null);
-        return foundById != null;
+    public void checkIfUserExistsByID(Long ID){
+        User foundById = userRepository.findById(ID).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "A user by this id cannot be found."));
     }
 
-    protected User getByToken(String token){
-        checkIfValidToken(token);
-        return userRepository.findByToken(token).orElseThrow(()->new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("User with this token not found")));
+    public User getByToken(String token){
+        validateUserToken(token);
+        return userRepository.findByToken(token).orElseThrow(()->new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("User with this token not found(2)")));
     }
 
-    protected void checkIfValidToken(String token){
+    public void validateUserToken(String token){
         if (token == null || token.isEmpty()) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("Token not there"));
-        User foundByToken = userRepository.findByToken(token).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User with this token not found")));
-        if (foundByToken.getToken() == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("No user with this token"));
+        System.out.println(token);
+        User foundByToken = userRepository.findByToken(token).orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("This is not a valid token")));
+        if (foundByToken.getToken() == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("This token is not associated with any user."));
+        if(!token.equals(foundByToken.getToken())) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("Wrong token"));
     }
 
 }

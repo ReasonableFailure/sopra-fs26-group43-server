@@ -6,7 +6,6 @@ import ch.uzh.ifi.hase.soprafs26.rest.newsdto.*;
 import ch.uzh.ifi.hase.soprafs26.service.PlayerService;
 import ch.uzh.ifi.hase.soprafs26.service.NewsService;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.NewsDTOMapper;
-import static ch.uzh.ifi.hase.soprafs26.controller.PlayerController.splitToken;
 
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
@@ -56,7 +55,7 @@ public class NewsController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long newsId) {
 
-        //validate(token, "any");
+        playerService.validate(token,"any");
 
         NewsStory entity = newsService.getNewsById(newsId);
 
@@ -77,7 +76,7 @@ public class NewsController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long scenarioId) {
 
-        //validate(token, "any");
+        playerService.validate(token, "any");
 
         List<NewsStory> newsList =
                 newsService.getNewsByScenario(scenarioId);
@@ -97,9 +96,5 @@ public class NewsController {
         }).toList();
     }
 
-    private String validate(String header, String type) {
-        String[] tokens = splitToken(header);
-        playerService.checkToken(tokens[1], type);
-        return tokens[1];
-    }
+
 }
