@@ -10,7 +10,7 @@ import ch.uzh.ifi.hase.soprafs26.rest.messagedto.MessagePairDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.messagedto.MessagePostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.messagedto.MessagePutDTO;
 import ch.uzh.ifi.hase.soprafs26.service.MessageService;
-import ch.uzh.ifi.hase.soprafs26.service.PlayerService;
+import ch.uzh.ifi.hase.soprafs26.service.UserService;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -50,7 +50,7 @@ public class MessageControllerTest {
     private MessageService messageService;
 
     @MockitoBean
-    private PlayerService playerService;
+    private UserService userService;
 
     private ObjectMapper objectMapper;
     private Message testMessage;
@@ -64,7 +64,7 @@ public class MessageControllerTest {
     public void setup() {
         objectMapper = new ObjectMapper();
 
-        Mockito.lenient().doNothing().when(playerService).checkToken(anyString(), anyString());
+        Mockito.lenient().doNothing().when(userService).validateUserToken(anyString());
 
         testCreator = new Role();
         testCreator.setId(1L);
@@ -105,7 +105,7 @@ public class MessageControllerTest {
 
         MockHttpServletRequestBuilder postRequest = post("/messages")
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Role token123")
+                .header("Authorization", "Bearer token123")
                 .content(asJsonString(messagePostDTO));
 
         mockMvc.perform(postRequest)
@@ -128,7 +128,7 @@ public class MessageControllerTest {
 
         MockHttpServletRequestBuilder postRequest = post("/messages")
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Role token123")
+                .header("Authorization", "Bearer token123")
                 .content(asJsonString(messagePostDTO));
 
         mockMvc.perform(postRequest)
@@ -144,7 +144,7 @@ public class MessageControllerTest {
 
         MockHttpServletRequestBuilder postRequest = post("/messages")
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Role token123")
+                .header("Authorization", "Bearer token123")
                 .content(asJsonString(messagePostDTO));
 
         mockMvc.perform(postRequest)
@@ -159,7 +159,7 @@ public class MessageControllerTest {
                 .willReturn(testMessage);
 
         MockHttpServletRequestBuilder getRequest = get("/messages/1")
-                .header("Authorization", "Role token123");
+                .header("Authorization", "Bearer token123");
 
         mockMvc.perform(getRequest)
                 .andExpect(status().isOk())
@@ -179,7 +179,7 @@ public class MessageControllerTest {
                 .willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Message not found"));
 
         MockHttpServletRequestBuilder getRequest = get("/messages/999")
-                .header("Authorization", "Role token123");
+                .header("Authorization", "Bearer token123");
 
         mockMvc.perform(getRequest)
                 .andExpect(status().isNotFound());
@@ -193,7 +193,7 @@ public class MessageControllerTest {
 
         MockHttpServletRequestBuilder putRequest = put("/messages/1")
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Backroomer token123")
+                .header("Authorization", "Bearer token123")
                 .content(asJsonString(messagePutDTO));
 
         mockMvc.perform(putRequest)
@@ -212,7 +212,7 @@ public class MessageControllerTest {
 
         MockHttpServletRequestBuilder putRequest = put("/messages/1")
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Backroomer token123")
+                .header("Authorization", "Bearer token123")
                 .content(asJsonString(invalidPutDTO));
 
         mockMvc.perform(putRequest)
@@ -228,7 +228,7 @@ public class MessageControllerTest {
 
         MockHttpServletRequestBuilder putRequest = put("/messages/999")
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Backroomer token123")
+                .header("Authorization", "Bearer token123")
                 .content(asJsonString(messagePutDTO));
 
         mockMvc.perform(putRequest)
@@ -239,11 +239,11 @@ public class MessageControllerTest {
 
     @Test
     public void getMessagesBetween_validIds_messagesReturned() throws Exception {
-        given(messageService.getMessagesBetween(1L, 2L))
+        given(messageService.getMessagesBetween(Mockito.eq(1L), Mockito.eq(2L), anyString()))
                 .willReturn(List.of(testMessage));
 
         MockHttpServletRequestBuilder getRequest = get("/messages/between/1/2")
-                .header("Authorization", "Role token123");
+                .header("Authorization", "Bearer token123");
 
         mockMvc.perform(getRequest)
                 .andExpect(status().isOk())
@@ -252,21 +252,21 @@ public class MessageControllerTest {
                 .andExpect(jsonPath("$[0].creatorId", is(1)))
                 .andExpect(jsonPath("$[0].recipientId", is(2)));
 
-        verify(messageService, times(1)).getMessagesBetween(1L, 2L);
+        verify(messageService, times(1)).getMessagesBetween(Mockito.eq(1L), Mockito.eq(2L), anyString());
     }
 
     @Test
     public void getMessagesBetween_charactersNotFound_throwsException() throws Exception {
-        given(messageService.getMessagesBetween(999L, 2L))
+        given(messageService.getMessagesBetween(Mockito.eq(999L), Mockito.eq(2L), anyString()))
                 .willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "One or both characters not found"));
 
         MockHttpServletRequestBuilder getRequest = get("/messages/between/999/2")
-                .header("Authorization", "Role token123");
+                .header("Authorization", "Bearer token123");
 
         mockMvc.perform(getRequest)
                 .andExpect(status().isNotFound());
 
-        verify(messageService, times(1)).getMessagesBetween(999L, 2L);
+        verify(messageService, times(1)).getMessagesBetween(Mockito.eq(999L), Mockito.eq(2L), anyString());
     }
 
     @Test
@@ -275,11 +275,11 @@ public class MessageControllerTest {
         pairDTO.setRoleAId(1L);
         pairDTO.setRoleBId(2L);
 
-        given(messageService.getMessagePairsByScenario(1L))
+        given(messageService.getMessagePairsByScenario(Mockito.eq(1L), anyString()))
                 .willReturn(List.of(pairDTO));
 
         MockHttpServletRequestBuilder getRequest = get("/messages/scenario/1/pairs")
-                .header("Authorization", "Role token123");
+                .header("Authorization", "Bearer token123");
 
         mockMvc.perform(getRequest)
                 .andExpect(status().isOk())
@@ -287,21 +287,21 @@ public class MessageControllerTest {
                 .andExpect(jsonPath("$[0].roleAId", is(1)))
                 .andExpect(jsonPath("$[0].roleBId", is(2)));
 
-        verify(messageService, times(1)).getMessagePairsByScenario(1L);
+        verify(messageService, times(1)).getMessagePairsByScenario(Mockito.eq(1L), anyString());
     }
 
     @Test
     public void getMessagePairsByScenario_scenarioNotFound_throwsException() throws Exception {
-        given(messageService.getMessagePairsByScenario(999L))
+        given(messageService.getMessagePairsByScenario(Mockito.eq(999L), anyString()))
                 .willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario not found"));
 
         MockHttpServletRequestBuilder getRequest = get("/messages/scenario/999/pairs")
-                .header("Authorization", "Role token123");
+                .header("Authorization", "Bearer token123");
 
         mockMvc.perform(getRequest)
                 .andExpect(status().isNotFound());
 
-        verify(messageService, times(1)).getMessagePairsByScenario(999L);
+        verify(messageService, times(1)).getMessagePairsByScenario(Mockito.eq(999L), anyString());
     }
 
     private String asJsonString(Object object) throws Exception {

@@ -41,9 +41,9 @@ public class DirectiveController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long directiveId) {
 
-        requireUser(token);
+        String userToken = requireUser(token);
 
-        Directive directive = directiveService.getDirectiveById(directiveId);
+        Directive directive = directiveService.getDirectiveById(directiveId, userToken);
 
         return DirectiveDTOMapper.INSTANCE.convertEntityToGetDTO(directive);
     }
@@ -77,9 +77,9 @@ public class DirectiveController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long scenarioId) {
 
-        requireUser(token);
+        String userToken = requireUser(token);
 
-        List<Directive> directives = directiveService.getDirectivesByScenario(scenarioId);
+        List<Directive> directives = directiveService.getDirectivesByScenario(scenarioId, userToken);
 
         return directives.stream()
                 .map(DirectiveDTOMapper.INSTANCE::convertEntityToGetDTO)
@@ -92,19 +92,21 @@ public class DirectiveController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long characterId) {
 
-        requireUser(token);
+        String userToken = requireUser(token);
 
-        List<Directive> directives = directiveService.getDirectivesByCreator(characterId);
+        List<Directive> directives = directiveService.getDirectivesByCreator(characterId, userToken);
 
         return directives.stream()
                 .map(DirectiveDTOMapper.INSTANCE::convertEntityToGetDTO)
                 .toList();
     }
 
-    private void requireUser(String header) {
+    private String requireUser(String header) {
         if (header == null || !header.startsWith("Bearer ")) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
-        userService.validateUserToken(header.substring(7));
+        String token = header.substring(7);
+        userService.validateUserToken(token);
+        return token;
     }
 }

@@ -9,6 +9,7 @@ import ch.uzh.ifi.hase.soprafs26.rest.messagedto.MessagePairDTO;
 import ch.uzh.ifi.hase.soprafs26.mapper.MessageDTOMapper;
 
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -27,15 +28,18 @@ public class MessageService {
     private final MessageRepository messageRepository;
     private final ScenarioRepository scenarioRepository;
     private final RoleRepository roleRepository;
+    private final PlayerService playerService;
 
     public MessageService(
             @Qualifier("messageRepository") MessageRepository messageRepository,
             @Qualifier("scenarioRepository") ScenarioRepository scenarioRepository,
-            @Qualifier("roleRepository") RoleRepository roleRepository
+            @Qualifier("roleRepository") RoleRepository roleRepository,
+            @Lazy PlayerService playerService
     ) {
         this.messageRepository = messageRepository;
         this.scenarioRepository = scenarioRepository;
         this.roleRepository = roleRepository;
+        this.playerService = playerService;
     }
 
     public Message createMessage(MessagePostDTO postDTO) {
@@ -111,21 +115,43 @@ public class MessageService {
         messageRepository.save(message);
     }
 
-    public List<Message> getMessagesBetween(Long characterAId, Long characterBId) {
+    public List<Message> getMessagesBetween(Long characterAId, Long characterBId, String userToken) {
 
-        if (!roleRepository.existsById(characterAId) ||
-                !roleRepository.existsById(characterBId)) {
-
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND, "One or both characters not found");
-        }
+        Role charA = roleRepository.findById(characterAId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Character A not found"));
+        Role charB = roleRepository.findById(characterBId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Character B not found"));
 
         if (characterAId.equals(characterBId)) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST, "Cannot retrieve conversation with self");
         }
 
-        return messageRepository.findConversation(characterAId, characterBId);
+        Long scenarioId = charA.getScenario() != null ? charA.getScenario().getId() : null;
+        if (scenarioId == null
+                || charB.getScenario() == null
+                || !scenarioId.equals(charB.getScenario().getId())) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "Characters are not in the same scenario");
+        }
+
+        Player requester = playerService.resolveRequesterInScenario(userToken, scenarioId);
+        List<Message> messages = messageRepository.findConversation(characterAId, characterBId);
+
+        // Backroomer / Director see every status (queue for approval).
+        // A Role (character) sees ACCEPTED traffic + their own outgoing
+        // messages (so they keep track of PENDING / REJECTED of their own).
+        if (requester instanceof Role) {
+            final Long requesterRoleId = requester.getId();
+            return messages.stream()
+                    .filter(m -> m.getStatus() == CommsStatus.ACCEPTED
+                              || (m.getCreator() != null
+                                  && requesterRoleId.equals(m.getCreator().getId())))
+                    .toList();
+        }
+        return messages;
     }
 
     public void deleteMessage(Long messageId) {
@@ -135,14 +161,26 @@ public class MessageService {
         messageRepository.deleteById(messageId);
     }
 
-    public List<MessagePairDTO> getMessagePairsByScenario(Long scenarioId) {
+    public List<MessagePairDTO> getMessagePairsByScenario(Long scenarioId, String userToken) {
 
         if (!scenarioRepository.existsById(scenarioId)) {
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND, "Scenario not found");
         }
 
+        Player requester = playerService.resolveRequesterInScenario(userToken, scenarioId);
         List<Message> messages = messageRepository.findByScenarioId(scenarioId);
+
+        if (requester instanceof Role) {
+            final Long requesterRoleId = requester.getId();
+            messages = messages.stream()
+                    .filter(m -> m.getStatus() == CommsStatus.ACCEPTED
+                              || (m.getCreator() != null
+                                  && requesterRoleId.equals(m.getCreator().getId()))
+                              || (m.getRecipient() != null
+                                  && requesterRoleId.equals(m.getRecipient().getId())))
+                    .toList();
+        }
 
         Set<String> seenPairs = new HashSet<>();
         List<MessagePairDTO> result = new ArrayList<>();

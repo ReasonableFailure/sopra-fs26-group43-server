@@ -2,14 +2,17 @@ package ch.uzh.ifi.hase.soprafs26.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.web.server.ResponseStatusException;
 
 import ch.uzh.ifi.hase.soprafs26.constant.CommsStatus;
 import ch.uzh.ifi.hase.soprafs26.constant.ScenarioStatus;
+import ch.uzh.ifi.hase.soprafs26.entity.Backroomer;
 import ch.uzh.ifi.hase.soprafs26.entity.Message;
 import ch.uzh.ifi.hase.soprafs26.entity.Role;
 import ch.uzh.ifi.hase.soprafs26.entity.Scenario;
@@ -43,6 +46,10 @@ public class MessageServiceIntegrationTest {
 
 	@Autowired
 	private MessageService messageService;
+
+	/** Bypass requester-role lookup so these tests stay focused on persistence + filtering. */
+	@MockitoBean
+	private PlayerService playerService;
 
 	private Scenario testScenario;
 	private Role testCreator;
@@ -88,10 +95,19 @@ public class MessageServiceIntegrationTest {
 		testScenario.setHistory(new ArrayList<>());
 		testScenario.getPlayers().add(testCreator);
 		testScenario.getPlayers().add(testRecipient);
+		// Set the inverse FK explicitly — mappedBy means JPA won't infer it.
+		testCreator.setScenario(testScenario);
+		testRecipient.setScenario(testScenario);
 
 		testScenario = scenarioRepository.save(testScenario);
 		testCreator = (Role) testScenario.getPlayers().get(0);
 		testRecipient = (Role) testScenario.getPlayers().get(1);
+
+		// Backroomer requesters see everything — matches the read-path branch
+		// that returns all messages regardless of status.
+		Mockito.when(playerService.resolveRequesterInScenario(
+				Mockito.anyString(), Mockito.anyLong()))
+				.thenReturn(new Backroomer());
 	}
 
 	@Test
@@ -229,7 +245,7 @@ public class MessageServiceIntegrationTest {
 
 		messageService.createMessage(postDTO);
 
-		List<Message> result = messageService.getMessagesBetween(testCreator.getId(), testRecipient.getId());
+		List<Message> result = messageService.getMessagesBetween(testCreator.getId(), testRecipient.getId(), "tok");
 
 		assertEquals(1, result.size());
 		assertEquals(testCreator.getId(), result.get(0).getCreator().getId());
@@ -239,7 +255,7 @@ public class MessageServiceIntegrationTest {
 	@Test
 	public void getMessagesBetween_charactersNotFound_throwsException() {
 		assertThrows(ResponseStatusException.class,
-				() -> messageService.getMessagesBetween(999L, testRecipient.getId()));
+				() -> messageService.getMessagesBetween(999L, testRecipient.getId(), "tok"));
 	}
 
 	@Test
@@ -253,7 +269,7 @@ public class MessageServiceIntegrationTest {
 
 		messageService.createMessage(postDTO);
 
-		List<MessagePairDTO> result = messageService.getMessagePairsByScenario(testScenario.getId());
+		List<MessagePairDTO> result = messageService.getMessagePairsByScenario(testScenario.getId(), "tok");
 
 		assertEquals(1, result.size());
 		assertEquals(Math.min(testCreator.getId(), testRecipient.getId()), result.get(0).getRoleAId());
@@ -262,7 +278,7 @@ public class MessageServiceIntegrationTest {
 
 	@Test
 	public void getMessagePairsByScenario_scenarioNotFound_throwsException() {
-		assertThrows(ResponseStatusException.class, () -> messageService.getMessagePairsByScenario(999L));
+		assertThrows(ResponseStatusException.class, () -> messageService.getMessagePairsByScenario(999L, "tok"));
 	}
 }
 

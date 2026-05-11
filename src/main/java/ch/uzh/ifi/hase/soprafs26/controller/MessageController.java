@@ -79,9 +79,9 @@ public class MessageController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long scenarioId) {
 
-        requireUser(token);
+        String userToken = requireUser(token);
 
-        return messageService.getMessagePairsByScenario(scenarioId);
+        return messageService.getMessagePairsByScenario(scenarioId, userToken);
     }
 
     @GetMapping("/messages/between/{characterAId}/{characterBId}")
@@ -91,20 +91,22 @@ public class MessageController {
             @PathVariable Long characterAId,
             @PathVariable Long characterBId) {
 
-        requireUser(token);
+        String userToken = requireUser(token);
 
         List<Message> messages =
-                messageService.getMessagesBetween(characterAId, characterBId);
+                messageService.getMessagesBetween(characterAId, characterBId, userToken);
 
         return messages.stream()
                 .map(MessageDTOMapper.INSTANCE::convertEntityToGetDTO)
                 .toList();
     }
 
-    private void requireUser(String header) {
+    private String requireUser(String header) {
         if (header == null || !header.startsWith("Bearer ")) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
-        userService.validateUserToken(header.substring(7));
+        String token = header.substring(7);
+        userService.validateUserToken(token);
+        return token;
     }
 }

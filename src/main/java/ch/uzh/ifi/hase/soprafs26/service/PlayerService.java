@@ -198,6 +198,22 @@ public class PlayerService {
         return d;
     }
 
+    /**
+     * Resolves the Player record for the user-token holder within a scenario.
+     * Used by Message / Directive read paths to decide what each requester
+     * is allowed to see (creator + backroomer/director see everything;
+     * other roles see only ACCEPTED items + their own).
+     */
+    public Player resolveRequesterInScenario(String userToken, Long scenarioId) {
+        User user = userService.getByToken(userToken);
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token");
+        }
+        return playerRepository.findFirstByUser_IdAndScenario_Id(user.getId(), scenarioId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.FORBIDDEN, "Not a participant in this scenario"));
+    }
+
     public void checkToken(String token, @NonNull String type){
         Role toReturn = roleRepository.findByToken(token);
         Backroomer toReturnBackroomer = backroomerRepository.findByToken(token);
