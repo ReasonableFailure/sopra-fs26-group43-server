@@ -6,7 +6,7 @@ public class RolePutDTO {
     private String description;
     private String secret;
     private byte[] portrait;
-    private boolean alive;
+    private Boolean alive;
 
     public String getName() {
         return name;
@@ -48,11 +48,11 @@ public class RolePutDTO {
         this.portrait = portrait;
     }
 
-    public boolean isAlive() {
+    public Boolean isAlive() {
         return alive;
     }
 
-    public void setAlive(boolean alive) {
+    public void setAlive(Boolean alive) {
         this.alive = alive;
     }
 }

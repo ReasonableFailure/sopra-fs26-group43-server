@@ -82,7 +82,7 @@ public class DirectiveServiceIntegrationTest {
 		DirectivePostDTO postDTO = new DirectivePostDTO();
 		postDTO.setTitle("Test Directive");
 		postDTO.setBody("Test directive body");
-		postDTO.setCategory(ch.uzh.ifi.hase.soprafs26.constant.DirectiveCategory.POLITCAL);
+		postDTO.setCategory(ch.uzh.ifi.hase.soprafs26.constant.DirectiveCategory.POLITICAL);
 		postDTO.setCreatorId(testRole.getId());
 		postDTO.setScenarioId(testScenario.getId());
 
@@ -103,7 +103,7 @@ public class DirectiveServiceIntegrationTest {
 		DirectivePostDTO postDTO = new DirectivePostDTO();
 		postDTO.setTitle("Test Directive");
 		postDTO.setBody("Test directive body");
-		postDTO.setCategory(ch.uzh.ifi.hase.soprafs26.constant.DirectiveCategory.POLITCAL);
+		postDTO.setCategory(ch.uzh.ifi.hase.soprafs26.constant.DirectiveCategory.POLITICAL);
 		postDTO.setCreatorId(null);
 		postDTO.setScenarioId(testScenario.getId());
 
@@ -115,7 +115,7 @@ public class DirectiveServiceIntegrationTest {
 		DirectivePostDTO postDTO = new DirectivePostDTO();
 		postDTO.setTitle("Test Directive");
 		postDTO.setBody("Test directive body");
-		postDTO.setCategory(ch.uzh.ifi.hase.soprafs26.constant.DirectiveCategory.POLITCAL);
+		postDTO.setCategory(ch.uzh.ifi.hase.soprafs26.constant.DirectiveCategory.POLITICAL);
 		postDTO.setCreatorId(testRole.getId());
 		postDTO.setScenarioId(999L);
 
@@ -127,7 +127,7 @@ public class DirectiveServiceIntegrationTest {
 		DirectivePostDTO postDTO = new DirectivePostDTO();
 		postDTO.setTitle("Test Directive");
 		postDTO.setBody("Test directive body");
-		postDTO.setCategory(ch.uzh.ifi.hase.soprafs26.constant.DirectiveCategory.POLITCAL);
+		postDTO.setCategory(ch.uzh.ifi.hase.soprafs26.constant.DirectiveCategory.POLITICAL);
 		postDTO.setCreatorId(999L);
 		postDTO.setScenarioId(testScenario.getId());
 
@@ -152,7 +152,7 @@ public class DirectiveServiceIntegrationTest {
 		DirectivePostDTO postDTO = new DirectivePostDTO();
 		postDTO.setTitle("Test Directive");
 		postDTO.setBody("Test directive body");
-		postDTO.setCategory(ch.uzh.ifi.hase.soprafs26.constant.DirectiveCategory.POLITCAL);
+		postDTO.setCategory(ch.uzh.ifi.hase.soprafs26.constant.DirectiveCategory.POLITICAL);
 		postDTO.setCreatorId(otherRole.getId());
 		postDTO.setScenarioId(testScenario.getId());
 
@@ -166,7 +166,7 @@ public class DirectiveServiceIntegrationTest {
 		postDTO.setBody("Test directive body");
 		postDTO.setCreatorId(testRole.getId());
 		postDTO.setScenarioId(testScenario.getId());
-		postDTO.setCategory(ch.uzh.ifi.hase.soprafs26.constant.DirectiveCategory.POLITCAL);
+		postDTO.setCategory(ch.uzh.ifi.hase.soprafs26.constant.DirectiveCategory.POLITICAL);
 		Directive createdDirective = directiveService.createDirective(postDTO);
 
 		Directive retrievedDirective = directiveService.getDirectiveById(createdDirective.getId());
@@ -192,7 +192,7 @@ public class DirectiveServiceIntegrationTest {
 		postDTO.setBody("Test directive body");
 		postDTO.setCreatorId(testRole.getId());
 		postDTO.setScenarioId(testScenario.getId());
-		postDTO.setCategory(ch.uzh.ifi.hase.soprafs26.constant.DirectiveCategory.POLITCAL);
+		postDTO.setCategory(ch.uzh.ifi.hase.soprafs26.constant.DirectiveCategory.POLITICAL);
 		Directive createdDirective = directiveService.createDirective(postDTO);
 
 		DirectivePutDTO putDTO = new DirectivePutDTO();
@@ -211,7 +211,7 @@ public class DirectiveServiceIntegrationTest {
 		DirectivePostDTO postDTO = new DirectivePostDTO();
 		postDTO.setTitle("Test Directive");
 		postDTO.setBody("Test directive body");
-		postDTO.setCategory(ch.uzh.ifi.hase.soprafs26.constant.DirectiveCategory.POLITCAL);
+		postDTO.setCategory(ch.uzh.ifi.hase.soprafs26.constant.DirectiveCategory.POLITICAL);
 		postDTO.setCreatorId(testRole.getId());
 		postDTO.setScenarioId(testScenario.getId());
 
@@ -241,7 +241,7 @@ public class DirectiveServiceIntegrationTest {
 		postDTO.setBody("Test directive body");
 		postDTO.setCreatorId(testRole.getId());
 		postDTO.setScenarioId(testScenario.getId());
-		postDTO.setCategory(ch.uzh.ifi.hase.soprafs26.constant.DirectiveCategory.POLITCAL);
+		postDTO.setCategory(ch.uzh.ifi.hase.soprafs26.constant.DirectiveCategory.POLITICAL);
 		directiveService.createDirective(postDTO);
 
 		List<Directive> directives = directiveService.getDirectivesByScenario(testScenario.getId());
@@ -262,7 +262,7 @@ public class DirectiveServiceIntegrationTest {
 		postDTO.setBody("Test directive body");
 		postDTO.setCreatorId(testRole.getId());
 		postDTO.setScenarioId(testScenario.getId());
-		postDTO.setCategory(ch.uzh.ifi.hase.soprafs26.constant.DirectiveCategory.POLITCAL);
+		postDTO.setCategory(ch.uzh.ifi.hase.soprafs26.constant.DirectiveCategory.POLITICAL);
 		directiveService.createDirective(postDTO);
 
 		List<Directive> directives = directiveService.getDirectivesByCreator(testRole.getId());
