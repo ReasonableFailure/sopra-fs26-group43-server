@@ -9,13 +9,24 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import ch.uzh.ifi.hase.soprafs26.constant.ScenarioStatus;
 import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
+import ch.uzh.ifi.hase.soprafs26.entity.Backroomer;
+import ch.uzh.ifi.hase.soprafs26.entity.Director;
+import ch.uzh.ifi.hase.soprafs26.entity.Player;
+import ch.uzh.ifi.hase.soprafs26.entity.Role;
+import ch.uzh.ifi.hase.soprafs26.entity.Scenario;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
+import ch.uzh.ifi.hase.soprafs26.repository.PlayerRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
+import ch.uzh.ifi.hase.soprafs26.rest.playerdto.EngagementGetDTO;
 
+import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * User Service
@@ -31,9 +42,12 @@ public class UserService {
 	private final Logger log = LoggerFactory.getLogger(UserService.class);
 
 	private final UserRepository userRepository;
+	private final PlayerRepository playerRepository;
 
-	public UserService(@Qualifier("userRepository") UserRepository userRepository) {
+	public UserService(@Qualifier("userRepository") UserRepository userRepository,
+	                   @Qualifier("playerRepository") PlayerRepository playerRepository) {
 		this.userRepository = userRepository;
+		this.playerRepository = playerRepository;
 	}
 
 	public List<User> getUsers(String token) {
@@ -171,6 +185,53 @@ public class UserService {
         if (token == null || token.isEmpty()) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("Invalid token"));
         User foundByToken = userRepository.findByToken(token);
         if (foundByToken.getToken() == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("Invalid token"));
+    }
+
+    public void validateUserToken(String token) {
+        checkIfValidToken(token);
+    }
+
+    public List<EngagementGetDTO> getEngagements(String token, Long userId) {
+        checkIfValidToken(token);
+        if (!checkIfUserExistsByID(userId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User with id %d not found", userId));
+        }
+        List<Player> players = playerRepository.findByUser_Id(userId);
+        return players.stream()
+            .map(this::toEngagementDTO)
+            .filter(dto -> dto.getScenarioId() != null)
+            .sorted(engagementComparator())
+            .collect(Collectors.toList());
+    }
+
+    private EngagementGetDTO toEngagementDTO(Player player) {
+        EngagementGetDTO dto = new EngagementGetDTO();
+        dto.setPlayerId(player.getId());
+        Scenario scenario = player.getScenario();
+        if (scenario != null) {
+            dto.setScenarioId(scenario.getId());
+            dto.setScenarioTitle(scenario.getTitle());
+            dto.setScenarioStatus(scenario.getStatus());
+            dto.setFinishTime(scenario.getFinishTime());
+        }
+        if (player instanceof Director) {
+            dto.setRoleType("DIRECTOR");
+        } else if (player instanceof Role) {
+            dto.setRoleType("CHARACTER");
+            dto.setCharacterName(((Role) player).getName());
+        } else if (player instanceof Backroomer) {
+            dto.setRoleType("BACKROOMER");
+        }
+        return dto;
+    }
+
+    private Comparator<EngagementGetDTO> engagementComparator() {
+        Comparator<EngagementGetDTO> byCompletedLast = Comparator.comparing(
+            dto -> dto.getScenarioStatus() == ScenarioStatus.COMPLETED);
+        Comparator<EngagementGetDTO> byFinishTimeDesc = Comparator.comparing(
+            EngagementGetDTO::getFinishTime,
+            Comparator.nullsLast(Comparator.reverseOrder()));
+        return byCompletedLast.thenComparing(byFinishTimeDesc);
     }
 
 }

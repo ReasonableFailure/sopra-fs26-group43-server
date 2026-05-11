@@ -19,6 +19,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import ch.uzh.ifi.hase.soprafs26.repository.ScenarioRepository;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,7 +55,10 @@ public class ScenarioService {
         newScenario.setStatus(ScenarioStatus.UNSTARTED);
         newScenario.setPlayers(new ArrayList<Player>());
         newScenario.setHistory(new ArrayList<Communication>());
-        newScenario.setDirector(playerService.createDirector(token));
+        newScenario = scenarioRepository.save(newScenario);
+        Director director = playerService.createDirector(token, newScenario);
+        newScenario.setDirector(director);
+        newScenario.addPlayer(director);
         scenarioRepository.save(newScenario);
         scenarioRepository.flush();
         return newScenario;
@@ -76,6 +80,9 @@ public class ScenarioService {
             s.setDescription(dto.getDescription());
         }
         if (dto.getStatus() != null) {
+            if (dto.getStatus() == ScenarioStatus.COMPLETED && s.getStatus() != ScenarioStatus.COMPLETED) {
+                s.setFinishTime(LocalDateTime.now());
+            }
             s.setStatus(dto.getStatus());
         }
         if (dto.getDayNumber() != null) {

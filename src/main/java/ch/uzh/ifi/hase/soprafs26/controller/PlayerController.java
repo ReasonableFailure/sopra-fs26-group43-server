@@ -2,6 +2,7 @@ package ch.uzh.ifi.hase.soprafs26.controller;
 
 import ch.uzh.ifi.hase.soprafs26.entity.Role;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.PlayerDTOMapper;
+import ch.uzh.ifi.hase.soprafs26.rest.playerdto.PlayerGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.PlayerPutDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RoleGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RolePostDTO;
@@ -86,6 +87,32 @@ public class PlayerController {
                 .toList();
     }
   
+    @PostMapping("/scenarios/{scenarioId}/claim-character/{characterId}")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public RoleGetDTO claimCharacter(@PathVariable Long scenarioId,
+                                      @PathVariable Long characterId,
+                                      @RequestHeader("Authorization") String token) {
+        Role claimed = playerService.claimCharacter(stripBearer(token), scenarioId, characterId);
+        return PlayerDTOMapper.INSTANCE.convertEntitytoRoleGetDTO(claimed);
+    }
+
+    @PostMapping("/scenarios/{scenarioId}/become-backroomer")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public PlayerGetDTO becomeBackroomer(@PathVariable Long scenarioId,
+                                          @RequestHeader("Authorization") String token) {
+        return PlayerDTOMapper.INSTANCE.convertEntitytoPlayerGetDTO(
+            playerService.becomeBackroomer(stripBearer(token), scenarioId));
+    }
+
+    private static String stripBearer(String token) {
+        if (token != null && token.startsWith("Bearer ")) {
+            return token.substring(7);
+        }
+        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Missing Bearer prefix");
+    }
+
      public static String[] splitToken(String token){
         if(token == null || token.isEmpty()){
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token is empty");

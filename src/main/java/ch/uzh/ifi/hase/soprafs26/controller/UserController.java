@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import ch.uzh.ifi.hase.soprafs26.entity.User;
+import ch.uzh.ifi.hase.soprafs26.rest.playerdto.EngagementGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.userdto.UserGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.userdto.UserPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.UserDTOMapper;
@@ -75,6 +76,15 @@ public class UserController {
     public void logout(@PathVariable Long userid, @RequestHeader("Authorization") String token){
         String strippedToken = stripPrefix(token);
         userService.logoutUser(userid,strippedToken);
+    }
+
+    @GetMapping("/users/{userid}/engagements")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public List<EngagementGetDTO> getEngagements(@PathVariable Long userid,
+                                                  @RequestHeader("Authorization") String token) {
+        String strippedToken = stripPrefix(token);
+        return userService.getEngagements(strippedToken, userid);
     }
 
     @GetMapping("/users")
