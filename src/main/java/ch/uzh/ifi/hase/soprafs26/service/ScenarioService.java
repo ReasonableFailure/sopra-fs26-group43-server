@@ -27,13 +27,12 @@ public class ScenarioService {
 
     private final Logger log = LoggerFactory.getLogger(ScenarioService.class);
     private final PlayerService playerService;
-    private final UserService userService;
     private final ScenarioRepository scenarioRepository;
     private final NewsService newsService;
 
-    public ScenarioService(@Qualifier("scenarioRepository") ScenarioRepository scenarioRepository, @Qualifier("userService") UserService userService, @Qualifier("playerService") PlayerService playerService, @Qualifier("newsService") NewsService newsService) {
+    public ScenarioService(@Qualifier("scenarioRepository") ScenarioRepository scenarioRepository,  @Qualifier("playerService") PlayerService playerService, @Qualifier("newsService") NewsService newsService) {
         this.scenarioRepository = scenarioRepository;
-        this.userService = userService;
+
         this.playerService = playerService;
         this.newsService = newsService;
     }
@@ -97,7 +96,6 @@ public class ScenarioService {
     }
 
     public void addPlayerToScenario(Long scenarioId, Long playerId){
-
         Role toAdd = playerService.getRoleById(playerId);
         Scenario scenario = getScenarioById(scenarioId);
         toAdd = playerService.updateMessagingStats(playerId, scenario.getStartingMessageCount());

@@ -1,16 +1,13 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
-import ch.uzh.ifi.hase.soprafs26.constant.ScenarioStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.*;
 import ch.uzh.ifi.hase.soprafs26.repository.*;
 import ch.uzh.ifi.hase.soprafs26.integration.MastodonClient;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.PlayerDTOMapper;
-import ch.uzh.ifi.hase.soprafs26.rest.playerdto.PlayerGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.PlayerPutDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RolePostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RolePutDTO;
 import jakarta.transaction.Transactional;
-import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -21,7 +21,6 @@ import ch.uzh.ifi.hase.soprafs26.repository.PlayerRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.EngagementGetDTO;
 
-import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -60,11 +59,11 @@ public class UserService {
 
     public User createUser(User newUser) {
         if(!isValidProfileData(newUser.getUsername(),newUser.getPassword())){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Invalid username or password"));
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid username or password");
         }
         try{
             checkIfUsernameTaken(newUser.getUsername());
-            throw new  ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Username is already taken"));
+            throw new  ResponseStatusException(HttpStatus.BAD_REQUEST, "Username is already taken");
         } catch(ResponseStatusException e){
             newUser.setToken(UUID.randomUUID().toString());
             newUser.setStatus(UserStatus.ONLINE);
@@ -81,7 +80,7 @@ public class UserService {
 
     public User loginUser(User user){
         if(!isValidProfileData(user.getUsername(),user.getPassword())){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Invalid username or password"));        }
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid username or password");        }
         checkPwd(user.getUsername(),user.getPassword());
         checkIfUserExistsByID(user.getId());
         User fromStore = userRepository.findByUsername(user.getUsername()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "This user cannot be found with this name"));
@@ -107,10 +106,11 @@ public class UserService {
 
         checkIfUserExistsByID(id);
         isValidProfileData(holdsUpdate.getUsername(),holdsUpdate.getPassword());
-        User toBeModified = userRepository.findById(id).orElse(null);
+        User toBeModified = userRepository.findById(id).get();
+        if(toBeModified != null){
         toBeModified.setUsername(holdsUpdate.getUsername());
         toBeModified.setPassword(holdsUpdate.getPassword());
-        toBeModified.setBio(holdsUpdate.getBio());
+        toBeModified.setBio(holdsUpdate.getBio());}
         userRepository.save(toBeModified);
         userRepository.flush();
     }
@@ -126,11 +126,8 @@ public class UserService {
 
     private boolean isValidProfileData(String uname, String pwd){
 
-        boolean isValid = true;
-        if(uname == null || pwd == null){
-            //fields must exist
-            isValid = false;
-        }
+        boolean isValid = uname != null && pwd != null;
+        //fields must exist
         if(uname.isEmpty() || pwd.isEmpty()){
             //fields may not be empty
             isValid = false;
