@@ -149,11 +149,11 @@ public class UserService {
     public void checkIfUserExistsByID(Long ID){
         User foundById = userRepository.findById(ID).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "A user by this id cannot be found."));
     }
-
-    public User getByToken(String token){
-        validateUserToken(token);
-        return userRepository.findByToken(token).orElseThrow(()->new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("User with this token not found(2)")));
-    }
+//
+//    public User getByToken(String token){
+//        validateUserToken(token);
+//        return userRepository.findByToken(token).orElseThrow(()->new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("User with this token not found(2)")));
+//    }
 
     public void validateUserToken(String token){
         if (token == null || token.isEmpty()) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("Token not there"));
