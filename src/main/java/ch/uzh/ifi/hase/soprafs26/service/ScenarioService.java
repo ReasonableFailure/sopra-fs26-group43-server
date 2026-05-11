@@ -37,7 +37,7 @@ public class ScenarioService {
         this.newsService = newsService;
     }
 
-    public List<Scenario> getScenarios(String token) {
+    public List<Scenario> getScenarios() {
         return this.scenarioRepository.findAll();
     }
 
