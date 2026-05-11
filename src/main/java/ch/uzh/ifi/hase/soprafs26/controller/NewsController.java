@@ -29,13 +29,7 @@ public class NewsController {
     public NewsGetDTO createNews(
             @RequestHeader("Authorization") String token,
             @RequestBody NewsPostDTO dto) {
-        /*
-        if (dto.getAuthorId() != null) {
-            validate(token, "Role");
-        } else {
-            validate(token, "Backroomer");
-        }
-        */
+        playerService.validate(token, "any");
         NewsStory entity = newsService.createNews(dto);
 
         NewsGetDTO output =
