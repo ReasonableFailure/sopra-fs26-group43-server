@@ -63,16 +63,19 @@ public class ScenarioController {
 
     @PutMapping("/scenarios/{scenarioId}")
     public void updateScenario(@RequestHeader("Authorization") String token, @PathVariable Long scenarioId, @RequestBody ScenarioPutDTO scenarioPutDTO){
+        playerService.validate(token,"Director");
         scenarioService.updateScenario(scenarioId,scenarioPutDTO);
     }
 
     @DeleteMapping("/scenarios/{scenarioId}")
     public void deleteScenario(@RequestHeader("Authorization") String token, @PathVariable Long scenarioId){
+        playerService.validate(token,"Director");
         scenarioService.deleteScenario(scenarioId);
     }
 
     @GetMapping("/characters/scenario/{scenarioId}")
     public List<RoleGetDTO> retrieveAllRoles(@PathVariable Long scenarioId, @RequestHeader("Authorization") String token){
+        playerService.validate(token, "any");
         List<Role> list = scenarioService.getRoles(scenarioId);
         ArrayList<RoleGetDTO> toReturn = new ArrayList<RoleGetDTO>();
         for(Role role : list){
@@ -83,7 +86,7 @@ public class ScenarioController {
 
     @GetMapping("/characters/{scenarioId}/cabinet/{cabinetId}")
     public List<RoleGetDTO> retrieveAllRolesInCabinet(@PathVariable Long scenarioId, @PathVariable Long cabinetId, @RequestHeader("Authorization") String token){
-        playerService.validate()
+        playerService.validate(token, "any");
         List<Role> list = scenarioService.getRolesPerCabinet(scenarioId,cabinetId);
         ArrayList<RoleGetDTO> toReturn = new ArrayList<RoleGetDTO>();
         for (Role role : list){
