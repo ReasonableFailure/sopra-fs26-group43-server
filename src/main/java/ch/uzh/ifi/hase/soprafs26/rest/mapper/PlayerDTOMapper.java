@@ -9,13 +9,11 @@ import java.util.Base64;
 import org.mapstruct.Named;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING, uses = PlayerMapper.class)
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING, uses = PlayerMapper.class, unmappedTargetPolicy = ReportingPolicy.IGNORE)
  public interface PlayerDTOMapper {
 
 
     PlayerDTOMapper INSTANCE = Mappers.getMapper(PlayerDTOMapper.class);
-
-    Role convertRolePutDTOtoEntity(RolePutDTO rolePutDTO, @MappingTarget Role role);
 
     @Mapping(target = "portrait", source = "portrait", qualifiedByName = "bytesToBase64")
     RoleGetDTO convertEntitytoRoleGetDTO(Role role);

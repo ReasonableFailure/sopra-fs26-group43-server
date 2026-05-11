@@ -54,13 +54,6 @@ public class Role extends Player{
         messageCount--;
     }
 
-    public void useMessageSlot() {
-        if (messageCount <= 0) {
-            throw new IllegalStateException("No message slots available");
-        }
-        messageCount--;
-    }
-
     public String getName() {
         return this.name;
     }
@@ -171,5 +164,9 @@ public class Role extends Player{
 
     public void setTotalTextLength(int totalTextLength) {
         this.totalTextLength = totalTextLength;
+    }
+
+    public void gainActionPoints(int i) {
+        this.pointsBalance+=i;
     }
 }

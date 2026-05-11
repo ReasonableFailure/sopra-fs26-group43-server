@@ -6,7 +6,7 @@ import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioPutDTO;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface ScenarioDTOMapper {
     ScenarioDTOMapper INSTANCE = Mappers.getMapper(ScenarioDTOMapper.class);
 

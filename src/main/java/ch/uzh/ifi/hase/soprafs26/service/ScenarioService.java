@@ -56,10 +56,10 @@ public class ScenarioService {
         newScenario.setPlayers(new ArrayList<Player>());
         newScenario.setHistory(new ArrayList<Communication>());
         newScenario = scenarioRepository.save(newScenario);
-        Director director = playerService.createDirector(token, newScenario);
+        //Director director = playerService.createDirector(token, newScenario); this is two steps now: first create a director type player, then perform mutual assignment
+        Director director = playerService.getDirectorByToken(token);
         newScenario.setDirector(director);
         newScenario.addPlayer(director);
-        newScenario.setDirector(playerService.getDirectorByToken(token));
         scenarioRepository.save(newScenario);
         scenarioRepository.flush();
         return newScenario;

@@ -20,7 +20,7 @@ import ch.uzh.ifi.hase.soprafs26.rest.userdto.UserPostDTO;
  * Always created one mapper for getting information (GET) and one mapper for
  * creating information (POST).
  */
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface UserDTOMapper {
 
     UserDTOMapper INSTANCE = Mappers.getMapper(UserDTOMapper.class);

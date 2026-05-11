@@ -107,7 +107,7 @@ public class UserService {
 
         checkIfUserExistsByID(id);
         isValidProfileData(holdsUpdate.getUsername(),holdsUpdate.getPassword());
-        User toBeModified = userRepository.findById(id).get();
+        User toBeModified = userRepository.findById(id).orElse(null);
         toBeModified.setUsername(holdsUpdate.getUsername());
         toBeModified.setPassword(holdsUpdate.getPassword());
         toBeModified.setBio(holdsUpdate.getBio());
@@ -125,7 +125,7 @@ public class UserService {
     * */
 
     private boolean isValidProfileData(String uname, String pwd){
-        //TODO: in future: enforce pwd rules?
+
         boolean isValid = true;
         if(uname == null || pwd == null){
             //fields must exist
@@ -167,22 +167,17 @@ public class UserService {
 //    }
 
     public void validateUserToken(String token){
-        if (token == null || token.isEmpty()) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("Token not there"));
+        if (token == null || token.isEmpty()) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token not there");
         System.out.println(token);
-        User foundByToken = userRepository.findByToken(token).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("This user does not exist!")));
-        if (foundByToken.getToken() == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("This token is not associated with any user."));
-        if(!token.equals(foundByToken.getToken())) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, String.format("Wrong token"));
+        User foundByToken = userRepository.findByToken(token).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "This user does not exist!"));
+        if (foundByToken.getToken() == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "This token is not associated with any user.");
+        if(!token.equals(foundByToken.getToken())) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Wrong token");
     }
 
-    public void validateUserToken(String token) {
-        checkIfValidToken(token);
-    }
 
     public List<EngagementGetDTO> getEngagements(String token, Long userId) {
-        checkIfValidToken(token);
-        if (!checkIfUserExistsByID(userId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User with id %d not found", userId));
-        }
+        validateUserToken(token);
+        checkIfUserExistsByID(userId);
         List<Player> players = playerRepository.findByUser_Id(userId);
         return players.stream()
             .map(this::toEngagementDTO)

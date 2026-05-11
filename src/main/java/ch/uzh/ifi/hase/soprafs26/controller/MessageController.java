@@ -4,7 +4,7 @@ import ch.uzh.ifi.hase.soprafs26.entity.Message;
 import ch.uzh.ifi.hase.soprafs26.rest.messagedto.*;
 import ch.uzh.ifi.hase.soprafs26.service.MessageService;
 import ch.uzh.ifi.hase.soprafs26.service.PlayerService;
-import ch.uzh.ifi.hase.soprafs26.mapper.MessageDTOMapper;
+import ch.uzh.ifi.hase.soprafs26.rest.mapper.MessageDTOMapper;
 
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
@@ -79,7 +79,7 @@ public class MessageController {
             @PathVariable Long characterAId,
             @PathVariable Long characterBId) {
 
-        playerService.validate(token, "any");
+        String callerToken = playerService.validate(token, "any");
 
         List<Message> messages =
                 messageService.getMessagesBetween(callerToken, characterAId, characterBId);

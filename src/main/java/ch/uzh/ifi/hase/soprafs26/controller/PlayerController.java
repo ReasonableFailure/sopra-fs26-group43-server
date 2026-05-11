@@ -77,24 +77,26 @@ public class PlayerController {
                 .toList();
     }
 
-    @PostMapping("/scenarios/{scenarioId}/claim-character/{characterId}")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    public RoleGetDTO claimCharacter(@PathVariable Long scenarioId,
-                                      @PathVariable Long characterId,
-                                      @RequestHeader("Authorization") String token) {
-        Role claimed = playerService.claimCharacter(stripBearer(token), scenarioId, characterId);
-        return PlayerDTOMapper.INSTANCE.convertEntitytoRoleGetDTO(claimed);
-    }
+    // Duplicate!
+//    @PostMapping("/scenarios/{scenarioId}/claim-character/{characterId}")
+//    @ResponseStatus(HttpStatus.OK)
+//    @ResponseBody
+//    public RoleGetDTO claimCharacter(@PathVariable Long scenarioId,
+//                                      @PathVariable Long characterId,
+//                                      @RequestHeader("Authorization") String token) {
+//        Role claimed = playerService.claimCharacter(stripBearer(token), scenarioId, characterId);
+//        return PlayerDTOMapper.INSTANCE.convertEntitytoRoleGetDTO(claimed);
+//    }
+//
+//    @PostMapping("/scenarios/{scenarioId}/become-backroomer")
+//    @ResponseStatus(HttpStatus.OK)
+//    @ResponseBody
+//    public PlayerGetDTO becomeBackroomer(@PathVariable Long scenarioId,
+//                                          @RequestHeader("Authorization") String token) {
+//        return PlayerDTOMapper.INSTANCE.convertEntitytoPlayerGetDTO(
+//            playerService.becomeBackroomer(stripBearer(token), scenarioId));
+//    }
 
-    @PostMapping("/scenarios/{scenarioId}/become-backroomer")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    public PlayerGetDTO becomeBackroomer(@PathVariable Long scenarioId,
-                                          @RequestHeader("Authorization") String token) {
-        return PlayerDTOMapper.INSTANCE.convertEntitytoPlayerGetDTO(
-            playerService.becomeBackroomer(stripBearer(token), scenarioId));
-    }
 
 
 

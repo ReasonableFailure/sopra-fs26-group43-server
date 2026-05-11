@@ -1,11 +1,11 @@
-package ch.uzh.ifi.hase.soprafs26.mapper;
+package ch.uzh.ifi.hase.soprafs26.rest.mapper;
 
 import ch.uzh.ifi.hase.soprafs26.entity.Message;
 import ch.uzh.ifi.hase.soprafs26.rest.messagedto.*;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface MessageDTOMapper {
 
     MessageDTOMapper INSTANCE = Mappers.getMapper(MessageDTOMapper.class);

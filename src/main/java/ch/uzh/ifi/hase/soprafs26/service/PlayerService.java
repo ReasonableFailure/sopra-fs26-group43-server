@@ -141,7 +141,6 @@ public class PlayerService {
         Backroomer b = new Backroomer();
         b.setToken(randomUUID().toString());
         b.setUser(userService.getProfileById(playerPutDTO.getNewAssignedUserId()));
-        b.setScenario(scenario);
         b.setDelegatedCharacters(new ArrayList<Role>());
         backroomerRepository.save(b);
         backroomerRepository.flush();
@@ -173,52 +172,48 @@ public class PlayerService {
         }
         return new ArrayList<>(interlocutors);
     }
+//    public Role claimCharacter(String userToken, Long scenarioId, Long characterId) {
+//        userService.validateUserToken(userToken);
+//        User user = userService.getByToken(userToken);
+//        Scenario scenario = scenarioRepository.findById(scenarioId)
+//                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario not found"));
+//        if (scenario.getStatus() == ScenarioStatus.COMPLETED) {
+//            throw new ResponseStatusException(HttpStatus.CONFLICT, "Scenario has ended");
+//        }
+//        if (playerRepository.findFirstByUser_IdAndScenario_Id(user.getId(), scenarioId).isPresent()) {
+//            throw new ResponseStatusException(HttpStatus.CONFLICT, "Already engaged in this scenario");
+//        }
+//        Role role = roleRepository.findById(characterId)
+//                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Character not found"));
+//        if (role.getUser() != null) {
+//            throw new ResponseStatusException(HttpStatus.CONFLICT, "Character already taken");
+//        }
+//        role.setUser(user);
+//        if (role.getToken() == null) {
+//            role.setToken(randomUUID().toString());
+//        }
+//        return roleRepository.save(role);
+//    }
+//
+//    public Backroomer becomeBackroomer(Long userId, Long scenarioId) {
+//        Scenario scenario = scenarioRepository.findById(scenarioId)
+//                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario not found"));
+//        if (scenario.getStatus() == ScenarioStatus.COMPLETED) {
+//            throw new ResponseStatusException(HttpStatus.CONFLICT, "Scenario has ended");
+//        }
+//        if (playerRepository.findFirstByUser_IdAndScenario_Id(userId, scenarioId).isPresent()) {
+//            throw new ResponseStatusException(HttpStatus.CONFLICT, "Already engaged in this scenario");
+//        }
+//        Backroomer b = new Backroomer();
+//        User user = userService.getProfileById(userId);
+//        b.setUser(user);
+//        b.setScenario(scenario);
+//        b.setToken(randomUUID().toString());
+//        b.setDelegatedCharacters(new ArrayList<Role>());
+//        return backroomerRepository.save(b);
+//    }
 
     public Director createDirector(Long userId){
-    public Role claimCharacter(String userToken, Long scenarioId, Long characterId) {
-        userService.validateUserToken(userToken);
-        User user = userService.getByToken(userToken);
-        Scenario scenario = scenarioRepository.findById(scenarioId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario not found"));
-        if (scenario.getStatus() == ScenarioStatus.COMPLETED) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Scenario has ended");
-        }
-        if (playerRepository.findFirstByUser_IdAndScenario_Id(user.getId(), scenarioId).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Already engaged in this scenario");
-        }
-        Role role = roleRepository.findById(characterId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Character not found"));
-        if (role.getUser() != null) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Character already taken");
-        }
-        role.setUser(user);
-        if (role.getToken() == null) {
-            role.setToken(randomUUID().toString());
-        }
-        return roleRepository.save(role);
-    }
-
-    public Backroomer becomeBackroomer(String userToken, Long scenarioId) {
-        userService.validateUserToken(userToken);
-        User user = userService.getByToken(userToken);
-        Scenario scenario = scenarioRepository.findById(scenarioId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario not found"));
-        if (scenario.getStatus() == ScenarioStatus.COMPLETED) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Scenario has ended");
-        }
-        if (playerRepository.findFirstByUser_IdAndScenario_Id(user.getId(), scenarioId).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Already engaged in this scenario");
-        }
-        Backroomer b = new Backroomer();
-        b.setUser(user);
-        b.setScenario(scenario);
-        b.setToken(randomUUID().toString());
-        b.setDelegatedCharacters(new ArrayList<Role>());
-        return backroomerRepository.save(b);
-    }
-
-    public Director createDirector(String userToken, Scenario scenario){
-        userService.checkIfValidToken(userToken);
         Director d = new Director();
         d.setToken(randomUUID().toString());
         System.out.println("The user to be assigned is:" + userId);
@@ -231,54 +226,30 @@ public class PlayerService {
 
     @Transactional
     public Role syncPointsAndGetRole(Long scenarioId, Long characterId) {
-
         Role role = getRoleById(characterId);
-
-        Scenario scenario = scenarioRepository.findById(scenarioId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-
+        Scenario scenario = scenarioRepository.findById(scenarioId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         syncActionPoints(role, scenario);
-
         return roleRepository.save(role);
     }
 
     public void syncActionPoints(Role role, Scenario scenario) {
-
-        List<Pronouncement> pronouncements =
-                newsRepository.findPronouncementsByAuthorIdAndScenarioId(
-                        role.getId(),
-                        scenario.getId()
-                );
-
+        List<Pronouncement> pronouncements = newsRepository.findPronouncementsByAuthorIdAndScenarioId(role.getId(), scenario.getId());
         int newTotal = 0;
-
         for (Pronouncement p : pronouncements) {
-
-            Integer likes = mastodonClient.getLikes(
-                    scenario.getMastodonBaseUrl(),
-                    scenario.getMastodonAccessToken(),
-                    p.getMastodonStatusId()
-            );
-
+            Integer likes = mastodonClient.getLikes(scenario.getMastodonBaseUrl(), scenario.getMastodonAccessToken(), p.getMastodonStatusId());
             if (likes == null) {
                 likes = 0;
             }
-
             newTotal += likes;
         }
-
         int oldTotal = role.getTotalPoints();
-
         if (newTotal > oldTotal) {
             int delta = newTotal - oldTotal;
-
             role.setTotalPoints(newTotal);
             role.setPointsBalance(role.getPointsBalance() + delta);
-
         } else {
             role.setTotalPoints(newTotal);
         }
-
         roleRepository.save(role);
     }
 

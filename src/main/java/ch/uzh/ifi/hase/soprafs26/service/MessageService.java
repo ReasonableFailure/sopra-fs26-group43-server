@@ -6,7 +6,7 @@ import ch.uzh.ifi.hase.soprafs26.repository.*;
 import ch.uzh.ifi.hase.soprafs26.rest.messagedto.MessagePostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.messagedto.MessagePutDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.messagedto.MessagePairDTO;
-import ch.uzh.ifi.hase.soprafs26.mapper.MessageDTOMapper;
+import ch.uzh.ifi.hase.soprafs26.rest.mapper.MessageDTOMapper;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -128,7 +128,7 @@ public class MessageService {
                     HttpStatus.BAD_REQUEST, "Cannot retrieve conversation with self");
         }
 
-        Player caller = playerRepository.findByToken(callerToken);
+        Player caller = playerRepository.findByToken(callerToken).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND));
         if (caller == null) {
             throw new ResponseStatusException(
                     HttpStatus.UNAUTHORIZED, "Unknown caller token");
