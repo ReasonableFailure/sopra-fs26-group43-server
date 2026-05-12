@@ -9,6 +9,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.web.server.ResponseStatusException;
 
 import ch.uzh.ifi.hase.soprafs26.constant.CommsStatus;
+import ch.uzh.ifi.hase.soprafs26.entity.Backroomer;
 import ch.uzh.ifi.hase.soprafs26.entity.Directive;
 import ch.uzh.ifi.hase.soprafs26.entity.Role;
 import ch.uzh.ifi.hase.soprafs26.entity.Scenario;
@@ -36,6 +37,9 @@ public class DirectiveServiceTest {
 
 	@Mock
 	private RoleRepository roleRepository;
+
+	@Mock
+	private PlayerService playerService;
 
 	@InjectMocks
 	private DirectiveService directiveService;
@@ -84,6 +88,11 @@ public class DirectiveServiceTest {
 		Mockito.when(roleRepository.findById(1L)).thenReturn(Optional.of(testRole));
 		Mockito.when(directiveRepository.save(Mockito.any())).thenReturn(testDirective);
 		Mockito.when(scenarioRepository.save(Mockito.any())).thenReturn(testScenario);
+
+		// Default the requester to a Backroomer so reads bypass role-based filtering.
+		Mockito.when(playerService.resolveRequesterInScenario(
+				Mockito.anyString(), Mockito.anyLong()))
+				.thenReturn(new Backroomer());
 	}
 
 	@Test
@@ -138,7 +147,7 @@ public class DirectiveServiceTest {
 	public void getDirectiveById_validId_success() {
 		Mockito.when(directiveRepository.findById(1L)).thenReturn(Optional.of(testDirective));
 
-		Directive result = directiveService.getDirectiveById(1L);
+		Directive result = directiveService.getDirectiveById(1L, "tok");
 
 		assertEquals(testDirective, result);
 		Mockito.verify(directiveRepository, Mockito.times(1)).findById(1L);
@@ -148,7 +157,7 @@ public class DirectiveServiceTest {
 	public void getDirectiveById_directiveNotFound_throwsException() {
 		Mockito.when(directiveRepository.findById(1L)).thenReturn(Optional.empty());
 
-		assertThrows(ResponseStatusException.class, () -> directiveService.getDirectiveById(1L));
+		assertThrows(ResponseStatusException.class, () -> directiveService.getDirectiveById(1L, "tok"));
 	}
 
 	@Test
@@ -183,7 +192,7 @@ public class DirectiveServiceTest {
 		Mockito.when(scenarioRepository.existsById(1L)).thenReturn(true);
 		Mockito.when(directiveRepository.findByScenarioId(1L)).thenReturn(expectedDirectives);
 
-		List<Directive> result = directiveService.getDirectivesByScenario(1L);
+		List<Directive> result = directiveService.getDirectivesByScenario(1L, "tok");
 
 		assertEquals(expectedDirectives, result);
 		Mockito.verify(scenarioRepository, Mockito.times(1)).existsById(1L);
@@ -194,26 +203,28 @@ public class DirectiveServiceTest {
 	public void getDirectivesByScenario_scenarioNotFound_throwsException() {
 		Mockito.when(scenarioRepository.existsById(1L)).thenReturn(false);
 
-		assertThrows(ResponseStatusException.class, () -> directiveService.getDirectivesByScenario(1L));
+		assertThrows(ResponseStatusException.class,
+				() -> directiveService.getDirectivesByScenario(1L, "tok"));
 	}
 
 	@Test
 	public void getDirectivesByCreator_validCharacterId_success() {
 		List<Directive> expectedDirectives = Arrays.asList(testDirective);
-		Mockito.when(roleRepository.existsById(1L)).thenReturn(true);
+		testRole.setScenario(testScenario);
+		Mockito.when(roleRepository.findById(1L)).thenReturn(Optional.of(testRole));
 		Mockito.when(directiveRepository.findByCreatorId(1L)).thenReturn(expectedDirectives);
 
-		List<Directive> result = directiveService.getDirectivesByCreator(1L);
+		List<Directive> result = directiveService.getDirectivesByCreator(1L, "tok");
 
 		assertEquals(expectedDirectives, result);
-		Mockito.verify(roleRepository, Mockito.times(1)).existsById(1L);
 		Mockito.verify(directiveRepository, Mockito.times(1)).findByCreatorId(1L);
 	}
 
 	@Test
 	public void getDirectivesByCreator_characterNotFound_throwsException() {
-		Mockito.when(roleRepository.existsById(1L)).thenReturn(false);
+		Mockito.when(roleRepository.findById(1L)).thenReturn(Optional.empty());
 
-		assertThrows(ResponseStatusException.class, () -> directiveService.getDirectivesByCreator(1L));
+		assertThrows(ResponseStatusException.class,
+				() -> directiveService.getDirectivesByCreator(1L, "tok"));
 	}
 }

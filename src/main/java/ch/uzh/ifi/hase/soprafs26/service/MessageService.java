@@ -85,12 +85,9 @@ public class MessageService {
     }
 
     public Message getMessageById(Long messageId) {
-
-        Message message = messageRepository.findById(messageId)
+        return messageRepository.findById(messageId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Message not found"));
-
-        return message;
     }
 
     public void updateMessageStatus(Long messageId, MessagePutDTO putDTO) {
@@ -116,35 +113,39 @@ public class MessageService {
 
     public List<Message> getMessagesBetween(String callerToken, Long characterAId, Long characterBId) {
 
-        if (!roleRepository.existsById(characterAId) ||
-                !roleRepository.existsById(characterBId)) {
-
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND, "One or both characters not found");
-        }
+        Role charA = roleRepository.findById(characterAId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Character A not found"));
+        Role charB = roleRepository.findById(characterBId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Character B not found"));
 
         if (characterAId.equals(characterBId)) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST, "Cannot retrieve conversation with self");
         }
 
-        Player caller = playerRepository.findByToken(callerToken).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND));
-        if (caller == null) {
+        Long scenarioId = charA.getScenario() != null ? charA.getScenario().getId() : null;
+        if (scenarioId == null
+                || charB.getScenario() == null
+                || !scenarioId.equals(charB.getScenario().getId())) {
             throw new ResponseStatusException(
-                    HttpStatus.UNAUTHORIZED, "Unknown caller token");
+                    HttpStatus.BAD_REQUEST, "Characters are not in the same scenario");
         }
+
+        Player caller = playerRepository.findByToken(callerToken)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.UNAUTHORIZED, "Unknown caller token"));
 
         List<Message> raw = messageRepository.findConversation(characterAId, characterBId);
 
-        // Backroomer (and Director, which extends Backroomer) need full visibility
-        // for moderation. Cross-scenario scope checks are deferred to B2.
+        // Backroomer (and Director, which extends Backroomer) need full visibility for moderation.
         if (caller instanceof Backroomer) {
             return raw;
         }
 
-        // Player Roles may only view conversations they participate in,
-        // and may only see messages they sent or messages addressed to them
-        // that have been approved (status == ACCEPTED).
+        // Roles only see conversations they participate in, with ACCEPTED messages from the
+        // other side and their own outgoing (any status).
         Long callerId = caller.getId();
         if (!callerId.equals(characterAId) && !callerId.equals(characterBId)) {
             throw new ResponseStatusException(
@@ -157,39 +158,54 @@ public class MessageService {
                 .toList();
     }
 
-    public List<MessagePairDTO> getMessagePairsByScenario(Long scenarioId) {
+    public void deleteMessage(Long messageId) {
+        if (!messageRepository.existsById(messageId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Message not found");
+        }
+        messageRepository.deleteById(messageId);
+    }
+
+    public List<MessagePairDTO> getMessagePairsByScenario(Long scenarioId, String callerToken) {
 
         if (!scenarioRepository.existsById(scenarioId)) {
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND, "Scenario not found");
         }
 
+        Player caller = playerRepository.findByToken(callerToken)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.UNAUTHORIZED, "Unknown caller token"));
+
         List<Message> messages = messageRepository.findByScenarioId(scenarioId);
+
+        if (caller instanceof Role) {
+            final Long callerRoleId = caller.getId();
+            messages = messages.stream()
+                    .filter(m -> m.getStatus() == CommsStatus.ACCEPTED
+                              || (m.getCreator() != null
+                                  && callerRoleId.equals(m.getCreator().getId()))
+                              || (m.getRecipient() != null
+                                  && callerRoleId.equals(m.getRecipient().getId())))
+                    .toList();
+        }
 
         Set<String> seenPairs = new HashSet<>();
         List<MessagePairDTO> result = new ArrayList<>();
 
         for (Message msg : messages) {
-
             Long a = msg.getCreator().getId();
             Long b = msg.getRecipient().getId();
-
             Long min = Math.min(a, b);
             Long max = Math.max(a, b);
-
             String key = min + "-" + max;
-
             if (!seenPairs.contains(key)) {
                 seenPairs.add(key);
-
                 MessagePairDTO dto = new MessagePairDTO();
                 dto.setRoleAId(min);
                 dto.setRoleBId(max);
-
                 result.add(dto);
             }
         }
-
         return result;
     }
 }

@@ -61,15 +61,26 @@ public class MessageController {
         messageService.updateMessageStatus(messageId, putDTO);
     }
 
+    @DeleteMapping("/messages/{messageId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteMessage(
+            @RequestHeader("Authorization") String token,
+            @PathVariable Long messageId) {
+
+        playerService.validate(token, "Backroomer");
+
+        messageService.deleteMessage(messageId);
+    }
+
     @GetMapping("/messages/scenario/{scenarioId}/pairs")
     @ResponseStatus(HttpStatus.OK)
     public List<MessagePairDTO> getMessagePairs(
             @RequestHeader("Authorization") String token,
             @PathVariable Long scenarioId) {
 
-        playerService.validate(token, "any");
+        String callerToken = playerService.validate(token, "any");
 
-        return messageService.getMessagePairsByScenario(scenarioId);
+        return messageService.getMessagePairsByScenario(scenarioId, callerToken);
     }
 
     @GetMapping("/messages/between/{characterAId}/{characterBId}")
@@ -88,5 +99,4 @@ public class MessageController {
                 .map(MessageDTOMapper.INSTANCE::convertEntityToGetDTO)
                 .toList();
     }
-
 }

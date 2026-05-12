@@ -3,8 +3,8 @@ package ch.uzh.ifi.hase.soprafs26.controller;
 import ch.uzh.ifi.hase.soprafs26.entity.NewsStory;
 import ch.uzh.ifi.hase.soprafs26.entity.Pronouncement;
 import ch.uzh.ifi.hase.soprafs26.rest.newsdto.*;
-import ch.uzh.ifi.hase.soprafs26.service.PlayerService;
 import ch.uzh.ifi.hase.soprafs26.service.NewsService;
+import ch.uzh.ifi.hase.soprafs26.service.PlayerService;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.NewsDTOMapper;
 
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +29,7 @@ public class NewsController {
     public NewsGetDTO createNews(
             @RequestHeader("Authorization") String token,
             @RequestBody NewsPostDTO dto) {
+
         playerService.validate(token, "any");
         NewsStory entity = newsService.createNews(dto);
 
@@ -49,7 +50,7 @@ public class NewsController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long newsId) {
 
-        playerService.validate(token,"any");
+        playerService.validate(token, "any");
 
         NewsStory entity = newsService.getNewsById(newsId);
 
@@ -90,6 +91,17 @@ public class NewsController {
         }).toList();
     }
 
+    @DeleteMapping("/news/{newsId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteNews(
+            @RequestHeader("Authorization") String token,
+            @PathVariable Long newsId) {
+
+        playerService.validate(token, "Backroomer");
+
+        newsService.deleteNews(newsId);
+    }
+
     @PostMapping("/news/like/{newsId}/{roleId}")
     @ResponseStatus(HttpStatus.OK)
     public NewsGetDTO likeNews(
@@ -109,5 +121,4 @@ public class NewsController {
 
         return dto;
     }
-
 }

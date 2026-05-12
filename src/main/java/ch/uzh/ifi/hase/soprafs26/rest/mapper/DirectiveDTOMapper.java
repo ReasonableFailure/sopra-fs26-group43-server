@@ -13,7 +13,6 @@ public interface DirectiveDTOMapper {
 
     @Mapping(source = "title", target = "title")
     @Mapping(source = "body", target = "body")
-    @Mapping(source = "category", target = "category")
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "status", ignore = true)
@@ -28,7 +27,6 @@ public interface DirectiveDTOMapper {
     @Mapping(source = "createdAt", target = "createdAt")
     @Mapping(source = "status", target = "status")
     @Mapping(source = "creator.id", target = "creatorId")
-    @Mapping(source = "category", target = "category")
     @Mapping(source = "response", target = "response")
     DirectiveGetDTO convertEntityToGetDTO(Directive directive);
 }

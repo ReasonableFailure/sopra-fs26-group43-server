@@ -111,6 +111,13 @@ public class NewsService {
         return newsRepository.findByScenarioIdOrderByCreatedAtAsc(scenarioId);
     }
 
+    public void deleteNews(Long newsId) {
+        if (!newsRepository.existsById(newsId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "News item not found");
+        }
+        newsRepository.deleteById(newsId);
+    }
+
     public Pronouncement likePronouncement(Long newsId, Long roleId) {
         NewsStory news = newsRepository.findById(newsId)
                 .orElseThrow(() -> new ResponseStatusException(
@@ -129,10 +136,10 @@ public class NewsService {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST, "Role already liked this pronouncement");
         }
-        
+
         if (pronouncement.getAuthor().getId().equals(roleId)) {
             throw new ResponseStatusException(
-                HttpStatus.BAD_REQUEST, "Author cannot like own pronouncement");
+                    HttpStatus.BAD_REQUEST, "Author cannot like own pronouncement");
         }
 
         pronouncement.getLikedBy().add(role);

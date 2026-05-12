@@ -28,13 +28,11 @@ public class ScenarioService {
     private final Logger log = LoggerFactory.getLogger(ScenarioService.class);
     private final PlayerService playerService;
     private final ScenarioRepository scenarioRepository;
-    private final NewsService newsService;
 
-    public ScenarioService(@Qualifier("scenarioRepository") ScenarioRepository scenarioRepository,  @Qualifier("playerService") PlayerService playerService, @Qualifier("newsService") NewsService newsService) {
+    public ScenarioService(@Qualifier("scenarioRepository") ScenarioRepository scenarioRepository,
+                           @Qualifier("playerService") PlayerService playerService) {
         this.scenarioRepository = scenarioRepository;
-
         this.playerService = playerService;
-        this.newsService = newsService;
     }
 
     public List<Scenario> getScenarios() {
@@ -42,13 +40,12 @@ public class ScenarioService {
     }
 
     public Scenario getScenarioById(Long scenarioId) {
-
-        return this.scenarioRepository.findById(scenarioId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario with id " + scenarioId + " not found"));
+        return this.scenarioRepository.findById(scenarioId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Scenario with id " + scenarioId + " not found"));
     }
 
-    @Transactional
-    public Scenario createScenario(String token, ScenarioPostDTO scenarioPostDTO){
-        //TODO: there must be some way to identify the director creating the scenario
+    public Scenario createScenario(String userToken, ScenarioPostDTO scenarioPostDTO) {
         Scenario newScenario = ScenarioDTOMapper.INSTANCE.convertScenarioPostDTOtoEntity(scenarioPostDTO);
         newScenario.setDayNumber(0);
         newScenario.setStatus(ScenarioStatus.UNSTARTED);
@@ -56,7 +53,7 @@ public class ScenarioService {
         newScenario.setHistory(new ArrayList<Communication>());
         newScenario = scenarioRepository.save(newScenario);
         //Director director = playerService.createDirector(token, newScenario); this is two steps now: first create a director type player, then perform mutual assignment
-        Director director = playerService.getDirectorByToken(token);
+        Director director = playerService.getDirectorByToken(userToken);
         newScenario.setDirector(director);
         newScenario.addPlayer(director);
         scenarioRepository.save(newScenario);
@@ -64,38 +61,28 @@ public class ScenarioService {
         return newScenario;
     }
 
-    public void deleteScenario(Long scenarioId){
+    public void deleteScenario(Long scenarioId) {
         Scenario toDelete = getScenarioById(scenarioId);
         scenarioRepository.delete(toDelete);
         scenarioRepository.flush();
     }
 
-    public void updateScenario(Long scenarioId, ScenarioPutDTO dto){
+    public void updateScenario(Long scenarioId, ScenarioPutDTO dto) {
         Scenario s = getScenarioById(scenarioId);
 
-        if (dto.getTitle() != null) {
-            s.setTitle(dto.getTitle());
-        }
-        if (dto.getDescription() != null) {
-            s.setDescription(dto.getDescription());
-        }
+        if (dto.getTitle() != null) s.setTitle(dto.getTitle());
+        if (dto.getDescription() != null) s.setDescription(dto.getDescription());
         if (dto.getStatus() != null) {
             if (dto.getStatus() == ScenarioStatus.COMPLETED && s.getStatus() != ScenarioStatus.COMPLETED) {
                 s.setFinishTime(LocalDateTime.now());
             }
             s.setStatus(dto.getStatus());
         }
-        if (dto.getDayNumber() != null) {
-            s.setDayNumber(dto.getDayNumber());
-        }
-        if (dto.getExchangeRate() != null) {
-            s.setExchangeRate(dto.getExchangeRate());
-        }
-        scenarioRepository.save(s);
-        scenarioRepository.flush();
+        if (dto.getDayNumber() != null) s.setDayNumber(dto.getDayNumber());
+        if (dto.getExchangeRate() != null) s.setExchangeRate(dto.getExchangeRate());
     }
 
-    public void addPlayerToScenario(Long scenarioId, Long playerId){
+    public void addPlayerToScenario(Long scenarioId, Long playerId) {
         Role toAdd = playerService.getRoleById(playerId);
         Scenario scenario = getScenarioById(scenarioId);
         toAdd = playerService.updateMessagingStats(playerId, scenario.getStartingMessageCount());
@@ -104,29 +91,28 @@ public class ScenarioService {
         scenarioRepository.flush();
     }
 
-    public void addCommunicationToHistory(Long scenarioId, Long communicationId){
-        Scenario toAddTo =  getScenarioById(scenarioId);
+    public void addCommunicationToHistory(Long scenarioId, Long communicationId) {
+        Scenario toAddTo = getScenarioById(scenarioId);
         toAddTo.addComm(null);
         //TODO: @HalaiRhea
     }
 
     public List<Role> getRoles(Long scenarioId) {
         Scenario scenario = getScenarioById(scenarioId);
-        List<Role> toReturn = new ArrayList<Role>();
-        for(Player player : scenario.getPlayers()){
-            if(player instanceof Role){
+        List<Role> toReturn = new ArrayList<>();
+        for (Player player : scenario.getPlayers()) {
+            if (player instanceof Role) {
                 toReturn.add((Role) player);
             }
         }
         return toReturn;
     }
 
-    public List<Role> getRolesPerCabinet(Long scenarioId, Long cabinetId){
-
+    public List<Role> getRolesPerCabinet(Long scenarioId, Long cabinetId) {
         Scenario scenario = getScenarioById(scenarioId);
-        List<Role> toReturn = new ArrayList<Role>();
-        for(Player player : scenario.getPlayers()){
-            if(player instanceof Role && (((Role) player).getAssignedCabinet() == cabinetId)){
+        List<Role> toReturn = new ArrayList<>();
+        for (Player player : scenario.getPlayers()) {
+            if (player instanceof Role && (((Role) player).getAssignedCabinet() == cabinetId)) {
                 toReturn.add((Role) player);
             }
         }
@@ -145,24 +131,7 @@ public class ScenarioService {
                 dto.getMastodonBaseUrl(),
                 dto.getMastodonAccessToken()
         );
-
         scenario.setMastodonProfileUrl(profileUrl);
-
-        List<NewsStory> newsList = newsService.getNewsByScenario(scenarioId);
-
-        for (NewsStory news : newsList) {
-            try {
-                String content = news.formatSelf();
-
-                MastodonClient.postStatus(
-                        dto.getMastodonBaseUrl(),
-                        dto.getMastodonAccessToken(),
-                        content
-                );
-            } catch (Exception e) {
-                System.err.println("Failed to post news id " + news.getId());
-            }
-        }
 
         scenarioRepository.save(scenario);
     }

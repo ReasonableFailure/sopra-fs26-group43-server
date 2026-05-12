@@ -1,6 +1,5 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
-//import ch.uzh.ifi.hase.soprafs26.rest.userdto.UserPutDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -27,34 +26,29 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-/**
- * User Service
- * This class is the "worker" and responsible for all functionality related to
- * the user
- * (e.g., it creates, modifies, deletes, finds). The result will be passed back
- * to the caller.
- */
 @Service
 @Transactional
 public class UserService {
 
-	private final Logger log = LoggerFactory.getLogger(UserService.class);
+    private final Logger log = LoggerFactory.getLogger(UserService.class);
 
-	private final UserRepository userRepository;
-	private final PlayerRepository playerRepository;
+    private final UserRepository userRepository;
+    private final PlayerRepository playerRepository;
 
-	public UserService(@Qualifier("userRepository") UserRepository userRepository,
-	                   @Qualifier("playerRepository") PlayerRepository playerRepository) {
-		this.userRepository = userRepository;
-		this.playerRepository = playerRepository;
-	}
+    public UserService(@Qualifier("userRepository") UserRepository userRepository,
+                       @Qualifier("playerRepository") PlayerRepository playerRepository) {
+        this.userRepository = userRepository;
+        this.playerRepository = playerRepository;
+    }
 
-	public List<User> getUsers() {
-		return this.userRepository.findAll();
-	}
+    public List<User> getUsers() {
+        return this.userRepository.findAll();
+    }
 
-    public User getProfileById(Long idToBeFound ){
-        return userRepository.findById(idToBeFound).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User with id %d not found", idToBeFound)));
+    public User getProfileById(Long idToBeFound) {
+        return userRepository.findById(idToBeFound)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        String.format("User with id %d not found", idToBeFound)));
     }
 
     public User createUser(User newUser) {
@@ -77,13 +71,25 @@ public class UserService {
             return newUser;
         }
     }
+    public User setUserPlaying(Long id){
+        User u = getProfileById(id);
+        u.setPlaying(true);
+        userRepository.save(u);
+        userRepository.flush();
+        return u;
 
-    public User loginUser(User user){
-        if(!isValidProfileData(user.getUsername(),user.getPassword())){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid username or password");        }
-        checkPwd(user.getUsername(),user.getPassword());
-        checkIfUserExistsByID(user.getId());
-        User fromStore = userRepository.findByUsername(user.getUsername()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "This user cannot be found with this name"));
+    public User loginUser(User user) {
+        if (!isValidProfileData(user.getUsername(), user.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid username or password");
+        }
+        User fromStore = userRepository.findByUsername(user.getUsername());
+        if (fromStore == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    String.format("User with username %s not found", user.getUsername()));
+        }
+        if (!checkPwd(user.getUsername(), user.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Wrong password");
+        }
         fromStore.setToken(UUID.randomUUID().toString());
         fromStore.setStatus(UserStatus.ONLINE);
         fromStore = userRepository.save(fromStore);
@@ -91,10 +97,10 @@ public class UserService {
         return fromStore;
     }
 
-    public void logoutUser(Long Id){
-        //200, 401, 404
-        checkIfUserExistsByID(Id);
-        User requestsLogout = userRepository.findById(Id).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User with id %d not found", Id)));
+    public void logoutUser(Long id) {
+        User requestsLogout = userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        String.format("User with id %d not found", id)));
         requestsLogout.setStatus(UserStatus.OFFLINE);
         requestsLogout.setToken(null);
         requestsLogout.setPlaying(false);
@@ -102,10 +108,27 @@ public class UserService {
         userRepository.flush();
     }
 
-    public void updateProfile(Long id, User holdsUpdate) {
+    public void deleteUser(Long id, String token) {
+        checkIfValidToken(token);
+        User requester = userRepository.findByToken(token);
+        if (requester == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token");
+        }
+        if (!requester.getId().equals(id)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cannot delete another user");
+        }
+        userRepository.deleteById(id);
+        userRepository.flush();
+    }
 
-        checkIfUserExistsByID(id);
-        isValidProfileData(holdsUpdate.getUsername(),holdsUpdate.getPassword());
+    public void updateProfile(Long id, User holdsUpdate) {
+        if (!checkIfUserExistsByID(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    String.format("User with id %d not found", id));
+        }
+        if (!isValidProfileData(holdsUpdate.getUsername(), holdsUpdate.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid username or password");
+        }
         User toBeModified = userRepository.findById(id).get();
         if(toBeModified != null){
         toBeModified.setUsername(holdsUpdate.getUsername());
@@ -139,23 +162,23 @@ public class UserService {
         return isValid;
     }
 
-    private void checkIfUsernameTaken(String uname){
-        if(userRepository.findByUsername(uname).isPresent()){
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Username is already taken");
-        }
-
-    }
-    /*
-    * pre-condition: user must exist*/
-    private void checkPwd(String uname, String pwd){
-        User toValidate = userRepository.findByUsername(uname).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "This user cannot be found with this name"));
-        if(!pwd.equals(toValidate.getPassword())){
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Wrong Password!");
-        }
+    public boolean checkIfUserExistsByID(Long id) {
+        return userRepository.findById(id).isPresent();
     }
 
-    public void checkIfUserExistsByID(Long ID){
-        User foundById = userRepository.findById(ID).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "A user by this id cannot be found."));
+    public User getByToken(String token) {
+        checkIfValidToken(token);
+        return userRepository.findByToken(token);
+    }
+
+    protected void checkIfValidToken(String token) {
+        if (token == null || token.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token");
+        }
+        User foundByToken = userRepository.findByToken(token);
+        if (foundByToken == null || foundByToken.getToken() == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token");
+        }
     }
 //
 //    public User getByToken(String token){
@@ -173,14 +196,17 @@ public class UserService {
 
 
     public List<EngagementGetDTO> getEngagements(String token, Long userId) {
-        validateUserToken(token);
-        checkIfUserExistsByID(userId);
+        checkIfValidToken(token);
+        if (!checkIfUserExistsByID(userId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    String.format("User with id %d not found", userId));
+        }
         List<Player> players = playerRepository.findByUser_Id(userId);
         return players.stream()
-            .map(this::toEngagementDTO)
-            .filter(dto -> dto.getScenarioId() != null)
-            .sorted(engagementComparator())
-            .collect(Collectors.toList());
+                .map(this::toEngagementDTO)
+                .filter(dto -> dto.getScenarioId() != null)
+                .sorted(engagementComparator())
+                .collect(Collectors.toList());
     }
 
     private EngagementGetDTO toEngagementDTO(Player player) {
@@ -206,11 +232,10 @@ public class UserService {
 
     private Comparator<EngagementGetDTO> engagementComparator() {
         Comparator<EngagementGetDTO> byCompletedLast = Comparator.comparing(
-            dto -> dto.getScenarioStatus() == ScenarioStatus.COMPLETED);
+                dto -> dto.getScenarioStatus() == ScenarioStatus.COMPLETED);
         Comparator<EngagementGetDTO> byFinishTimeDesc = Comparator.comparing(
-            EngagementGetDTO::getFinishTime,
-            Comparator.nullsLast(Comparator.reverseOrder()));
+                EngagementGetDTO::getFinishTime,
+                Comparator.nullsLast(Comparator.reverseOrder()));
         return byCompletedLast.thenComparing(byFinishTimeDesc);
     }
-
 }

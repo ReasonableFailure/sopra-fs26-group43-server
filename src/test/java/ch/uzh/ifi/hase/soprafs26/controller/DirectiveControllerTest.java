@@ -7,7 +7,7 @@ import ch.uzh.ifi.hase.soprafs26.entity.Directive;
 import ch.uzh.ifi.hase.soprafs26.entity.Role;
 import ch.uzh.ifi.hase.soprafs26.entity.Scenario;
 import ch.uzh.ifi.hase.soprafs26.service.DirectiveService;
-import ch.uzh.ifi.hase.soprafs26.service.PlayerService;
+import ch.uzh.ifi.hase.soprafs26.service.UserService;
 import ch.uzh.ifi.hase.soprafs26.rest.directivedto.DirectiveGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.directivedto.DirectivePostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.directivedto.DirectivePutDTO;
@@ -48,7 +48,7 @@ public class DirectiveControllerTest {
     private DirectiveService directiveService;
 
     @MockitoBean
-    private PlayerService playerService;
+    private UserService userService;
 
     private ObjectMapper objectMapper;
     private Directive testDirective;
@@ -61,7 +61,7 @@ public class DirectiveControllerTest {
     public void setupTest() {
         objectMapper = new ObjectMapper();
 
-        Mockito.lenient().doNothing().when(playerService).checkToken(anyString(), anyString());
+        Mockito.lenient().doNothing().when(userService).validateUserToken(anyString());
 
         testRole = new Role();
         testRole.setId(1L);
@@ -99,7 +99,7 @@ public class DirectiveControllerTest {
 
         MockHttpServletRequestBuilder postRequest = post("/directives")
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Role token123")
+                .header("Authorization", "Bearer token123")
                 .content(asJsonString(directivePostDTO));
 
         mockMvc.perform(postRequest)
@@ -121,7 +121,7 @@ public class DirectiveControllerTest {
 
         MockHttpServletRequestBuilder postRequest = post("/directives")
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Role token123")
+                .header("Authorization", "Bearer token123")
                 .content(asJsonString(directivePostDTO));
 
         mockMvc.perform(postRequest)
@@ -137,7 +137,7 @@ public class DirectiveControllerTest {
 
         MockHttpServletRequestBuilder postRequest = post("/directives")
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Role token123")
+                .header("Authorization", "Bearer token123")
                 .content(asJsonString(directivePostDTO));
 
         mockMvc.perform(postRequest)
@@ -153,7 +153,7 @@ public class DirectiveControllerTest {
 
         MockHttpServletRequestBuilder postRequest = post("/directives")
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Role token123")
+                .header("Authorization", "Bearer token123")
                 .content(asJsonString(directivePostDTO));
 
         mockMvc.perform(postRequest)
@@ -169,7 +169,7 @@ public class DirectiveControllerTest {
 
         MockHttpServletRequestBuilder postRequest = post("/directives")
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Role token123")
+                .header("Authorization", "Bearer token123")
                 .content(asJsonString(directivePostDTO));
 
         mockMvc.perform(postRequest)
@@ -180,11 +180,11 @@ public class DirectiveControllerTest {
 
     @Test
     public void getDirective_validId_directiveReturned() throws Exception {
-        given(directiveService.getDirectiveById(1L))
+        given(directiveService.getDirectiveById(Mockito.eq(1L), anyString()))
                 .willReturn(testDirective);
 
         MockHttpServletRequestBuilder getRequest = get("/directives/1")
-                .header("Authorization", "Role token123");
+                .header("Authorization", "Bearer token123");
 
         mockMvc.perform(getRequest)
                 .andExpect(status().isOk())
@@ -194,21 +194,21 @@ public class DirectiveControllerTest {
                 .andExpect(jsonPath("$.status", is("PENDING")))
                 .andExpect(jsonPath("$.creatorId", is(1)));
 
-        verify(directiveService, times(1)).getDirectiveById(1L);
+        verify(directiveService, times(1)).getDirectiveById(Mockito.eq(1L), anyString());
     }
 
     @Test
     public void getDirective_directiveNotFound_throwsException() throws Exception {
-        given(directiveService.getDirectiveById(999L))
+        given(directiveService.getDirectiveById(Mockito.eq(999L), anyString()))
                 .willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Directive not found"));
 
         MockHttpServletRequestBuilder getRequest = get("/directives/999")
-                .header("Authorization", "Role token123");
+                .header("Authorization", "Bearer token123");
 
         mockMvc.perform(getRequest)
                 .andExpect(status().isNotFound());
 
-        verify(directiveService, times(1)).getDirectiveById(999L);
+        verify(directiveService, times(1)).getDirectiveById(Mockito.eq(999L), anyString());
     }
 
 
@@ -218,7 +218,7 @@ public class DirectiveControllerTest {
 
         MockHttpServletRequestBuilder putRequest = put("/directives/1")
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Backroomer token123")
+                .header("Authorization", "Bearer token123")
                 .content(asJsonString(directivePutDTO));
 
         mockMvc.perform(putRequest)
@@ -238,7 +238,7 @@ public class DirectiveControllerTest {
 
         MockHttpServletRequestBuilder putRequest = put("/directives/1")
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Backroomer token123")
+                .header("Authorization", "Bearer token123")
                 .content(asJsonString(putDTOWithNullStatus));
 
         mockMvc.perform(putRequest)
@@ -254,7 +254,7 @@ public class DirectiveControllerTest {
 
         MockHttpServletRequestBuilder putRequest = put("/directives/999")
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Backroomer token123")
+                .header("Authorization", "Bearer token123")
                 .content(asJsonString(directivePutDTO));
 
         mockMvc.perform(putRequest)
@@ -284,11 +284,11 @@ public class DirectiveControllerTest {
         secondDirective.setScenario(testScenario);
         directives.add(secondDirective);
 
-        given(directiveService.getDirectivesByScenario(1L))
+        given(directiveService.getDirectivesByScenario(Mockito.eq(1L), anyString()))
                 .willReturn(directives);
 
         MockHttpServletRequestBuilder getRequest = get("/directives/scenario/1")
-                .header("Authorization", "Role token123");
+                .header("Authorization", "Bearer token123");
 
         mockMvc.perform(getRequest)
                 .andExpect(status().isOk())
@@ -298,21 +298,21 @@ public class DirectiveControllerTest {
                 .andExpect(jsonPath("$[1].id", is(2)))
                 .andExpect(jsonPath("$[1].title", is("Second Directive")));
 
-        verify(directiveService, times(1)).getDirectivesByScenario(1L);
+        verify(directiveService, times(1)).getDirectivesByScenario(Mockito.eq(1L), anyString());
     }
 
     @Test
     public void getDirectivesByScenario_scenarioNotFound_throwsException() throws Exception {
-        given(directiveService.getDirectivesByScenario(999L))
+        given(directiveService.getDirectivesByScenario(Mockito.eq(999L), anyString()))
                 .willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario not found"));
 
         MockHttpServletRequestBuilder getRequest = get("/directives/scenario/999")
-                .header("Authorization", "Role token123");
+                .header("Authorization", "Bearer token123");
 
         mockMvc.perform(getRequest)
                 .andExpect(status().isNotFound());
 
-        verify(directiveService, times(1)).getDirectivesByScenario(999L);
+        verify(directiveService, times(1)).getDirectivesByScenario(Mockito.eq(999L), anyString());
     }
 
 
@@ -321,11 +321,11 @@ public class DirectiveControllerTest {
         List<Directive> directives = new ArrayList<>();
         directives.add(testDirective);
 
-        given(directiveService.getDirectivesByCreator(1L))
+        given(directiveService.getDirectivesByCreator(Mockito.eq(1L), anyString()))
                 .willReturn(directives);
 
         MockHttpServletRequestBuilder getRequest = get("/directives/character/1")
-                .header("Authorization", "Role token123");
+                .header("Authorization", "Bearer token123");
 
         mockMvc.perform(getRequest)
                 .andExpect(status().isOk())
@@ -334,21 +334,21 @@ public class DirectiveControllerTest {
                 .andExpect(jsonPath("$[0].title", is("Test Directive")))
                 .andExpect(jsonPath("$[0].creatorId", is(1)));
 
-        verify(directiveService, times(1)).getDirectivesByCreator(1L);
+        verify(directiveService, times(1)).getDirectivesByCreator(Mockito.eq(1L), anyString());
     }
 
     @Test
     public void getDirectivesByCharacter_characterNotFound_throwsException() throws Exception {
-        given(directiveService.getDirectivesByCreator(999L))
+        given(directiveService.getDirectivesByCreator(Mockito.eq(999L), anyString()))
                 .willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Character not found"));
 
         MockHttpServletRequestBuilder getRequest = get("/directives/character/999")
-                .header("Authorization", "Role token123");
+                .header("Authorization", "Bearer token123");
 
         mockMvc.perform(getRequest)
                 .andExpect(status().isNotFound());
 
-        verify(directiveService, times(1)).getDirectivesByCreator(999L);
+        verify(directiveService, times(1)).getDirectivesByCreator(Mockito.eq(999L), anyString());
     }
 
 

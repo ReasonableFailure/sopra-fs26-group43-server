@@ -9,14 +9,22 @@ import java.util.Base64;
 import org.mapstruct.Named;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING, uses = PlayerMapper.class, unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING, uses = PlayerMapper.class)
  public interface PlayerDTOMapper {
 
 
     PlayerDTOMapper INSTANCE = Mappers.getMapper(PlayerDTOMapper.class);
 
+
+    @Mapping(source = "token", target = "roleToken")
     @Mapping(target = "portrait", source = "portrait", qualifiedByName = "bytesToBase64")
     RoleGetDTO convertEntitytoRoleGetDTO(Role role);
+
+    @AfterMapping
+    default void addRolePrefix(@MappingTarget RoleGetDTO roleGetDTO, Role entity) {
+        if (entity.getToken() == null) return;
+        roleGetDTO.setRoleToken("Role " + entity.getToken());
+    }
 
     Player convertPlayerPutDTOtoEntity(PlayerPutDTO playerPutDTO, @MappingTarget Player player);
 

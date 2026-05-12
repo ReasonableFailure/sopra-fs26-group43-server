@@ -81,6 +81,13 @@ public class UserController {
         userService.logoutUser(userid);
     }
 
+    @DeleteMapping("/users/{userid}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteUser(@PathVariable Long userid, @RequestHeader("Authorization") String token){
+        String strippedToken = stripPrefix(token);
+        userService.deleteUser(userid, strippedToken);
+    }
+
     @GetMapping("/users/{userid}/engagements")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody

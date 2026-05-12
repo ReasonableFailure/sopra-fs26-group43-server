@@ -9,6 +9,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.web.server.ResponseStatusException;
 
 import ch.uzh.ifi.hase.soprafs26.constant.CommsStatus;
+import ch.uzh.ifi.hase.soprafs26.entity.Backroomer;
 import ch.uzh.ifi.hase.soprafs26.entity.Message;
 import ch.uzh.ifi.hase.soprafs26.entity.Role;
 import ch.uzh.ifi.hase.soprafs26.entity.Scenario;
@@ -55,16 +56,18 @@ public class MessageServiceTest {
 	public void setup() {
 		MockitoAnnotations.openMocks(this);
 
-		testCreator = new Role();
-		testCreator.setMessageCount(5);
-		testCreator.setId(1L);
-
-		testRecipient = new Role();
-		testRecipient.setId(2L);
-
 		testScenario = new Scenario();
 		testScenario.setId(1L);
 		testScenario.setHistory(new ArrayList<>());
+
+		testCreator = new Role();
+		testCreator.setMessageCount(5);
+		testCreator.setId(1L);
+		testCreator.setScenario(testScenario);
+
+		testRecipient = new Role();
+		testRecipient.setId(2L);
+		testRecipient.setScenario(testScenario);
 
 		testMessage = new Message();
 		testMessage.setId(1L);
@@ -171,9 +174,9 @@ public class MessageServiceTest {
 		List<Message> messages = new ArrayList<>();
 		messages.add(testMessage);
 
-		Mockito.when(roleRepository.existsById(1L)).thenReturn(true);
-		Mockito.when(roleRepository.existsById(2L)).thenReturn(true);
-		Mockito.when(playerRepository.findByToken("token-creator")).thenReturn(testCreator);
+		Mockito.when(roleRepository.findById(1L)).thenReturn(Optional.of(testCreator));
+		Mockito.when(roleRepository.findById(2L)).thenReturn(Optional.of(testRecipient));
+		Mockito.when(playerRepository.findByToken("token-creator")).thenReturn(Optional.of(testCreator));
 		Mockito.when(messageRepository.findConversation(1L, 2L)).thenReturn(messages);
 
 		List<Message> result = messageService.getMessagesBetween("token-creator", 1L, 2L);
@@ -202,9 +205,9 @@ public class MessageServiceTest {
 		messages.add(pending);
 		messages.add(accepted);
 
-		Mockito.when(roleRepository.existsById(1L)).thenReturn(true);
-		Mockito.when(roleRepository.existsById(2L)).thenReturn(true);
-		Mockito.when(playerRepository.findByToken("token-recipient")).thenReturn(testRecipient);
+		Mockito.when(roleRepository.findById(1L)).thenReturn(Optional.of(testCreator));
+		Mockito.when(roleRepository.findById(2L)).thenReturn(Optional.of(testRecipient));
+		Mockito.when(playerRepository.findByToken("token-recipient")).thenReturn(Optional.of(testRecipient));
 		Mockito.when(messageRepository.findConversation(1L, 2L)).thenReturn(messages);
 
 		List<Message> result = messageService.getMessagesBetween("token-recipient", 1L, 2L);
@@ -218,9 +221,9 @@ public class MessageServiceTest {
 		Role outsider = new Role();
 		outsider.setId(99L);
 
-		Mockito.when(roleRepository.existsById(1L)).thenReturn(true);
-		Mockito.when(roleRepository.existsById(2L)).thenReturn(true);
-		Mockito.when(playerRepository.findByToken("token-outsider")).thenReturn(outsider);
+		Mockito.when(roleRepository.findById(1L)).thenReturn(Optional.of(testCreator));
+		Mockito.when(roleRepository.findById(2L)).thenReturn(Optional.of(testRecipient));
+		Mockito.when(playerRepository.findByToken("token-outsider")).thenReturn(Optional.of(outsider));
 
 		assertThrows(ResponseStatusException.class,
 				() -> messageService.getMessagesBetween("token-outsider", 1L, 2L));
@@ -228,9 +231,9 @@ public class MessageServiceTest {
 
 	@Test
 	public void getMessagesBetween_unknownTokenUnauthorized() {
-		Mockito.when(roleRepository.existsById(1L)).thenReturn(true);
-		Mockito.when(roleRepository.existsById(2L)).thenReturn(true);
-		Mockito.when(playerRepository.findByToken("nope")).thenReturn(null);
+		Mockito.when(roleRepository.findById(1L)).thenReturn(Optional.of(testCreator));
+		Mockito.when(roleRepository.findById(2L)).thenReturn(Optional.of(testRecipient));
+		Mockito.when(playerRepository.findByToken("nope")).thenReturn(Optional.empty());
 
 		assertThrows(ResponseStatusException.class,
 				() -> messageService.getMessagesBetween("nope", 1L, 2L));
@@ -238,7 +241,7 @@ public class MessageServiceTest {
 
 	@Test
 	public void getMessagesBetween_charactersNotFound_throwsException() {
-		Mockito.when(roleRepository.existsById(1L)).thenReturn(false);
+		Mockito.when(roleRepository.findById(1L)).thenReturn(Optional.empty());
 
 		assertThrows(ResponseStatusException.class,
 				() -> messageService.getMessagesBetween("any-token", 1L, 2L));
@@ -250,9 +253,10 @@ public class MessageServiceTest {
 		messages.add(testMessage);
 
 		Mockito.when(scenarioRepository.existsById(1L)).thenReturn(true);
+		Mockito.when(playerRepository.findByToken("tok")).thenReturn(Optional.of(new Backroomer()));
 		Mockito.when(messageRepository.findByScenarioId(1L)).thenReturn(messages);
 
-		List<MessagePairDTO> result = messageService.getMessagePairsByScenario(1L);
+		List<MessagePairDTO> result = messageService.getMessagePairsByScenario(1L, "tok");
 
 		assertEquals(1, result.size());
 		MessagePairDTO pair = result.get(0);
@@ -264,6 +268,7 @@ public class MessageServiceTest {
 	public void getMessagePairsByScenario_scenarioNotFound_throwsException() {
 		Mockito.when(scenarioRepository.existsById(1L)).thenReturn(false);
 
-		assertThrows(ResponseStatusException.class, () -> messageService.getMessagePairsByScenario(1L));
+		assertThrows(ResponseStatusException.class,
+				() -> messageService.getMessagePairsByScenario(1L, "tok"));
 	}
 }

@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
 
 import java.util.List;
+
 @RestController
 public class DirectiveController {
 
@@ -40,9 +41,9 @@ public class DirectiveController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long directiveId) {
 
-        playerService.validate(token, "any");
+        String callerToken = playerService.validate(token, "any");
 
-        Directive directive = directiveService.getDirectiveById(directiveId);
+        Directive directive = directiveService.getDirectiveById(directiveId, callerToken);
 
         return DirectiveDTOMapper.INSTANCE.convertEntityToGetDTO(directive);
     }
@@ -59,15 +60,26 @@ public class DirectiveController {
         directiveService.updateDirectiveStatus(directiveId, putDTO);
     }
 
+    @DeleteMapping("/directives/{directiveId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteDirective(
+            @RequestHeader("Authorization") String token,
+            @PathVariable Long directiveId) {
+
+        playerService.validate(token, "Backroomer");
+
+        directiveService.deleteDirective(directiveId);
+    }
+
     @GetMapping("/directives/scenario/{scenarioId}")
     @ResponseStatus(HttpStatus.OK)
     public List<DirectiveGetDTO> getDirectivesByScenario(
             @RequestHeader("Authorization") String token,
             @PathVariable Long scenarioId) {
 
-        playerService.validate(token, "any");
+        String callerToken = playerService.validate(token, "any");
 
-        List<Directive> directives = directiveService.getDirectivesByScenario(scenarioId);
+        List<Directive> directives = directiveService.getDirectivesByScenario(scenarioId, callerToken);
 
         return directives.stream()
                 .map(DirectiveDTOMapper.INSTANCE::convertEntityToGetDTO)
@@ -80,13 +92,12 @@ public class DirectiveController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long characterId) {
 
-        playerService.validate(token, "any");
+        String callerToken = playerService.validate(token, "any");
 
-        List<Directive> directives = directiveService.getDirectivesByCreator(characterId);
+        List<Directive> directives = directiveService.getDirectivesByCreator(characterId, callerToken);
 
         return directives.stream()
                 .map(DirectiveDTOMapper.INSTANCE::convertEntityToGetDTO)
                 .toList();
     }
-
 }

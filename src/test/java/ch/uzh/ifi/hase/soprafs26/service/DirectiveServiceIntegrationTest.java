@@ -2,14 +2,17 @@ package ch.uzh.ifi.hase.soprafs26.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.web.server.ResponseStatusException;
 
 import ch.uzh.ifi.hase.soprafs26.constant.CommsStatus;
 import ch.uzh.ifi.hase.soprafs26.constant.ScenarioStatus;
+import ch.uzh.ifi.hase.soprafs26.entity.Backroomer;
 import ch.uzh.ifi.hase.soprafs26.entity.Directive;
 import ch.uzh.ifi.hase.soprafs26.entity.Role;
 import ch.uzh.ifi.hase.soprafs26.entity.Scenario;
@@ -43,6 +46,10 @@ public class DirectiveServiceIntegrationTest {
 	@Autowired
 	private DirectiveService directiveService;
 
+	/** Bypass requester-role lookup so these tests stay focused on persistence + filtering. */
+	@MockitoBean
+	private PlayerService playerService;
+
 	private Scenario testScenario;
 	private Role testRole;
 	private Directive testDirective;
@@ -72,8 +79,15 @@ public class DirectiveServiceIntegrationTest {
 		testScenario.setPlayers(new ArrayList<>());
 		testScenario.setHistory(new ArrayList<>());
 		testScenario.getPlayers().add(testRole);
+		testRole.setScenario(testScenario);
 		testScenario = scenarioRepository.save(testScenario);
 		testRole = (Role) testScenario.getPlayers().get(0);
+
+		// Backroomer requesters see everything — matches the read-path branch
+		// that returns all directives regardless of creator.
+		Mockito.when(playerService.resolveRequesterInScenario(
+				Mockito.anyString(), Mockito.anyLong()))
+				.thenReturn(new Backroomer());
 	}
 
 	@Test
@@ -82,7 +96,6 @@ public class DirectiveServiceIntegrationTest {
 		DirectivePostDTO postDTO = new DirectivePostDTO();
 		postDTO.setTitle("Test Directive");
 		postDTO.setBody("Test directive body");
-		postDTO.setCategory(ch.uzh.ifi.hase.soprafs26.constant.DirectiveCategory.POLITICAL);
 		postDTO.setCreatorId(testRole.getId());
 		postDTO.setScenarioId(testScenario.getId());
 
@@ -94,7 +107,6 @@ public class DirectiveServiceIntegrationTest {
 		assertEquals(CommsStatus.PENDING, createdDirective.getStatus());
 		assertEquals(testRole.getId(), createdDirective.getCreator().getId());
 		assertEquals(testScenario.getId(), createdDirective.getScenario().getId());
-		assertEquals(postDTO.getCategory(), createdDirective.getCategory());
 		assertNotNull(createdDirective.getCreatedAt());
 	}
 
@@ -103,7 +115,6 @@ public class DirectiveServiceIntegrationTest {
 		DirectivePostDTO postDTO = new DirectivePostDTO();
 		postDTO.setTitle("Test Directive");
 		postDTO.setBody("Test directive body");
-		postDTO.setCategory(ch.uzh.ifi.hase.soprafs26.constant.DirectiveCategory.POLITICAL);
 		postDTO.setCreatorId(null);
 		postDTO.setScenarioId(testScenario.getId());
 
@@ -115,7 +126,6 @@ public class DirectiveServiceIntegrationTest {
 		DirectivePostDTO postDTO = new DirectivePostDTO();
 		postDTO.setTitle("Test Directive");
 		postDTO.setBody("Test directive body");
-		postDTO.setCategory(ch.uzh.ifi.hase.soprafs26.constant.DirectiveCategory.POLITICAL);
 		postDTO.setCreatorId(testRole.getId());
 		postDTO.setScenarioId(999L);
 
@@ -127,7 +137,6 @@ public class DirectiveServiceIntegrationTest {
 		DirectivePostDTO postDTO = new DirectivePostDTO();
 		postDTO.setTitle("Test Directive");
 		postDTO.setBody("Test directive body");
-		postDTO.setCategory(ch.uzh.ifi.hase.soprafs26.constant.DirectiveCategory.POLITICAL);
 		postDTO.setCreatorId(999L);
 		postDTO.setScenarioId(testScenario.getId());
 
@@ -152,7 +161,6 @@ public class DirectiveServiceIntegrationTest {
 		DirectivePostDTO postDTO = new DirectivePostDTO();
 		postDTO.setTitle("Test Directive");
 		postDTO.setBody("Test directive body");
-		postDTO.setCategory(ch.uzh.ifi.hase.soprafs26.constant.DirectiveCategory.POLITICAL);
 		postDTO.setCreatorId(otherRole.getId());
 		postDTO.setScenarioId(testScenario.getId());
 
@@ -166,10 +174,10 @@ public class DirectiveServiceIntegrationTest {
 		postDTO.setBody("Test directive body");
 		postDTO.setCreatorId(testRole.getId());
 		postDTO.setScenarioId(testScenario.getId());
-		postDTO.setCategory(ch.uzh.ifi.hase.soprafs26.constant.DirectiveCategory.POLITICAL);
+
 		Directive createdDirective = directiveService.createDirective(postDTO);
 
-		Directive retrievedDirective = directiveService.getDirectiveById(createdDirective.getId());
+		Directive retrievedDirective = directiveService.getDirectiveById(createdDirective.getId(), "tok");
 
 		assertEquals(createdDirective.getId(), retrievedDirective.getId());
 		assertEquals(createdDirective.getTitle(), retrievedDirective.getTitle());
@@ -177,12 +185,11 @@ public class DirectiveServiceIntegrationTest {
 		assertEquals(createdDirective.getStatus(), retrievedDirective.getStatus());
 		assertEquals(createdDirective.getCreator().getId(), retrievedDirective.getCreator().getId());
 		assertEquals(createdDirective.getScenario().getId(), retrievedDirective.getScenario().getId());
-		assertEquals(createdDirective.getCategory(), retrievedDirective.getCategory());
 	}
 
 	@Test
 	public void getDirectiveById_directiveNotFound_throwsException() {
-		assertThrows(ResponseStatusException.class, () -> directiveService.getDirectiveById(999L));
+		assertThrows(ResponseStatusException.class, () -> directiveService.getDirectiveById(999L, "tok"));
 	}
 
 	@Test
@@ -192,7 +199,7 @@ public class DirectiveServiceIntegrationTest {
 		postDTO.setBody("Test directive body");
 		postDTO.setCreatorId(testRole.getId());
 		postDTO.setScenarioId(testScenario.getId());
-		postDTO.setCategory(ch.uzh.ifi.hase.soprafs26.constant.DirectiveCategory.POLITICAL);
+
 		Directive createdDirective = directiveService.createDirective(postDTO);
 
 		DirectivePutDTO putDTO = new DirectivePutDTO();
@@ -211,7 +218,6 @@ public class DirectiveServiceIntegrationTest {
 		DirectivePostDTO postDTO = new DirectivePostDTO();
 		postDTO.setTitle("Test Directive");
 		postDTO.setBody("Test directive body");
-		postDTO.setCategory(ch.uzh.ifi.hase.soprafs26.constant.DirectiveCategory.POLITICAL);
 		postDTO.setCreatorId(testRole.getId());
 		postDTO.setScenarioId(testScenario.getId());
 
@@ -241,10 +247,10 @@ public class DirectiveServiceIntegrationTest {
 		postDTO.setBody("Test directive body");
 		postDTO.setCreatorId(testRole.getId());
 		postDTO.setScenarioId(testScenario.getId());
-		postDTO.setCategory(ch.uzh.ifi.hase.soprafs26.constant.DirectiveCategory.POLITICAL);
+
 		directiveService.createDirective(postDTO);
 
-		List<Directive> directives = directiveService.getDirectivesByScenario(testScenario.getId());
+		List<Directive> directives = directiveService.getDirectivesByScenario(testScenario.getId(), "tok");
 
 		assertEquals(1, directives.size());
 		assertEquals("Test Directive", directives.get(0).getTitle());
@@ -252,7 +258,7 @@ public class DirectiveServiceIntegrationTest {
 
 	@Test
 	public void getDirectivesByScenario_scenarioNotFound_throwsException() {
-		assertThrows(ResponseStatusException.class, () -> directiveService.getDirectivesByScenario(999L));
+		assertThrows(ResponseStatusException.class, () -> directiveService.getDirectivesByScenario(999L, "tok"));
 	}
 
 	@Test
@@ -262,10 +268,10 @@ public class DirectiveServiceIntegrationTest {
 		postDTO.setBody("Test directive body");
 		postDTO.setCreatorId(testRole.getId());
 		postDTO.setScenarioId(testScenario.getId());
-		postDTO.setCategory(ch.uzh.ifi.hase.soprafs26.constant.DirectiveCategory.POLITICAL);
+
 		directiveService.createDirective(postDTO);
 
-		List<Directive> directives = directiveService.getDirectivesByCreator(testRole.getId());
+		List<Directive> directives = directiveService.getDirectivesByCreator(testRole.getId(), "tok");
 
 		assertEquals(1, directives.size());
 		assertEquals("Test Directive", directives.get(0).getTitle());
@@ -273,6 +279,6 @@ public class DirectiveServiceIntegrationTest {
 
 	@Test
 	public void getDirectivesByCreator_characterNotFound_throwsException() {
-		assertThrows(ResponseStatusException.class, () -> directiveService.getDirectivesByCreator(999L));
+		assertThrows(ResponseStatusException.class, () -> directiveService.getDirectivesByCreator(999L, "tok"));
 	}
 }
