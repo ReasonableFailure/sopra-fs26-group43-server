@@ -5,15 +5,6 @@ public class ScenarioPostDTO {
     private String title;
     private int exchangeRate;
     private int startingMessageCount;
-    private Long director;
-
-    public Long getDirector() {
-        return director;
-    }
-
-    public void setDirector(Long director) {
-        this.director = director;
-    }
 
     public String getTitle() {
         return title;

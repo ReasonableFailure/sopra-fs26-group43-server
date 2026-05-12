@@ -28,7 +28,8 @@ public interface ScenarioDTOMapper {
     @Mapping(target = "history", ignore = true)
     @Mapping(target = "mastodonBaseUrl", ignore = true)
     @Mapping(target = "mastodonAccessToken", ignore = true)
-    @Mapping(target = "director.id", source = "director")
+    @Mapping(target = "director", ignore = true)
     @Mapping(target = "mastodonProfileUrl", ignore = true)
+    @Mapping(target = "finishTime", ignore = true)
     Scenario convertScenarioPostDTOtoEntity(ScenarioPostDTO scenarioPostDTO);
 }
