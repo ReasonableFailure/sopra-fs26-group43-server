@@ -25,45 +25,41 @@ import java.util.ArrayList;
 public class MessageService {
 
     private final MessageRepository messageRepository;
-    private final ScenarioRepository scenarioRepository;
-    private final RoleRepository roleRepository;
+    private final ScenarioService scenarioService;
+    private final PlayerService playerService;
+    private final CommunicationStatsService communicationStatsService;
 
     public MessageService(
             @Qualifier("messageRepository") MessageRepository messageRepository,
-            @Qualifier("scenarioRepository") ScenarioRepository scenarioRepository,
-            @Qualifier("roleRepository") RoleRepository roleRepository
+            @Qualifier("scenarioService") ScenarioService scenarioService,
+            @Qualifier("playerService") PlayerService playerService,
+            CommunicationStatsService communicationStatsService
     ) {
         this.messageRepository = messageRepository;
-        this.scenarioRepository = scenarioRepository;
-        this.roleRepository = roleRepository;
+        this.scenarioService = scenarioService;
+        this.playerService = playerService;
+        this.communicationStatsService = communicationStatsService;
     }
 
     public Message createMessage(MessagePostDTO postDTO) {
 
-        Scenario scenario = scenarioRepository.findById(postDTO.getScenarioId())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Scenario not found"));
+        Scenario scenario = scenarioService.getScenarioById(postDTO.getScenarioId());
 
         if (postDTO.getCreatorId() == null || postDTO.getRecipientId() == null) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST, "Sender or recipient missing");
         }
 
-        Role creator = roleRepository.findById(postDTO.getCreatorId())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Creator role not found"));
+        Role creator = playerService.getRole(postDTO.getCreatorId());
 
-        Role recipient = roleRepository.findById(postDTO.getRecipientId())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Recipient role not found"));
+        Role recipient = playerService.getRole(postDTO.getRecipientId());
 
         if (creator.getId().equals(recipient.getId())) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST, "Cannot send message to self");
         }
 
-        creator.useMessageSlot();
-        roleRepository.save(creator);
+        playerService.consumeMessageSlot(creator);
 
         Message message = MessageDTOMapper.INSTANCE.convertPostDTOToEntity(postDTO);
 
@@ -75,8 +71,7 @@ public class MessageService {
 
         message = messageRepository.save(message);
 
-        scenario.getHistory().add(message);
-        scenarioRepository.save(scenario);
+        scenarioService.addCommunicationToHistory(scenario.getId(), message);
 
         return message;
     }
@@ -92,19 +87,14 @@ public class MessageService {
 
     public void updateMessageStatus(Long messageId, MessagePutDTO putDTO) {
 
-        Message message = messageRepository.findById(messageId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Message not found"));
+        Message message = getMessageById(messageId);
 
         if (putDTO.getStatus() == null) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST, "Status must not be null");
         }
 
-        Role creator = message.getCreator();
-        creator.setNumberMessages(creator.getNumberMessages() + 1);
-        creator.setTotalTextLength(creator.getTotalTextLength() + message.totalTextLength());
-        roleRepository.save(creator);
+        communicationStatsService.registerCommunication(message.getCreator(), message);
 
         message.setStatus(putDTO.getStatus());
 
@@ -113,12 +103,8 @@ public class MessageService {
 
     public List<Message> getMessagesBetween(Long characterAId, Long characterBId) {
 
-        if (!roleRepository.existsById(characterAId) ||
-                !roleRepository.existsById(characterBId)) {
-
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND, "One or both characters not found");
-        }
+        playerService.getRole(characterAId);
+        playerService.getRole(characterBId);
 
         if (characterAId.equals(characterBId)) {
             throw new ResponseStatusException(
@@ -130,10 +116,7 @@ public class MessageService {
 
     public List<MessagePairDTO> getMessagePairsByScenario(Long scenarioId) {
 
-        if (!scenarioRepository.existsById(scenarioId)) {
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND, "Scenario not found");
-        }
+        scenarioService.getScenarioById(scenarioId);
 
         List<Message> messages = messageRepository.findByScenarioId(scenarioId);
 

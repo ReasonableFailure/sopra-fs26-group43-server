@@ -22,6 +22,13 @@ public class Directive extends Communication {
     @Column(nullable = false)
     private DirectiveCategory category;
 
+    @Override
+    public void applyStats(Role role) {
+        creator.setNumberDirectives(
+            creator.getNumberDirectives() + 1
+        );
+    }
+
     public CommsStatus getStatus() {
         return status;
     }

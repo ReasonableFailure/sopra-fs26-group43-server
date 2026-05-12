@@ -7,6 +7,7 @@ import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RoleGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RolePostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RolePutDTO;
 import ch.uzh.ifi.hase.soprafs26.service.PlayerService;
+import ch.uzh.ifi.hase.soprafs26.service.ActionPointsService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -17,9 +18,11 @@ import java.util.List;
 @RestController
 public class PlayerController {
     private final PlayerService playerService;
+    private final ActionPointsService actionPointsService;
 
-    public PlayerController(PlayerService playerService) {
+    public PlayerController(PlayerService playerService, ActionPointsService actionPointsService) {
         this.playerService = playerService;
+        this.actionPointsService = actionPointsService;
     }
     @PutMapping("/player/{playerId}")
     public void assignUserToPlayer(@PathVariable Long playerId, @RequestBody PlayerPutDTO playerPutDTO,  @RequestHeader("Authorization") String token) {
@@ -50,7 +53,7 @@ public class PlayerController {
     @ResponseBody
     public RoleGetDTO getRole(@RequestHeader("Authorization") String token, @PathVariable Long characterId) {
         //String[] tokens = splitToken(token);
-        return PlayerDTOMapper.INSTANCE.convertEntitytoRoleGetDTO(playerService.getRole(token,characterId));
+        return PlayerDTOMapper.INSTANCE.convertEntitytoRoleGetDTO(playerService.getRole(characterId));
     }
 
     @PostMapping("/characters")
@@ -128,7 +131,7 @@ public class PlayerController {
         }
         */
         Role updatedRole =
-            playerService.buyMessage(token, scenarioId, characterId);
+            actionPointsService.buyMessage(scenarioId, characterId);
 
         return PlayerDTOMapper.INSTANCE.convertEntitytoRoleGetDTO(updatedRole);
     }

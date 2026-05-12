@@ -33,6 +33,13 @@ public class Pronouncement extends NewsStory {
         return getTitle() + ": " + getBody() + "\n-" + author.getName();
     }
 
+    @Override
+    public void applyStats(Role role) {
+        author.setNumberPronouncements(
+            author.getNumberPronouncements() + 1
+        );
+    }
+
     public int calculateActionPoints() {
         int exchangeRate = this.getScenario().getExchangeRate();
         if (exchangeRate <= 0) {

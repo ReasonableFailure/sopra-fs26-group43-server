@@ -8,6 +8,10 @@ public class NewsStory extends Communication {
     @Column(nullable = true)
     private String mastodonStatusId;
 
+    @Override
+    public void applyStats(Role role) {
+    }
+
     public String getMastodonStatusId() {
         return mastodonStatusId;
     }

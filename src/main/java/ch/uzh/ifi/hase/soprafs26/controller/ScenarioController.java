@@ -1,16 +1,18 @@
 package ch.uzh.ifi.hase.soprafs26.controller;
 
 import ch.uzh.ifi.hase.soprafs26.entity.Role;
+import ch.uzh.ifi.hase.soprafs26.entity.Scenario;
+import ch.uzh.ifi.hase.soprafs26.entity.NewsStory;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.PlayerDTOMapper;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RoleGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioPutDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioMastodonDTO;
-import ch.uzh.ifi.hase.soprafs26.entity.Scenario;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.ScenarioDTOMapper;
 import ch.uzh.ifi.hase.soprafs26.service.ScenarioService;
 import ch.uzh.ifi.hase.soprafs26.service.PlayerService;
+import ch.uzh.ifi.hase.soprafs26.service.NewsService;
 import static ch.uzh.ifi.hase.soprafs26.controller.PlayerController.splitToken;
 
 import org.springframework.http.HttpStatus;
@@ -24,11 +26,13 @@ public class ScenarioController {
 
     private final PlayerService playerService;
     private final ScenarioService scenarioService;
+    private final NewsService newsService;
 
     ScenarioController(ScenarioService scenarioService,
-                    PlayerService playerService) {
+                    PlayerService playerService, NewsService newsService) {
         this.scenarioService = scenarioService;
         this.playerService = playerService;
+        this.newsService = newsService;
     }
 
     @GetMapping("/scenarios")
@@ -54,7 +58,7 @@ public class ScenarioController {
 
     @GetMapping("/scenarios/{scenarioId}")
     public ScenarioGetDTO getScenarioById(@RequestHeader("Authorization") String token, @PathVariable Long scenarioId){
-        Scenario scenario = scenarioService.getScenarioById(token,scenarioId);
+        Scenario scenario = scenarioService.getScenarioById(scenarioId);
         return ScenarioDTOMapper.INSTANCE.convertEntityToScenarioGetDTO(scenario);
     }
 
@@ -65,7 +69,7 @@ public class ScenarioController {
 
     @DeleteMapping("/scenarios/{scenarioId}")
     public void deleteScenario(@RequestHeader("Authorization") String token, @PathVariable Long scenarioId){
-        scenarioService.deleteScenario(token,scenarioId);
+        scenarioService.deleteScenario(scenarioId);
     }
 
     @GetMapping("/characters/scenario/{scenarioId}")
@@ -97,8 +101,13 @@ public class ScenarioController {
             @RequestBody ScenarioMastodonDTO dto) {
 
         //validate(token, "Director");
-
         scenarioService.updateMastodonConfig(scenarioId, dto);
+        Scenario scenario = scenarioService.getScenarioById(scenarioId);
+        List<NewsStory> newsList = newsService.getNewsByScenario(scenarioId);
+
+        for (NewsStory news : newsList) {
+            newsService.postToMastodon(scenario, news);
+        }
     }
 
     private String validate(String header, String type) {

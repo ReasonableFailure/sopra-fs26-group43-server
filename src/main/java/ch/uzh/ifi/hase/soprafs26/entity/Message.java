@@ -18,6 +18,13 @@ public class Message extends Communication {
     @JoinColumn(nullable = false)
     private Role recipient;
 
+    @Override
+    public void applyStats(Role role) {
+        creator.setNumberMessages(
+            creator.getNumberMessages() + 1
+        );
+    }
+
     public CommsStatus getStatus() {
         return status;
     }

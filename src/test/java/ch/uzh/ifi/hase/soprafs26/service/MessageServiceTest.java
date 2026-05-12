@@ -7,14 +7,13 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import ch.uzh.ifi.hase.soprafs26.constant.CommsStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.Message;
 import ch.uzh.ifi.hase.soprafs26.entity.Role;
 import ch.uzh.ifi.hase.soprafs26.entity.Scenario;
 import ch.uzh.ifi.hase.soprafs26.repository.MessageRepository;
-import ch.uzh.ifi.hase.soprafs26.repository.RoleRepository;
-import ch.uzh.ifi.hase.soprafs26.repository.ScenarioRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.messagedto.MessagePostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.messagedto.MessagePutDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.messagedto.MessagePairDTO;
@@ -28,14 +27,13 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class MessageServiceTest {
 
-	@Mock
-	private MessageRepository messageRepository;
+	@Mock private MessageRepository messageRepository;
 
-	@Mock
-	private ScenarioRepository scenarioRepository;
+	@Mock private ScenarioService scenarioService;
 
-	@Mock
-	private RoleRepository roleRepository;
+	@Mock private PlayerService playerService;
+
+	@Mock private CommunicationStatsService communicationStatsService;
 
 	@InjectMocks
 	private MessageService messageService;
@@ -83,19 +81,25 @@ public class MessageServiceTest {
 		testPutDTO.setStatus(CommsStatus.ACCEPTED);
 
 		Mockito.when(messageRepository.save(Mockito.any())).thenReturn(testMessage);
-		Mockito.when(scenarioRepository.save(Mockito.any())).thenReturn(testScenario);
 	}
 
 	@Test
 	public void createMessage_validInputs_success() {
-		Mockito.when(scenarioRepository.findById(1L)).thenReturn(Optional.of(testScenario));
-		Mockito.when(roleRepository.findById(1L)).thenReturn(Optional.of(testCreator));
-		Mockito.when(roleRepository.findById(2L)).thenReturn(Optional.of(testRecipient));
+
+		Mockito.when(scenarioService.getScenarioById(1L))
+			.thenReturn(testScenario);
+
+		Mockito.when(playerService.getRole(1L))
+			.thenReturn(testCreator);
+
+		Mockito.when(playerService.getRole(2L))
+			.thenReturn(testRecipient);
 
 		Message createdMessage = messageService.createMessage(testPostDTO);
 
 		Mockito.verify(messageRepository, Mockito.times(1)).save(Mockito.any());
-		Mockito.verify(scenarioRepository, Mockito.times(1)).save(Mockito.any());
+		Mockito.verify(scenarioService, Mockito.times(1))
+			.addCommunicationToHistory(Mockito.eq(1L), Mockito.any(Message.class));
 
 		assertEquals(testMessage.getId(), createdMessage.getId());
 		assertEquals(testMessage.getTitle(), createdMessage.getTitle());
@@ -115,7 +119,7 @@ public class MessageServiceTest {
 
 	@Test
 	public void createMessage_scenarioNotFound_throwsException() {
-		Mockito.when(scenarioRepository.findById(1L)).thenReturn(Optional.empty());
+		Mockito.when(scenarioService.getScenarioById(1L)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND));
 
 		assertThrows(ResponseStatusException.class, () -> messageService.createMessage(testPostDTO));
 	}
@@ -165,8 +169,8 @@ public class MessageServiceTest {
 		List<Message> messages = new ArrayList<>();
 		messages.add(testMessage);
 
-		Mockito.when(roleRepository.existsById(1L)).thenReturn(true);
-		Mockito.when(roleRepository.existsById(2L)).thenReturn(true);
+		Mockito.when(playerService.getRole(1L)).thenReturn(testCreator);
+		Mockito.when(playerService.getRole(2L)).thenReturn(testRecipient);
 		Mockito.when(messageRepository.findConversation(1L, 2L)).thenReturn(messages);
 
 		List<Message> result = messageService.getMessagesBetween(1L, 2L);
@@ -176,7 +180,7 @@ public class MessageServiceTest {
 
 	@Test
 	public void getMessagesBetween_charactersNotFound_throwsException() {
-		Mockito.when(roleRepository.existsById(1L)).thenReturn(false);
+		Mockito.when(playerService.getRole(1L)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND));
 
 		assertThrows(ResponseStatusException.class, () -> messageService.getMessagesBetween(1L, 2L));
 	}
@@ -186,7 +190,7 @@ public class MessageServiceTest {
 		List<Message> messages = new ArrayList<>();
 		messages.add(testMessage);
 
-		Mockito.when(scenarioRepository.existsById(1L)).thenReturn(true);
+		Mockito.when(scenarioService.getScenarioById(1L)).thenReturn(testScenario);
 		Mockito.when(messageRepository.findByScenarioId(1L)).thenReturn(messages);
 
 		List<MessagePairDTO> result = messageService.getMessagePairsByScenario(1L);
@@ -199,7 +203,7 @@ public class MessageServiceTest {
 
 	@Test
 	public void getMessagePairsByScenario_scenarioNotFound_throwsException() {
-		Mockito.when(scenarioRepository.existsById(1L)).thenReturn(false);
+		Mockito.when(scenarioService.getScenarioById(1L)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND));
 
 		assertThrows(ResponseStatusException.class, () -> messageService.getMessagePairsByScenario(1L));
 	}
