@@ -3,12 +3,11 @@ package ch.uzh.ifi.hase.soprafs26.controller;
 import ch.uzh.ifi.hase.soprafs26.entity.NewsStory;
 import ch.uzh.ifi.hase.soprafs26.entity.Pronouncement;
 import ch.uzh.ifi.hase.soprafs26.rest.newsdto.*;
-import ch.uzh.ifi.hase.soprafs26.service.UserService;
 import ch.uzh.ifi.hase.soprafs26.service.NewsService;
+import ch.uzh.ifi.hase.soprafs26.service.PlayerService;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.NewsDTOMapper;
 
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
 import java.util.List;
@@ -17,12 +16,12 @@ import java.util.List;
 public class NewsController {
 
     private final NewsService newsService;
-    private final UserService userService;
+    private final PlayerService playerService;
 
     NewsController(NewsService newsService,
-                   UserService userService) {
+                   PlayerService playerService) {
         this.newsService = newsService;
-        this.userService = userService;
+        this.playerService = playerService;
     }
 
     @PostMapping("/news")
@@ -31,8 +30,7 @@ public class NewsController {
             @RequestHeader("Authorization") String token,
             @RequestBody NewsPostDTO dto) {
 
-        requireUser(token);
-
+        playerService.validate(token, "any");
         NewsStory entity = newsService.createNews(dto);
 
         NewsGetDTO output =
@@ -52,7 +50,7 @@ public class NewsController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long newsId) {
 
-        requireUser(token);
+        playerService.validate(token, "any");
 
         NewsStory entity = newsService.getNewsById(newsId);
 
@@ -73,7 +71,7 @@ public class NewsController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long scenarioId) {
 
-        requireUser(token);
+        playerService.validate(token, "any");
 
         List<NewsStory> newsList =
                 newsService.getNewsByScenario(scenarioId);
@@ -99,15 +97,28 @@ public class NewsController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long newsId) {
 
-        requireUser(token);
+        playerService.validate(token, "Backroomer");
 
         newsService.deleteNews(newsId);
     }
 
-    private void requireUser(String header) {
-        if (header == null || !header.startsWith("Bearer ")) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-        }
-        userService.validateUserToken(header.substring(7));
+    @PostMapping("/news/like/{newsId}/{roleId}")
+    @ResponseStatus(HttpStatus.OK)
+    public NewsGetDTO likeNews(
+            @RequestHeader("Authorization") String token,
+            @PathVariable Long newsId,
+            @PathVariable Long roleId) {
+
+        playerService.validate(token, "Role");
+
+        Pronouncement updated = newsService.likePronouncement(newsId, roleId);
+
+        NewsGetDTO dto =
+                NewsDTOMapper.INSTANCE.convertEntityToGetDTO(updated);
+
+        dto.setAuthorId(updated.getAuthor().getId());
+        dto.setLikes(updated.getLikes());
+
+        return dto;
     }
 }

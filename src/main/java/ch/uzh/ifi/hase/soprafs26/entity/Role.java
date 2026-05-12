@@ -20,6 +20,7 @@ public class Role extends Player{
     private int totalPoints;
     @Column(unique=false,nullable=true)
     private int pointsBalance;
+    @Lob
     @Column(unique=false,nullable=true)
     private byte[] portrait;
     @Column(unique = false, nullable = true)
@@ -51,6 +52,10 @@ public class Role extends Player{
             throw new IllegalStateException("No message slots available");
         }
         messageCount--;
+    }
+
+    public void gainActionPoints(int amount) {
+        this.pointsBalance += amount;
     }
 
     public String getName() {

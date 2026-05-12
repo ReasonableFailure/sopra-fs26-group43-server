@@ -1,8 +1,6 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
 import ch.uzh.ifi.hase.soprafs26.entity.*;
-import ch.uzh.ifi.hase.soprafs26.repository.PlayerRepository;
-import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.ScenarioDTOMapper;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioPutDTO;
@@ -29,34 +27,32 @@ public class ScenarioService {
 
     private final Logger log = LoggerFactory.getLogger(ScenarioService.class);
     private final PlayerService playerService;
-    private final UserService userService;
     private final ScenarioRepository scenarioRepository;
 
-    public ScenarioService(@Qualifier("scenarioRepository") ScenarioRepository scenarioRepository, @Qualifier("userService") UserService userService, @Qualifier("playerService") PlayerService playerService) {
+    public ScenarioService(@Qualifier("scenarioRepository") ScenarioRepository scenarioRepository,
+                           @Qualifier("playerService") PlayerService playerService) {
         this.scenarioRepository = scenarioRepository;
-        this.userService = userService;
         this.playerService = playerService;
     }
 
-    public List<Scenario> getScenarios(String token) {
-        userService.checkIfValidToken(token);
+    public List<Scenario> getScenarios() {
         return this.scenarioRepository.findAll();
     }
 
-    public Scenario getScenarioById(String token, Long scenarioId) {
-        userService.checkIfValidToken(token);
-        return this.scenarioRepository.findById(scenarioId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario with id " + scenarioId + " not found"));
+    public Scenario getScenarioById(Long scenarioId) {
+        return this.scenarioRepository.findById(scenarioId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Scenario with id " + scenarioId + " not found"));
     }
 
-    public Scenario createScenario(String token, ScenarioPostDTO scenarioPostDTO){
-        //checkIfValidToken(token);
+    public Scenario createScenario(String userToken, ScenarioPostDTO scenarioPostDTO) {
         Scenario newScenario = ScenarioDTOMapper.INSTANCE.convertScenarioPostDTOtoEntity(scenarioPostDTO);
         newScenario.setDayNumber(0);
         newScenario.setStatus(ScenarioStatus.UNSTARTED);
         newScenario.setPlayers(new ArrayList<Player>());
         newScenario.setHistory(new ArrayList<Communication>());
         newScenario = scenarioRepository.save(newScenario);
-        Director director = playerService.createDirector(token, newScenario);
+        Director director = playerService.createDirector(userToken, newScenario);
         newScenario.setDirector(director);
         newScenario.addPlayer(director);
         scenarioRepository.save(newScenario);
@@ -64,92 +60,68 @@ public class ScenarioService {
         return newScenario;
     }
 
-    public void deleteScenario(String token, Long scenarioId){
-        Scenario toDelete = getScenarioById(token, scenarioId);
-        requireDirector(token, toDelete);
+    public void deleteScenario(Long scenarioId) {
+        Scenario toDelete = getScenarioById(scenarioId);
         scenarioRepository.delete(toDelete);
         scenarioRepository.flush();
     }
 
-    private void requireDirector(String userToken, Scenario scenario){
-        User requester = userService.getByToken(userToken);
-        Director director = scenario.getDirector();
-        if (director == null
-                || director.getUser() == null
-                || !director.getUser().getId().equals(requester.getId())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only the director can modify this scenario");
-        }
-    }
+    public void updateScenario(Long scenarioId, ScenarioPutDTO dto) {
+        Scenario s = getScenarioById(scenarioId);
 
-    public void updateScenario(String token, Long scenarioId, ScenarioPutDTO dto){
-        Scenario s = getScenarioById(token, scenarioId);
-        requireDirector(token, s);
-
-        if (dto.getTitle() != null) {
-            s.setTitle(dto.getTitle());
-        }
-        if (dto.getDescription() != null) {
-            s.setDescription(dto.getDescription());
-        }
+        if (dto.getTitle() != null) s.setTitle(dto.getTitle());
+        if (dto.getDescription() != null) s.setDescription(dto.getDescription());
         if (dto.getStatus() != null) {
             if (dto.getStatus() == ScenarioStatus.COMPLETED && s.getStatus() != ScenarioStatus.COMPLETED) {
                 s.setFinishTime(LocalDateTime.now());
             }
             s.setStatus(dto.getStatus());
         }
-        if (dto.getDayNumber() != null) {
-            s.setDayNumber(dto.getDayNumber());
-        }
-        if (dto.getExchangeRate() != null) {
-            s.setExchangeRate(dto.getExchangeRate());
-        }
+        if (dto.getDayNumber() != null) s.setDayNumber(dto.getDayNumber());
+        if (dto.getExchangeRate() != null) s.setExchangeRate(dto.getExchangeRate());
     }
 
-    public void addPlayerToScenario(String token, Long scenarioId, Long playerId){
-        userService.checkIfValidToken(token);
-        Role toAdd = playerService.getRole(token,playerId);
-        Scenario scenario = getScenarioById(token,scenarioId);
+    public void addPlayerToScenario(Long scenarioId, Long playerId) {
+        Role toAdd = playerService.getRoleById(playerId);
+        Scenario scenario = getScenarioById(scenarioId);
         toAdd = playerService.updateMessagingStats(playerId, scenario.getStartingMessageCount());
         scenario.addPlayer(toAdd);
         scenarioRepository.save(scenario);
         scenarioRepository.flush();
     }
 
-    public void addCommunicationToHistory(String token, Long scenarioId, Long communicationId){
-        Scenario toAddTo =  getScenarioById(token,scenarioId);
+    public void addCommunicationToHistory(Long scenarioId, Long communicationId) {
+        Scenario toAddTo = getScenarioById(scenarioId);
         toAddTo.addComm(null);
         //TODO: @HalaiRhea
     }
 
-    public List<Role> getRoles(Long scenarioId, String token) {
-        userService.checkIfValidToken(token);
-        Scenario scenario = getScenarioById(token,scenarioId);
-        List<Role> toReturn = new ArrayList<Role>();
-        for(Player player : scenario.getPlayers()){
-            if(player instanceof Role){
+    public List<Role> getRoles(Long scenarioId) {
+        Scenario scenario = getScenarioById(scenarioId);
+        List<Role> toReturn = new ArrayList<>();
+        for (Player player : scenario.getPlayers()) {
+            if (player instanceof Role) {
                 toReturn.add((Role) player);
             }
         }
         return toReturn;
     }
 
-    public List<Role> getRolesPerCabinet(Long scenarioId, Long cabinetId, String token){
-        userService.checkIfValidToken(token);
-        Scenario scenario = getScenarioById(token,scenarioId);
-        List<Role> toReturn = new ArrayList<Role>();
-        for(Player player : scenario.getPlayers()){
-            if(player instanceof Role && (((Role) player).getAssignedCabinet() == cabinetId)){
+    public List<Role> getRolesPerCabinet(Long scenarioId, Long cabinetId) {
+        Scenario scenario = getScenarioById(scenarioId);
+        List<Role> toReturn = new ArrayList<>();
+        for (Player player : scenario.getPlayers()) {
+            if (player instanceof Role && (((Role) player).getAssignedCabinet() == cabinetId)) {
                 toReturn.add((Role) player);
             }
         }
         return toReturn;
     }
 
-    public void updateMastodonConfig(String userToken, Long scenarioId, ScenarioMastodonDTO dto) {
+    public void updateMastodonConfig(Long scenarioId, ScenarioMastodonDTO dto) {
         Scenario scenario = scenarioRepository.findById(scenarioId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Scenario not found"));
-        requireDirector(userToken, scenario);
 
         scenario.setMastodonBaseUrl(dto.getMastodonBaseUrl());
         scenario.setMastodonAccessToken(dto.getMastodonAccessToken());
@@ -158,7 +130,6 @@ public class ScenarioService {
                 dto.getMastodonBaseUrl(),
                 dto.getMastodonAccessToken()
         );
-
         scenario.setMastodonProfileUrl(profileUrl);
 
         scenarioRepository.save(scenario);

@@ -14,6 +14,7 @@ import ch.uzh.ifi.hase.soprafs26.entity.Message;
 import ch.uzh.ifi.hase.soprafs26.entity.Role;
 import ch.uzh.ifi.hase.soprafs26.entity.Scenario;
 import ch.uzh.ifi.hase.soprafs26.repository.MessageRepository;
+import ch.uzh.ifi.hase.soprafs26.repository.PlayerRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.RoleRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.ScenarioRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.messagedto.MessagePostDTO;
@@ -39,7 +40,7 @@ public class MessageServiceTest {
 	private RoleRepository roleRepository;
 
 	@Mock
-	private PlayerService playerService;
+	private PlayerRepository playerRepository;
 
 	@InjectMocks
 	private MessageService messageService;
@@ -167,19 +168,75 @@ public class MessageServiceTest {
 	}
 
 	@Test
-	public void getMessagesBetween_validIds_success() {
+	public void getMessagesBetween_validIds_callerIsSender_returnsAllOwnMessages() {
+		// Caller (Role 1) is the creator, so even a PENDING message must come back.
+		testMessage.setStatus(CommsStatus.PENDING);
 		List<Message> messages = new ArrayList<>();
 		messages.add(testMessage);
 
 		Mockito.when(roleRepository.findById(1L)).thenReturn(Optional.of(testCreator));
 		Mockito.when(roleRepository.findById(2L)).thenReturn(Optional.of(testRecipient));
-		Mockito.when(playerService.resolveRequesterInScenario(Mockito.anyString(), Mockito.eq(1L)))
-				.thenReturn(new Backroomer());
+		Mockito.when(playerRepository.findByToken("token-creator")).thenReturn(Optional.of(testCreator));
 		Mockito.when(messageRepository.findConversation(1L, 2L)).thenReturn(messages);
 
-		List<Message> result = messageService.getMessagesBetween(1L, 2L, "tok");
+		List<Message> result = messageService.getMessagesBetween("token-creator", 1L, 2L);
 
-		assertEquals(messages, result);
+		assertEquals(1, result.size());
+		assertEquals(testMessage, result.get(0));
+	}
+
+	@Test
+	public void getMessagesBetween_recipientCannotSeePendingFromOthers() {
+		// Caller (Role 2) is the recipient. PENDING messages addressed to them
+		// must be filtered out; ACCEPTED messages must be returned.
+		Message pending = new Message();
+		pending.setId(10L);
+		pending.setCreator(testCreator);
+		pending.setRecipient(testRecipient);
+		pending.setStatus(CommsStatus.PENDING);
+
+		Message accepted = new Message();
+		accepted.setId(11L);
+		accepted.setCreator(testCreator);
+		accepted.setRecipient(testRecipient);
+		accepted.setStatus(CommsStatus.ACCEPTED);
+
+		List<Message> messages = new ArrayList<>();
+		messages.add(pending);
+		messages.add(accepted);
+
+		Mockito.when(roleRepository.findById(1L)).thenReturn(Optional.of(testCreator));
+		Mockito.when(roleRepository.findById(2L)).thenReturn(Optional.of(testRecipient));
+		Mockito.when(playerRepository.findByToken("token-recipient")).thenReturn(Optional.of(testRecipient));
+		Mockito.when(messageRepository.findConversation(1L, 2L)).thenReturn(messages);
+
+		List<Message> result = messageService.getMessagesBetween("token-recipient", 1L, 2L);
+
+		assertEquals(1, result.size());
+		assertEquals(accepted.getId(), result.get(0).getId());
+	}
+
+	@Test
+	public void getMessagesBetween_thirdPartyForbidden() {
+		Role outsider = new Role();
+		outsider.setId(99L);
+
+		Mockito.when(roleRepository.findById(1L)).thenReturn(Optional.of(testCreator));
+		Mockito.when(roleRepository.findById(2L)).thenReturn(Optional.of(testRecipient));
+		Mockito.when(playerRepository.findByToken("token-outsider")).thenReturn(Optional.of(outsider));
+
+		assertThrows(ResponseStatusException.class,
+				() -> messageService.getMessagesBetween("token-outsider", 1L, 2L));
+	}
+
+	@Test
+	public void getMessagesBetween_unknownTokenUnauthorized() {
+		Mockito.when(roleRepository.findById(1L)).thenReturn(Optional.of(testCreator));
+		Mockito.when(roleRepository.findById(2L)).thenReturn(Optional.of(testRecipient));
+		Mockito.when(playerRepository.findByToken("nope")).thenReturn(Optional.empty());
+
+		assertThrows(ResponseStatusException.class,
+				() -> messageService.getMessagesBetween("nope", 1L, 2L));
 	}
 
 	@Test
@@ -187,7 +244,7 @@ public class MessageServiceTest {
 		Mockito.when(roleRepository.findById(1L)).thenReturn(Optional.empty());
 
 		assertThrows(ResponseStatusException.class,
-				() -> messageService.getMessagesBetween(1L, 2L, "tok"));
+				() -> messageService.getMessagesBetween("any-token", 1L, 2L));
 	}
 
 	@Test
@@ -196,8 +253,7 @@ public class MessageServiceTest {
 		messages.add(testMessage);
 
 		Mockito.when(scenarioRepository.existsById(1L)).thenReturn(true);
-		Mockito.when(playerService.resolveRequesterInScenario(Mockito.anyString(), Mockito.eq(1L)))
-				.thenReturn(new Backroomer());
+		Mockito.when(playerRepository.findByToken("tok")).thenReturn(Optional.of(new Backroomer()));
 		Mockito.when(messageRepository.findByScenarioId(1L)).thenReturn(messages);
 
 		List<MessagePairDTO> result = messageService.getMessagePairsByScenario(1L, "tok");

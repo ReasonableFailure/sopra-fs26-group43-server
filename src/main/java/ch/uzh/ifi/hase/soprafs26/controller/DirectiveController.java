@@ -3,23 +3,23 @@ package ch.uzh.ifi.hase.soprafs26.controller;
 import ch.uzh.ifi.hase.soprafs26.entity.Directive;
 import ch.uzh.ifi.hase.soprafs26.rest.directivedto.*;
 import ch.uzh.ifi.hase.soprafs26.service.DirectiveService;
-import ch.uzh.ifi.hase.soprafs26.service.UserService;
+import ch.uzh.ifi.hase.soprafs26.service.PlayerService;
 import ch.uzh.ifi.hase.soprafs26.mapper.DirectiveDTOMapper;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
 import java.util.List;
+
 @RestController
 public class DirectiveController {
 
     private final DirectiveService directiveService;
-    private final UserService userService;
+    private final PlayerService playerService;
 
     DirectiveController(DirectiveService directiveService,
-                        UserService userService) {
+                        PlayerService playerService) {
         this.directiveService = directiveService;
-        this.userService = userService;
+        this.playerService = playerService;
     }
 
     @PostMapping("/directives")
@@ -28,7 +28,7 @@ public class DirectiveController {
             @RequestHeader("Authorization") String token,
             @RequestBody DirectivePostDTO postDTO) {
 
-        requireUser(token);
+        playerService.validate(token, "Role");
 
         Directive directive = directiveService.createDirective(postDTO);
 
@@ -41,9 +41,9 @@ public class DirectiveController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long directiveId) {
 
-        String userToken = requireUser(token);
+        String callerToken = playerService.validate(token, "any");
 
-        Directive directive = directiveService.getDirectiveById(directiveId, userToken);
+        Directive directive = directiveService.getDirectiveById(directiveId, callerToken);
 
         return DirectiveDTOMapper.INSTANCE.convertEntityToGetDTO(directive);
     }
@@ -55,7 +55,7 @@ public class DirectiveController {
             @PathVariable Long directiveId,
             @RequestBody DirectivePutDTO putDTO) {
 
-        requireUser(token);
+        playerService.validate(token, "Backroomer");
 
         directiveService.updateDirectiveStatus(directiveId, putDTO);
     }
@@ -66,7 +66,7 @@ public class DirectiveController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long directiveId) {
 
-        requireUser(token);
+        playerService.validate(token, "Backroomer");
 
         directiveService.deleteDirective(directiveId);
     }
@@ -77,9 +77,9 @@ public class DirectiveController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long scenarioId) {
 
-        String userToken = requireUser(token);
+        String callerToken = playerService.validate(token, "any");
 
-        List<Directive> directives = directiveService.getDirectivesByScenario(scenarioId, userToken);
+        List<Directive> directives = directiveService.getDirectivesByScenario(scenarioId, callerToken);
 
         return directives.stream()
                 .map(DirectiveDTOMapper.INSTANCE::convertEntityToGetDTO)
@@ -92,21 +92,12 @@ public class DirectiveController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long characterId) {
 
-        String userToken = requireUser(token);
+        String callerToken = playerService.validate(token, "any");
 
-        List<Directive> directives = directiveService.getDirectivesByCreator(characterId, userToken);
+        List<Directive> directives = directiveService.getDirectivesByCreator(characterId, callerToken);
 
         return directives.stream()
                 .map(DirectiveDTOMapper.INSTANCE::convertEntityToGetDTO)
                 .toList();
-    }
-
-    private String requireUser(String header) {
-        if (header == null || !header.startsWith("Bearer ")) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-        }
-        String token = header.substring(7);
-        userService.validateUserToken(token);
-        return token;
     }
 }

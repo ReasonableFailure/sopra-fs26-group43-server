@@ -3,11 +3,10 @@ package ch.uzh.ifi.hase.soprafs26.controller;
 import ch.uzh.ifi.hase.soprafs26.entity.Message;
 import ch.uzh.ifi.hase.soprafs26.rest.messagedto.*;
 import ch.uzh.ifi.hase.soprafs26.service.MessageService;
-import ch.uzh.ifi.hase.soprafs26.service.UserService;
+import ch.uzh.ifi.hase.soprafs26.service.PlayerService;
 import ch.uzh.ifi.hase.soprafs26.mapper.MessageDTOMapper;
 
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
 import java.util.List;
@@ -16,12 +15,12 @@ import java.util.List;
 public class MessageController {
 
     private final MessageService messageService;
-    private final UserService userService;
+    private final PlayerService playerService;
 
     MessageController(MessageService messageService,
-                      UserService userService) {
+                      PlayerService playerService) {
         this.messageService = messageService;
-        this.userService = userService;
+        this.playerService = playerService;
     }
 
     @PostMapping("/messages")
@@ -30,7 +29,7 @@ public class MessageController {
             @RequestHeader("Authorization") String token,
             @RequestBody MessagePostDTO postDTO) {
 
-        requireUser(token);
+        playerService.validate(token, "Role");
 
         Message message = messageService.createMessage(postDTO);
 
@@ -43,7 +42,7 @@ public class MessageController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long messageId) {
 
-        requireUser(token);
+        playerService.validate(token, "any");
 
         Message message = messageService.getMessageById(messageId);
 
@@ -57,7 +56,7 @@ public class MessageController {
             @PathVariable Long messageId,
             @RequestBody MessagePutDTO putDTO) {
 
-        requireUser(token);
+        playerService.validate(token, "Backroomer");
 
         messageService.updateMessageStatus(messageId, putDTO);
     }
@@ -68,7 +67,7 @@ public class MessageController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long messageId) {
 
-        requireUser(token);
+        playerService.validate(token, "Backroomer");
 
         messageService.deleteMessage(messageId);
     }
@@ -79,9 +78,9 @@ public class MessageController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long scenarioId) {
 
-        String userToken = requireUser(token);
+        String callerToken = playerService.validate(token, "any");
 
-        return messageService.getMessagePairsByScenario(scenarioId, userToken);
+        return messageService.getMessagePairsByScenario(scenarioId, callerToken);
     }
 
     @GetMapping("/messages/between/{characterAId}/{characterBId}")
@@ -91,22 +90,13 @@ public class MessageController {
             @PathVariable Long characterAId,
             @PathVariable Long characterBId) {
 
-        String userToken = requireUser(token);
+        String callerToken = playerService.validate(token, "any");
 
         List<Message> messages =
-                messageService.getMessagesBetween(characterAId, characterBId, userToken);
+                messageService.getMessagesBetween(callerToken, characterAId, characterBId);
 
         return messages.stream()
                 .map(MessageDTOMapper.INSTANCE::convertEntityToGetDTO)
                 .toList();
-    }
-
-    private String requireUser(String header) {
-        if (header == null || !header.startsWith("Bearer ")) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-        }
-        String token = header.substring(7);
-        userService.validateUserToken(token);
-        return token;
     }
 }

@@ -239,7 +239,7 @@ public class MessageControllerTest {
 
     @Test
     public void getMessagesBetween_validIds_messagesReturned() throws Exception {
-        given(messageService.getMessagesBetween(Mockito.eq(1L), Mockito.eq(2L), anyString()))
+        given(messageService.getMessagesBetween(anyString(), Mockito.eq(1L), Mockito.eq(2L)))
                 .willReturn(List.of(testMessage));
 
         MockHttpServletRequestBuilder getRequest = get("/messages/between/1/2")
@@ -252,12 +252,12 @@ public class MessageControllerTest {
                 .andExpect(jsonPath("$[0].creatorId", is(1)))
                 .andExpect(jsonPath("$[0].recipientId", is(2)));
 
-        verify(messageService, times(1)).getMessagesBetween(Mockito.eq(1L), Mockito.eq(2L), anyString());
+        verify(messageService, times(1)).getMessagesBetween(anyString(), Mockito.eq(1L), Mockito.eq(2L));
     }
 
     @Test
     public void getMessagesBetween_charactersNotFound_throwsException() throws Exception {
-        given(messageService.getMessagesBetween(Mockito.eq(999L), Mockito.eq(2L), anyString()))
+        given(messageService.getMessagesBetween(anyString(), Mockito.eq(999L), Mockito.eq(2L)))
                 .willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "One or both characters not found"));
 
         MockHttpServletRequestBuilder getRequest = get("/messages/between/999/2")
@@ -266,7 +266,7 @@ public class MessageControllerTest {
         mockMvc.perform(getRequest)
                 .andExpect(status().isNotFound());
 
-        verify(messageService, times(1)).getMessagesBetween(Mockito.eq(999L), Mockito.eq(2L), anyString());
+        verify(messageService, times(1)).getMessagesBetween(anyString(), Mockito.eq(999L), Mockito.eq(2L));
     }
 
     @Test

@@ -17,8 +17,11 @@ import ch.uzh.ifi.hase.soprafs26.entity.Message;
 import ch.uzh.ifi.hase.soprafs26.entity.Role;
 import ch.uzh.ifi.hase.soprafs26.entity.Scenario;
 import ch.uzh.ifi.hase.soprafs26.repository.MessageRepository;
+import ch.uzh.ifi.hase.soprafs26.repository.PlayerRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.RoleRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.ScenarioRepository;
+
+import java.util.Optional;
 import ch.uzh.ifi.hase.soprafs26.rest.messagedto.MessagePostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.messagedto.MessagePutDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.messagedto.MessagePairDTO;
@@ -49,7 +52,7 @@ public class MessageServiceIntegrationTest {
 
 	/** Bypass requester-role lookup so these tests stay focused on persistence + filtering. */
 	@MockitoBean
-	private PlayerService playerService;
+	private PlayerRepository playerRepository;
 
 	private Scenario testScenario;
 	private Role testCreator;
@@ -105,9 +108,8 @@ public class MessageServiceIntegrationTest {
 
 		// Backroomer requesters see everything — matches the read-path branch
 		// that returns all messages regardless of status.
-		Mockito.when(playerService.resolveRequesterInScenario(
-				Mockito.anyString(), Mockito.anyLong()))
-				.thenReturn(new Backroomer());
+		Mockito.when(playerRepository.findByToken(Mockito.anyString()))
+				.thenReturn(Optional.of(new Backroomer()));
 	}
 
 	@Test
@@ -245,7 +247,9 @@ public class MessageServiceIntegrationTest {
 
 		messageService.createMessage(postDTO);
 
-		List<Message> result = messageService.getMessagesBetween(testCreator.getId(), testRecipient.getId(), "tok");
+		// Caller is the creator, so they can see their own PENDING message.
+		List<Message> result = messageService.getMessagesBetween(
+				testCreator.getToken(), testCreator.getId(), testRecipient.getId());
 
 		assertEquals(1, result.size());
 		assertEquals(testCreator.getId(), result.get(0).getCreator().getId());
@@ -255,7 +259,8 @@ public class MessageServiceIntegrationTest {
 	@Test
 	public void getMessagesBetween_charactersNotFound_throwsException() {
 		assertThrows(ResponseStatusException.class,
-				() -> messageService.getMessagesBetween(999L, testRecipient.getId(), "tok"));
+				() -> messageService.getMessagesBetween(
+						testCreator.getToken(), 999L, testRecipient.getId()));
 	}
 
 	@Test

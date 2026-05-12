@@ -8,8 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository("playerRepository")
-public interface PlayerRepository extends JpaRepository<Player, Long>{
-    Player findByToken(String token);
+public interface PlayerRepository extends JpaRepository<Player, Long> {
     List<Player> findByUser_Id(Long userId);
     Optional<Player> findFirstByUser_IdAndScenario_Id(Long userId, Long scenarioId);
+    Optional<Player> findByToken(String token);
 }

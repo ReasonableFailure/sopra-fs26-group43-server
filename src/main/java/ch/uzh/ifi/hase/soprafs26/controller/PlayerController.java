@@ -1,18 +1,13 @@
 package ch.uzh.ifi.hase.soprafs26.controller;
 
+import ch.uzh.ifi.hase.soprafs26.entity.Director;
 import ch.uzh.ifi.hase.soprafs26.entity.Role;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.PlayerDTOMapper;
-import ch.uzh.ifi.hase.soprafs26.rest.playerdto.PlayerGetDTO;
-import ch.uzh.ifi.hase.soprafs26.rest.playerdto.PlayerPutDTO;
-import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RoleGetDTO;
-import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RolePostDTO;
-import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RolePutDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.playerdto.*;
 import ch.uzh.ifi.hase.soprafs26.service.PlayerService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -22,52 +17,68 @@ public class PlayerController {
     public PlayerController(PlayerService playerService) {
         this.playerService = playerService;
     }
+
     @PutMapping("/player/{playerId}")
-    public void assignUserToPlayer(@PathVariable Long playerId, @RequestBody PlayerPutDTO playerPutDTO,  @RequestHeader("Authorization") String token) {
-        playerService.updatePlayerAssociation(playerId, playerPutDTO, stripBearer(token));
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void assignUserToPlayer(@PathVariable Long playerId,
+                                   @RequestBody PlayerPutDTO playerPutDTO,
+                                   @RequestHeader("Authorization") String token) {
+        playerService.validate(token, "Director");
+        playerService.updatePlayerAssociation(playerId, playerPutDTO);
     }
 
     @PutMapping("/characters/{characterId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @ResponseBody
-
-    public void updateRole(@RequestBody RolePutDTO rolePutDTO, @RequestHeader("Authorization") String token, @PathVariable Long characterId) {
-        String[] tokens = splitToken(token);
-        if(tokens[0].equals("Director")){
-            playerService.updateRole(tokens[1], rolePutDTO,characterId);
-        } else {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-        }
+    public void updateRole(@RequestBody RolePutDTO rolePutDTO,
+                           @RequestHeader("Authorization") String token,
+                           @PathVariable Long characterId) {
+        playerService.validate(token, "Director");
+        playerService.updateRole(rolePutDTO, characterId);
     }
 
     @GetMapping("/characters/{characterId}/detail")
-    @ResponseStatus
+    @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public RoleGetDTO getRole(@RequestHeader("Authorization") String token, @PathVariable Long characterId) {
-        String[] tokens = splitToken(token);
-        return PlayerDTOMapper.INSTANCE.convertEntitytoRoleGetDTO(playerService.getRole(tokens[1],characterId));
+    public RoleGetDTO getRole(@RequestHeader("Authorization") String token,
+                              @PathVariable Long characterId) {
+        playerService.validate(token, "any");
+        return PlayerDTOMapper.INSTANCE.convertEntitytoRoleGetDTO(playerService.getRoleById(characterId));
     }
 
     @PostMapping("/characters")
-    public RoleGetDTO createRole(@RequestBody RolePostDTO rolePostDTO, @RequestHeader("Authorization") String authToken){
-        String[] tokens = splitToken(authToken);
-        if(tokens[0].equals("Director")){
-            return PlayerDTOMapper.INSTANCE.convertEntitytoRoleGetDTO(playerService.createRole(tokens[1], rolePostDTO));
-        } else {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-        }
+    @ResponseStatus(HttpStatus.OK)
+    public RoleGetDTO createRole(@RequestBody RolePostDTO rolePostDTO,
+                                 @RequestHeader("Authorization") String token) {
+        playerService.validate(token, "Director");
+        return PlayerDTOMapper.INSTANCE.convertEntitytoRoleGetDTO(playerService.createRole(rolePostDTO));
     }
 
     @DeleteMapping("/characters/{characterId}")
-    public void deleteRole(@RequestHeader("Authorization")String token, @PathVariable Long characterId){
-        String[] tokens = splitToken(token);
-        if (tokens[0].equals("Director")){
-            playerService.deleteRole(token,characterId);
-        } else throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+    public void deleteRole(@RequestHeader("Authorization") String token,
+                           @PathVariable Long characterId) {
+        playerService.validate(token, "Director");
+        playerService.deleteRole(characterId);
     }
 
+    @PostMapping("/backroomers")
+    @ResponseStatus(HttpStatus.OK)
+    public PlayerGetDTO createBackroomer(@RequestHeader("Authorization") String token,
+                                         @RequestBody PlayerPutDTO playerPutDTO) {
+        playerService.validate(token, "Director");
+        return PlayerDTOMapper.INSTANCE.convertEntitytoPlayerGetDTO(playerService.createBackroomer(playerPutDTO));
+    }
 
-  
+    @PostMapping("/directors")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public PlayerGetDTO createScenarioDirector(@RequestHeader("Authorization") String token,
+                                               @RequestBody PlayerPutDTO playerPutDTO) {
+        playerService.validate(token, "Bearer");
+        Director d = playerService.createDirector(playerPutDTO.getNewAssignedUserId());
+        return PlayerDTOMapper.INSTANCE.convertEntitytoPlayerGetDTO(d);
+    }
+
     @GetMapping("/characters/{scenarioId}/{characterId}/interlocutors")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
@@ -75,20 +86,22 @@ public class PlayerController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long scenarioId,
             @PathVariable Long characterId) {
+        playerService.validate(token, "any");
         List<Role> roles =
-                playerService.getInterlocutors(token, scenarioId, characterId);
+                playerService.getInterlocutors(scenarioId, characterId);
         return roles.stream()
                 .map(PlayerDTOMapper.INSTANCE::convertEntitytoRoleGetDTO)
                 .toList();
     }
-  
+
     @PostMapping("/scenarios/{scenarioId}/claim-character/{characterId}")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public RoleGetDTO claimCharacter(@PathVariable Long scenarioId,
-                                      @PathVariable Long characterId,
-                                      @RequestHeader("Authorization") String token) {
-        Role claimed = playerService.claimCharacter(stripBearer(token), scenarioId, characterId);
+                                     @PathVariable Long characterId,
+                                     @RequestHeader("Authorization") String token) {
+        String userToken = playerService.validate(token, "Bearer");
+        Role claimed = playerService.claimCharacter(userToken, scenarioId, characterId);
         return PlayerDTOMapper.INSTANCE.convertEntitytoRoleGetDTO(claimed);
     }
 
@@ -96,27 +109,10 @@ public class PlayerController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public PlayerGetDTO becomeBackroomer(@PathVariable Long scenarioId,
-                                          @RequestHeader("Authorization") String token) {
+                                         @RequestHeader("Authorization") String token) {
+        String userToken = playerService.validate(token, "Bearer");
         return PlayerDTOMapper.INSTANCE.convertEntitytoPlayerGetDTO(
-            playerService.becomeBackroomer(stripBearer(token), scenarioId));
-    }
-
-    private static String stripBearer(String token) {
-        if (token != null && token.startsWith("Bearer ")) {
-            return token.substring(7);
-        }
-        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Missing Bearer prefix");
-    }
-
-     public static String[] splitToken(String token){
-        if(token == null || token.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token is empty");
-        }
-        String[] thingy = token.split(" ");
-        if(thingy[0].equals("Role") || thingy[0].equals("Backroomer") || thingy[0].equals("Director")){
-            return thingy;
-        }
-        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token is invalid");
+                playerService.becomeBackroomer(userToken, scenarioId));
     }
 
     @GetMapping("/characters/{scenarioId}/{characterId}/points")
@@ -127,26 +123,20 @@ public class PlayerController {
             @PathVariable Long scenarioId,
             @PathVariable Long characterId
     ) {
-        //String[] tokens = splitToken(token);
-
+        playerService.validate(token, "Role");
         return PlayerDTOMapper.INSTANCE.convertEntitytoRoleGetDTO(
-                playerService.syncPointsAndGetRole(token, scenarioId, characterId)
+                playerService.syncPointsAndGetRole(scenarioId, characterId)
         );
     }
 
     @PostMapping("/characters/{scenarioId}/{characterId}/buy-message")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public RoleGetDTO buyMessage(
-            @RequestHeader("Authorization") String token,
-            @PathVariable Long scenarioId,
-            @PathVariable Long characterId) {
-
-        String userToken = stripBearer(token);
-        Role updatedRole =
-            playerService.buyMessage(userToken, scenarioId, characterId);
-
+    public RoleGetDTO buyMessage(@RequestHeader("Authorization") String token,
+                                 @PathVariable Long scenarioId,
+                                 @PathVariable Long characterId) {
+        playerService.validate(token, "Role");
+        Role updatedRole = playerService.buyMessage(scenarioId, characterId);
         return PlayerDTOMapper.INSTANCE.convertEntitytoRoleGetDTO(updatedRole);
     }
-
 }

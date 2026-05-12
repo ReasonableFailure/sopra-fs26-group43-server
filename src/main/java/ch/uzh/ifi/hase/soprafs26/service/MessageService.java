@@ -9,7 +9,6 @@ import ch.uzh.ifi.hase.soprafs26.rest.messagedto.MessagePairDTO;
 import ch.uzh.ifi.hase.soprafs26.mapper.MessageDTOMapper;
 
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -28,18 +27,18 @@ public class MessageService {
     private final MessageRepository messageRepository;
     private final ScenarioRepository scenarioRepository;
     private final RoleRepository roleRepository;
-    private final PlayerService playerService;
+    private final PlayerRepository playerRepository;
 
     public MessageService(
             @Qualifier("messageRepository") MessageRepository messageRepository,
             @Qualifier("scenarioRepository") ScenarioRepository scenarioRepository,
             @Qualifier("roleRepository") RoleRepository roleRepository,
-            @Lazy PlayerService playerService
+            @Qualifier("playerRepository") PlayerRepository playerRepository
     ) {
         this.messageRepository = messageRepository;
         this.scenarioRepository = scenarioRepository;
         this.roleRepository = roleRepository;
-        this.playerService = playerService;
+        this.playerRepository = playerRepository;
     }
 
     public Message createMessage(MessagePostDTO postDTO) {
@@ -86,12 +85,9 @@ public class MessageService {
     }
 
     public Message getMessageById(Long messageId) {
-
-        Message message = messageRepository.findById(messageId)
+        return messageRepository.findById(messageId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Message not found"));
-
-        return message;
     }
 
     public void updateMessageStatus(Long messageId, MessagePutDTO putDTO) {
@@ -115,7 +111,7 @@ public class MessageService {
         messageRepository.save(message);
     }
 
-    public List<Message> getMessagesBetween(Long characterAId, Long characterBId, String userToken) {
+    public List<Message> getMessagesBetween(String callerToken, Long characterAId, Long characterBId) {
 
         Role charA = roleRepository.findById(characterAId)
                 .orElseThrow(() -> new ResponseStatusException(
@@ -137,21 +133,29 @@ public class MessageService {
                     HttpStatus.BAD_REQUEST, "Characters are not in the same scenario");
         }
 
-        Player requester = playerService.resolveRequesterInScenario(userToken, scenarioId);
-        List<Message> messages = messageRepository.findConversation(characterAId, characterBId);
+        Player caller = playerRepository.findByToken(callerToken)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.UNAUTHORIZED, "Unknown caller token"));
 
-        // Backroomer / Director see every status (queue for approval).
-        // A Role (character) sees ACCEPTED traffic + their own outgoing
-        // messages (so they keep track of PENDING / REJECTED of their own).
-        if (requester instanceof Role) {
-            final Long requesterRoleId = requester.getId();
-            return messages.stream()
-                    .filter(m -> m.getStatus() == CommsStatus.ACCEPTED
-                              || (m.getCreator() != null
-                                  && requesterRoleId.equals(m.getCreator().getId())))
-                    .toList();
+        List<Message> raw = messageRepository.findConversation(characterAId, characterBId);
+
+        // Backroomer (and Director, which extends Backroomer) need full visibility for moderation.
+        if (caller instanceof Backroomer) {
+            return raw;
         }
-        return messages;
+
+        // Roles only see conversations they participate in, with ACCEPTED messages from the
+        // other side and their own outgoing (any status).
+        Long callerId = caller.getId();
+        if (!callerId.equals(characterAId) && !callerId.equals(characterBId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN, "Only conversation participants may view this thread");
+        }
+
+        return raw.stream()
+                .filter(m -> m.getCreator().getId().equals(callerId)
+                          || m.getStatus() == CommsStatus.ACCEPTED)
+                .toList();
     }
 
     public void deleteMessage(Long messageId) {
@@ -161,24 +165,27 @@ public class MessageService {
         messageRepository.deleteById(messageId);
     }
 
-    public List<MessagePairDTO> getMessagePairsByScenario(Long scenarioId, String userToken) {
+    public List<MessagePairDTO> getMessagePairsByScenario(Long scenarioId, String callerToken) {
 
         if (!scenarioRepository.existsById(scenarioId)) {
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND, "Scenario not found");
         }
 
-        Player requester = playerService.resolveRequesterInScenario(userToken, scenarioId);
+        Player caller = playerRepository.findByToken(callerToken)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.UNAUTHORIZED, "Unknown caller token"));
+
         List<Message> messages = messageRepository.findByScenarioId(scenarioId);
 
-        if (requester instanceof Role) {
-            final Long requesterRoleId = requester.getId();
+        if (caller instanceof Role) {
+            final Long callerRoleId = caller.getId();
             messages = messages.stream()
                     .filter(m -> m.getStatus() == CommsStatus.ACCEPTED
                               || (m.getCreator() != null
-                                  && requesterRoleId.equals(m.getCreator().getId()))
+                                  && callerRoleId.equals(m.getCreator().getId()))
                               || (m.getRecipient() != null
-                                  && requesterRoleId.equals(m.getRecipient().getId())))
+                                  && callerRoleId.equals(m.getRecipient().getId())))
                     .toList();
         }
 
@@ -186,26 +193,19 @@ public class MessageService {
         List<MessagePairDTO> result = new ArrayList<>();
 
         for (Message msg : messages) {
-
             Long a = msg.getCreator().getId();
             Long b = msg.getRecipient().getId();
-
             Long min = Math.min(a, b);
             Long max = Math.max(a, b);
-
             String key = min + "-" + max;
-
             if (!seenPairs.contains(key)) {
                 seenPairs.add(key);
-
                 MessagePairDTO dto = new MessagePairDTO();
                 dto.setRoleAId(min);
                 dto.setRoleBId(max);
-
                 result.add(dto);
             }
         }
-
         return result;
     }
 }
