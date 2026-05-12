@@ -68,6 +68,14 @@ public class UserService {
         return newUser;
     }
 
+    public User setUserPlaying(Long id){
+        User u = getProfileById(id);
+        u.setPlaying(true);
+        userRepository.save(u);
+        userRepository.flush();
+        return u;
+    }
+
     public User loginUser(User user) {
         if (!isValidProfileData(user.getUsername(), user.getPassword())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid username or password");

@@ -131,7 +131,8 @@ public class PlayerService {
     public Backroomer createBackroomer(PlayerPutDTO playerPutDTO) {
         Backroomer b = new Backroomer();
         b.setToken(randomUUID().toString());
-        b.setUser(userService.getProfileById(playerPutDTO.getNewAssignedUserId()));
+        User u = userService.setUserPlaying(playerPutDTO.getNewAssignedUserId());
+        b.setUser(u);
         b.setDelegatedCharacters(new ArrayList<Role>());
         backroomerRepository.save(b);
         backroomerRepository.flush();
