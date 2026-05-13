@@ -58,7 +58,7 @@ public class PlayerController {
         playerService.deleteRole(characterId);
     }
 
-    @PostMapping("/scenario/${scenarioId}/backroomers")
+    @PostMapping("/scenario/{scenarioId}/backroomers")
     @ResponseStatus(HttpStatus.OK)
     public PlayerGetDTO createBackroomer(@RequestHeader("Authorization")String token, @PathVariable Long scenarioId, @RequestBody PlayerPutDTO playerPutDTO){
         playerService.validate(token, "Bearer");
