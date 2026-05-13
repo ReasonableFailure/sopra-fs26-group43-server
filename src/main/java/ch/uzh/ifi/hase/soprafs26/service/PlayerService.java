@@ -179,11 +179,13 @@ public class PlayerService {
         return new ArrayList<>(interlocutors);
     }
 
-    public Director createDirector(String userToken,Long userId){
-        userService.validateUserToken(userToken);
+    public Director createDirector(Long userId){
+        //userService.validateUserToken(userToken);
+        System.out.println("In createDirectoFunction");
         Director d = new Director();
         d.setToken(randomUUID().toString());
         d.setUser(userService.getProfileById(userId));
+        //
         directorRepository.save(d);
         directorRepository.flush();
         return d;
