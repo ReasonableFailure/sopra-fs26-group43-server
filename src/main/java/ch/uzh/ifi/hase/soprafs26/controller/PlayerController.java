@@ -58,11 +58,11 @@ public class PlayerController {
         playerService.deleteRole(characterId);
     }
 
-    @PostMapping("/backroomers")
+    @PostMapping("/scenario/${scenarioId}/backroomers")
     @ResponseStatus(HttpStatus.OK)
-    public PlayerGetDTO createBackroomer(@RequestHeader("Authorization")String token, @RequestBody PlayerPutDTO playerPutDTO){
+    public PlayerGetDTO createBackroomer(@RequestHeader("Authorization")String token, @PathVariable Long scenarioId, @RequestBody PlayerPutDTO playerPutDTO){
         playerService.validate(token, "Bearer");
-        return PlayerDTOMapper.INSTANCE.convertEntitytoPlayerGetDTO(playerService.createBackroomer(playerPutDTO));
+        return PlayerDTOMapper.INSTANCE.convertEntitytoPlayerGetDTO(playerService.createBackroomer(playerPutDTO, scenarioId));
     }
   
     @GetMapping("/characters/{scenarioId}/{characterId}/interlocutors")

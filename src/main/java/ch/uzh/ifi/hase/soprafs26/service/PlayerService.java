@@ -141,12 +141,16 @@ public class PlayerService {
         roleRepository.deleteById(roleId);
     }
 
-    public Backroomer createBackroomer(PlayerPutDTO playerPutDTO){
+    public Backroomer createBackroomer(PlayerPutDTO playerPutDTO, long scenarioId){
+        Scenario scenario = scenarioRepository.findById(scenarioId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario not found"));
         Backroomer b = new Backroomer();
         b.setToken(randomUUID().toString());
         b.setDelegatedCharacters(new ArrayList<Role>());
         backroomerRepository.save(b);
         backroomerRepository.flush();
+        scenario.addPlayer(b);
+        scenarioRepository.save(scenario);
         b = (Backroomer) updatePlayerAssociation(b.getId(), playerPutDTO);
         return b;
     }
