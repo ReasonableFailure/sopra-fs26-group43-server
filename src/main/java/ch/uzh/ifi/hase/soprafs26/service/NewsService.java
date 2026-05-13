@@ -20,35 +20,34 @@ import java.util.List;
 public class NewsService {
 
     private final NewsRepository newsRepository;
-    private final ScenarioRepository scenarioRepository;
-    private final RoleRepository roleRepository;
+    private final ScenarioService scenarioService;
+    private final PlayerService playerService;
+    private final CommunicationStatsService communicationStatsService;
     private final MastodonClient mastodonClient;
 
     public NewsService(
             @Qualifier("newsRepository") NewsRepository newsRepository,
-            @Qualifier("scenarioRepository") ScenarioRepository scenarioRepository,
-            @Qualifier("roleRepository") RoleRepository roleRepository,
+            @Qualifier("scenarioService") ScenarioService scenarioService,
+            @Qualifier("playerService") PlayerService playerService,
+            CommunicationStatsService communicationStatsService,
             MastodonClient mastodonClient
     ) {
         this.newsRepository = newsRepository;
-        this.scenarioRepository = scenarioRepository;
-        this.roleRepository = roleRepository;
+        this.scenarioService = scenarioService;
+        this.playerService = playerService;
+        this.communicationStatsService = communicationStatsService;
         this.mastodonClient = mastodonClient;
     }
 
     public NewsStory createNews(NewsPostDTO dto) {
 
-        Scenario scenario = scenarioRepository.findById(dto.getScenarioId())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Scenario not found"));
+        Scenario scenario = scenarioService.getScenarioById(dto.getScenarioId());
 
         NewsStory entity;
 
         if (dto.getAuthorId() != null) {
 
-            Role author = roleRepository.findById(dto.getAuthorId())
-                    .orElseThrow(() -> new ResponseStatusException(
-                            HttpStatus.NOT_FOUND, "Author role not found"));
+            Role author =playerService.getRole(dto.getAuthorId());
 
             Pronouncement p = new Pronouncement();
             p.setTitle(dto.getTitle());
@@ -58,9 +57,7 @@ public class NewsService {
             p.setAuthor(author);
             p.setScenario(scenario);
 
-            author.setNumberPronouncements(author.getNumberPronouncements() + 1);
-            author.setTotalTextLength(author.getTotalTextLength() + p.totalTextLength());
-            roleRepository.save(author);
+            communicationStatsService.registerCommunication(author, p);
 
             entity = p;
 
@@ -72,22 +69,9 @@ public class NewsService {
 
         entity = newsRepository.save(entity);
 
-        scenario.getHistory().add(entity);
-        scenarioRepository.save(scenario);
+        scenarioService.addCommunicationToHistory(scenario.getId(), entity);
 
-        try {
-            String statusId = mastodonClient.postStatus(
-                    scenario.getMastodonBaseUrl(),
-                    scenario.getMastodonAccessToken(),
-                    entity.formatSelf()
-            );
-
-            entity.setMastodonStatusId(statusId);
-            newsRepository.save(entity);
-
-        } catch (Exception e) {
-            System.err.println("Failed to post to Mastodon: " + e.getMessage());
-        }
+        postToMastodon(scenario, entity);
 
         return entity;
     }
@@ -103,49 +87,24 @@ public class NewsService {
 
     public List<NewsStory> getNewsByScenario(Long scenarioId) {
 
-        if (!scenarioRepository.existsById(scenarioId)) {
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND, "Scenario not found");
-        }
+        scenarioService.getScenarioById(scenarioId);
 
         return newsRepository.findByScenarioIdOrderByCreatedAtAsc(scenarioId);
     }
 
-    public void deleteNews(Long newsId) {
-        if (!newsRepository.existsById(newsId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "News item not found");
+    public void postToMastodon (Scenario scenario, NewsStory news) {
+        try {
+            String statusId = mastodonClient.postStatus(
+                    scenario.getMastodonBaseUrl(),
+                    scenario.getMastodonAccessToken(),
+                    news.formatSelf()
+            );
+
+            news.setMastodonStatusId(statusId);
+            newsRepository.save(news);
+
+        } catch (Exception e) {
+            System.err.println("Failed to post to Mastodon: " + e.getMessage());
         }
-        newsRepository.deleteById(newsId);
-    }
-
-    public Pronouncement likePronouncement(Long newsId, Long roleId) {
-        NewsStory news = newsRepository.findById(newsId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "News not found"));
-
-        if (!(news instanceof Pronouncement pronouncement)) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "News item is not a pronouncement");
-        }
-
-        Role role = roleRepository.findById(roleId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Role not found"));
-
-        if (pronouncement.getLikedBy().contains(role)) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "Role already liked this pronouncement");
-        }
-
-        if (pronouncement.getAuthor().getId().equals(roleId)) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "Author cannot like own pronouncement");
-        }
-
-        pronouncement.getLikedBy().add(role);
-        pronouncement.setLikes(pronouncement.getLikes() + 1);
-        pronouncement.getAuthor().gainActionPoints(1);
-
-        return newsRepository.save(pronouncement);
     }
 }

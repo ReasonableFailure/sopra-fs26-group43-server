@@ -35,6 +35,8 @@ public abstract class Communication implements Serializable {
         return title.length() + body.length();
     }
 
+    public abstract void applyStats(Role role);
+
     public Long getId() {
         return id;
     }

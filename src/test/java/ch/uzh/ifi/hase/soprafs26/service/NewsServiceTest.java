@@ -7,14 +7,14 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import ch.uzh.ifi.hase.soprafs26.entity.NewsStory;
 import ch.uzh.ifi.hase.soprafs26.entity.Pronouncement;
 import ch.uzh.ifi.hase.soprafs26.entity.Role;
 import ch.uzh.ifi.hase.soprafs26.entity.Scenario;
 import ch.uzh.ifi.hase.soprafs26.repository.NewsRepository;
-import ch.uzh.ifi.hase.soprafs26.repository.RoleRepository;
-import ch.uzh.ifi.hase.soprafs26.repository.ScenarioRepository;
+import ch.uzh.ifi.hase.soprafs26.integration.MastodonClient;
 import ch.uzh.ifi.hase.soprafs26.rest.newsdto.NewsPostDTO;
 
 import java.time.Instant;
@@ -30,11 +30,15 @@ public class NewsServiceTest {
 	@Mock
 	private NewsRepository newsRepository;
 
-	@Mock
-	private ScenarioRepository scenarioRepository;
+	@Mock private ScenarioService scenarioService;
+
+	@Mock private PlayerService playerService;
 
 	@Mock
-	private RoleRepository roleRepository;
+	private MastodonClient mastodonClient;
+	
+	@Mock
+	private CommunicationStatsService communicationStatsService;
 
 	@InjectMocks
 	private NewsService newsService;
@@ -84,17 +88,10 @@ public class NewsServiceTest {
 		testPronouncement.setLikes(0);
 		testPronouncement.setScenario(testScenario);
 
-		Mockito.when(scenarioRepository.findById(1L)).thenReturn(Optional.of(testScenario));
-		Mockito.when(roleRepository.findById(1L)).thenReturn(Optional.of(testRole));
-		Mockito.when(newsRepository.save(Mockito.any())).thenAnswer(invocation -> {
-			Object arg = invocation.getArgument(0);
-			if (arg instanceof Pronouncement) {
-				return testPronouncement;
-			} else {
-				return testNewsStory;
-			}
-		});
-		Mockito.when(scenarioRepository.save(Mockito.any())).thenReturn(testScenario);
+		Mockito.when(scenarioService.getScenarioById(1L)).thenReturn(testScenario);
+		Mockito.when(playerService.getRole(1L)).thenReturn(testRole);
+		Mockito.when(newsRepository.save(Mockito.any())).thenAnswer(invocation -> invocation.getArgument(0));
+		Mockito.doNothing().when(communicationStatsService).registerCommunication(Mockito.any(), Mockito.any());
 	}
 
 	@Test
@@ -102,7 +99,6 @@ public class NewsServiceTest {
 		NewsStory createdNews = newsService.createNews(testNewsPostDTO);
 
 		Mockito.verify(newsRepository, Mockito.atLeastOnce()).save(Mockito.any());
-		Mockito.verify(scenarioRepository, Mockito.atLeastOnce()).save(testScenario);
 
 		assertEquals(testNewsPostDTO.getTitle(), createdNews.getTitle());
 		assertEquals(testNewsPostDTO.getBody(), createdNews.getBody());
@@ -122,7 +118,6 @@ public class NewsServiceTest {
 		NewsStory createdNews = newsService.createNews(testNewsPostDTO);
 
 		Mockito.verify(newsRepository, Mockito.atLeastOnce()).save(Mockito.any());
-		Mockito.verify(scenarioRepository, Mockito.atLeastOnce()).save(testScenario);
 
 		assertEquals(testNewsPostDTO.getTitle(), createdNews.getTitle());
 		assertEquals(testNewsPostDTO.getBody(), createdNews.getBody());
@@ -134,14 +129,14 @@ public class NewsServiceTest {
 
 	@Test
 	public void createNews_scenarioNotFound_throwsException() {
-		Mockito.when(scenarioRepository.findById(1L)).thenReturn(Optional.empty());
+		Mockito.when(scenarioService.getScenarioById(1L)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND));
 
 		assertThrows(ResponseStatusException.class, () -> newsService.createNews(testNewsPostDTO));
 	}
 
 	@Test
 	public void createNews_authorNotFound_throwsException() {
-		Mockito.when(roleRepository.findById(1L)).thenReturn(Optional.empty());
+		Mockito.when(playerService.getRole(1L)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND));;
 
 		assertThrows(ResponseStatusException.class, () -> newsService.createNews(testNewsPostDTO));
 	}
@@ -176,19 +171,18 @@ public class NewsServiceTest {
 	@Test
 	public void getNewsByScenario_validScenarioId_success() {
 		List<NewsStory> expectedNews = Arrays.asList(testNewsStory, testPronouncement);
-		Mockito.when(scenarioRepository.existsById(1L)).thenReturn(true);
+		Mockito.when(scenarioService.getScenarioById(1L)).thenReturn(testScenario);
 		Mockito.when(newsRepository.findByScenarioIdOrderByCreatedAtAsc(1L)).thenReturn(expectedNews);
 
 		List<NewsStory> result = newsService.getNewsByScenario(1L);
 
 		assertEquals(expectedNews, result);
-		Mockito.verify(scenarioRepository, Mockito.times(1)).existsById(1L);
 		Mockito.verify(newsRepository, Mockito.times(1)).findByScenarioIdOrderByCreatedAtAsc(1L);
 	}
 
 	@Test
 	public void getNewsByScenario_scenarioNotFound_throwsException() {
-		Mockito.when(scenarioRepository.existsById(1L)).thenReturn(false);
+		Mockito.when(scenarioService.getScenarioById(1L)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND));
 
 		assertThrows(ResponseStatusException.class, () -> newsService.getNewsByScenario(1L));
 	}
