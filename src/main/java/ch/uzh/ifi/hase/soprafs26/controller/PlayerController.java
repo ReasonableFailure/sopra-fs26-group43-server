@@ -112,7 +112,7 @@ public class PlayerController {
         return PlayerDTOMapper.INSTANCE.convertEntitytoPlayerGetDTO(d);
     }
 
-    @PostMapping("/characters/{scenarioId}/{characterId}/buy-message")
+    @PostMapping("/scenarios/{scenarioId}/characters/{characterId}/messages")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public RoleGetDTO buyMessage(
