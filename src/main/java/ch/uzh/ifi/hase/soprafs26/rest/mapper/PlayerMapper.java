@@ -3,6 +3,8 @@ package ch.uzh.ifi.hase.soprafs26.rest.mapper;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import org.springframework.stereotype.Component;
+import ch.uzh.ifi.hase.soprafs26.entity.Director;
+import ch.uzh.ifi.hase.soprafs26.rest.playerdto.DirectorGetDTO;
 
 @Component
 public class PlayerMapper {

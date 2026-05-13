@@ -6,8 +6,6 @@ import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
 import java.util.Base64;
-import org.mapstruct.Named;
-import org.mapstruct.Mapping;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING, uses = PlayerMapper.class)
  public interface PlayerDTOMapper {
@@ -32,6 +30,20 @@ import org.mapstruct.Mapping;
     @Mapping(source = "token", target = "authToken")
     @Mapping(source = "id", target = "id")
     PlayerGetDTO convertEntitytoPlayerGetDTO(Player player);
+
+    @Mapping(source = "id", target = "directorId")
+    @Mapping(source = "token", target = "directorToken")
+    DirectorGetDTO convertEntityToDirectorGetDTO(Director director);
+
+    @AfterMapping
+    default void addPrefix(@MappingTarget DirectorGetDTO directorGetDTO, Director entity) {
+        if (entity.getToken() == null) return;
+        String prefix = "";
+        if (entity instanceof Director) {
+            prefix = "Director ";
+        }
+        directorGetDTO.setToken(prefix + entity.getToken());
+    }
 
     @AfterMapping
     default void addPrefix(@MappingTarget PlayerGetDTO playerGetDTO, Player entity) {
