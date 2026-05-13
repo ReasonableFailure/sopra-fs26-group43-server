@@ -25,6 +25,8 @@ import org.mapstruct.Mapping;
         if (entity.getToken() == null) return;
         roleGetDTO.setRoleToken("Role " + entity.getToken());
     }
+    
+    BackroomerGetDTO convertEntitytoBackroomerGetDTO(Backroomer Backroomer);
 
     @Mapping(target = "portrait", source = "portrait", qualifiedByName = "base64ToBytes")
     Role convertRolePostDTOtoEntity(RolePostDTO rolePostDTO);

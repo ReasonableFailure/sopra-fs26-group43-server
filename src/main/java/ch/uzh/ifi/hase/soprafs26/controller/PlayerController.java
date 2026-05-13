@@ -62,9 +62,9 @@ public class PlayerController {
 
     @PostMapping("/scenario/{scenarioId}/backroomers")
     @ResponseStatus(HttpStatus.OK)
-    public PlayerGetDTO createBackroomer(@RequestHeader("Authorization")String token, @PathVariable Long scenarioId, @RequestBody UserAssignDTO userAssignDTO){
+    public BackroomerGetDTO createBackroomer(@RequestHeader("Authorization")String token, @PathVariable Long scenarioId, @RequestBody UserAssignDTO userAssignDTO){
         playerService.validate(token, "Bearer");
-        return PlayerDTOMapper.INSTANCE.convertEntitytoPlayerGetDTO(playerService.createBackroomer(userAssignDTO, scenarioId));
+        return PlayerDTOMapper.INSTANCE.convertEntitytoBackroomerGetDTO(playerService.createBackroomer(userAssignDTO, scenarioId));
     }
   
     @GetMapping("/characters/{scenarioId}/{characterId}/interlocutors")
@@ -108,12 +108,12 @@ public class PlayerController {
     @PostMapping("/directors")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public PlayerGetDTO createScenarioDirector(@RequestHeader("Authorization") String token, @RequestBody UserAssignDTO userAssignDTO){
+    public Director createScenarioDirector(@RequestHeader("Authorization") String token, @RequestBody UserAssignDTO userAssignDTO){
         playerService.validate(token,"Bearer");
         System.out.println(userAssignDTO);
         Director d = playerService.createDirector(userAssignDTO.getId());
         System.out.println(d.getToken());
-
+        return new Director();
     }
 
     @PostMapping("/scenarios/{scenarioId}/characters/{characterId}/messages")
