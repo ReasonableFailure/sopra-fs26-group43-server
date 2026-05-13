@@ -7,7 +7,7 @@ import org.mapstruct.factory.Mappers;
 
 import java.util.Base64;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
+@Mapper()
  public interface PlayerDTOMapper {
 
 
@@ -24,27 +24,10 @@ import java.util.Base64;
 
     BackroomerGetDTO convertEntitytoBackroomerGetDTO(Backroomer Backroomer);
 
-    @Mapping(source = "id", target = "directorId")
-    @Mapping(source = "token", target = "directorToken")
+    @Mapping(source = "id", target = "id")
+    @Mapping(source = "token", target = "token")
     DirectorGetDTO convertEntityToDirectorGetDTO(Director director);
 
-    @AfterMapping
-    default void addRolePrefix(@MappingTarget RoleGetDTO roleGetDTO, Role entity) {
-        if (entity.getToken() == null) return;
-        roleGetDTO.setToken("Role " + entity.getToken());
-    }
-
-    @AfterMapping
-    default void addPrefix(@MappingTarget BackroomerGetDTO backroomerGetDTO, Backroomer entity) {
-        if (entity.getToken() == null) return;
-        bacroomerGetDTO.setToken("Backroomer " + entity.getToken());}
-
-
-        @AfterMapping
-    default void addPrefix(@MappingTarget DirectorGetDTO directorGetDTO, Director entity) {
-        if (entity.getToken() == null) return;
-        directorGetDTO.setToken("Director " + entity.getToken());
-    }
 
     @Named("base64ToBytes")
     default byte[] base64ToBytes(String base64) {

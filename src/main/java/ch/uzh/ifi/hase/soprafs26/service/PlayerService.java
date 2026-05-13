@@ -6,6 +6,7 @@ import ch.uzh.ifi.hase.soprafs26.integration.MastodonClient;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.PlayerDTOMapper;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RolePostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.userdto.UserAssignDTO;
+import io.netty.handler.codec.http2.Http2PushPromiseFrame;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.slf4j.Logger;
@@ -66,8 +67,8 @@ public class PlayerService {
         return roleRepository.findById(roleId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Role with id %d not found", roleId)));
     }
 
-    public Director getDirectorByToken(String directorToken){
-        return directorRepository.findByToken(directorToken).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "This director does not exist"));
+    public Director getDirectorByID(Long id){
+        return directorRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Director " + id + " not found in repository"));
     }
 
     public Role updateMessagingStats(Long roleId, int initialMessageCount){
@@ -176,12 +177,12 @@ public class PlayerService {
 
     public Director createDirector(Long userId){
         //userService.validateUserToken(userToken);
-        System.out.println("In createDirector Function");
+        //System.out.println("In createDirector Function");
         Director d = new Director();
         d.setToken(randomUUID().toString());
-        System.out.println(userId);
+        //System.out.println(userId);
         d.setUser(userService.getProfileById(userId));
-        System.out.println("new entity successfully created");
+        //System.out.println("new entity successfully created");
         directorRepository.save(d);
         directorRepository.flush();
         return d;

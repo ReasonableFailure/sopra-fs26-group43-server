@@ -49,13 +49,13 @@ public class ScenarioService {
     }
 
     @Transactional
-    public Scenario createScenario(String token, ScenarioPostDTO scenarioPostDTO){
+    public Scenario createScenario( ScenarioPostDTO scenarioPostDTO){
         Scenario newScenario = ScenarioDTOMapper.INSTANCE.convertScenarioPostDTOtoEntity(scenarioPostDTO);
         newScenario.setDayNumber(0);
         newScenario.setStatus(ScenarioStatus.UNSTARTED);
         newScenario.setPlayers(new ArrayList<Player>());
         newScenario.setHistory(new ArrayList<Communication>());
-        newScenario.setDirector(playerService.getDirectorByToken(token));
+        newScenario.setDirector(playerService.getDirectorByID(scenarioPostDTO.getDirector()));
         scenarioRepository.save(newScenario);
         scenarioRepository.flush();
         return newScenario;
