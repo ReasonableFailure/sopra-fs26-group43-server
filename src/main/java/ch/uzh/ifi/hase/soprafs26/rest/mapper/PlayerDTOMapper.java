@@ -26,8 +26,6 @@ import org.mapstruct.Mapping;
         roleGetDTO.setRoleToken("Role " + entity.getToken());
     }
 
-    Player convertPlayerPutDTOtoEntity(PlayerPutDTO playerPutDTO, @MappingTarget Player player);
-
     @Mapping(target = "portrait", source = "portrait", qualifiedByName = "base64ToBytes")
     Role convertRolePostDTOtoEntity(RolePostDTO rolePostDTO);
 

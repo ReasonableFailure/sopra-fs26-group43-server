@@ -1,9 +1,11 @@
 package ch.uzh.ifi.hase.soprafs26.controller;
 
 import ch.uzh.ifi.hase.soprafs26.entity.Director;
+import ch.uzh.ifi.hase.soprafs26.entity.Player;
 import ch.uzh.ifi.hase.soprafs26.entity.Role;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.PlayerDTOMapper;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.*;
+import ch.uzh.ifi.hase.soprafs26.rest.userdto.UserAssignDTO;
 import ch.uzh.ifi.hase.soprafs26.service.PlayerService;
 import ch.uzh.ifi.hase.soprafs26.service.ActionPointService;
 import org.springframework.http.HttpStatus;
@@ -23,9 +25,9 @@ public class PlayerController {
     }
     @PutMapping("/player/{playerId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void assignUserToPlayer(@PathVariable Long playerId, @RequestBody PlayerPutDTO playerPutDTO,  @RequestHeader("Authorization") String token) {
+    public void assignUserToPlayer(@PathVariable Long playerId, @RequestBody UserAssignDTO userAssignDTO,  @RequestHeader("Authorization") String token) {
         playerService.validate(token,"Bearer");
-        playerService.updatePlayerAssociation(playerId, playerPutDTO);
+        playerService.updatePlayerAssociation(playerId, userAssignDTO);
 
     }
 
@@ -60,9 +62,9 @@ public class PlayerController {
 
     @PostMapping("/scenario/{scenarioId}/backroomers")
     @ResponseStatus(HttpStatus.OK)
-    public PlayerGetDTO createBackroomer(@RequestHeader("Authorization")String token, @PathVariable Long scenarioId, @RequestBody PlayerPutDTO playerPutDTO){
+    public PlayerGetDTO createBackroomer(@RequestHeader("Authorization")String token, @PathVariable Long scenarioId, @RequestBody UserAssignDTO userAssignDTO){
         playerService.validate(token, "Bearer");
-        return PlayerDTOMapper.INSTANCE.convertEntitytoPlayerGetDTO(playerService.createBackroomer(playerPutDTO, scenarioId));
+        return PlayerDTOMapper.INSTANCE.convertEntitytoPlayerGetDTO(playerService.createBackroomer(userAssignDTO, scenarioId));
     }
   
     @GetMapping("/characters/{scenarioId}/{characterId}/interlocutors")
@@ -106,9 +108,10 @@ public class PlayerController {
     @PostMapping("/directors")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public PlayerGetDTO createScenarioDirector(@RequestHeader("Authorization") String token, @RequestBody PlayerPutDTO playerPutDTO){
+    public PlayerGetDTO createScenarioDirector(@RequestHeader("Authorization") String token, @RequestBody UserAssignDTO userAssignDTO){
         playerService.validate(token,"Bearer");
-        Director d = playerService.createDirector(playerPutDTO.getNewAssignedUserId());
+        System.out.println(userAssignDTO);
+        Director d = playerService.createDirector(userAssignDTO.getId());
         return PlayerDTOMapper.INSTANCE.convertEntitytoPlayerGetDTO(d);
     }
 

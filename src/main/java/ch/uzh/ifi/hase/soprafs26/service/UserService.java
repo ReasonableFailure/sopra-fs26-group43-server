@@ -46,10 +46,12 @@ public class UserService {
     }
 
     public User getProfileById(Long idToBeFound) {
+        if(idToBeFound != null){
         return userRepository.findById(idToBeFound)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        String.format("User with id %d not found", idToBeFound)));
-    }
+                        String.format("User with id %d not found", idToBeFound)));} else { System.out.println("id for finding user is null");return new User();}
+
+   }
 
     public User createUser(User newUser) {
         if(!isValidProfileData(newUser.getUsername(),newUser.getPassword())){

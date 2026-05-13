@@ -7,6 +7,7 @@ import ch.uzh.ifi.hase.soprafs26.rest.mapper.PlayerDTOMapper;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.PlayerPutDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RolePostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RolePutDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.userdto.UserAssignDTO;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.slf4j.Logger;
@@ -81,10 +82,10 @@ public class PlayerService {
         return toChange;
     }
 
-    public Player updatePlayerAssociation(Long playerId, PlayerPutDTO playerPutDTO){
+    public Player updatePlayerAssociation(Long playerId, UserAssignDTO userAssignDTO){
         //Assigns a user to an existing Player or child class
-        Player player = playerRepository.findById(playerId).orElseThrow(() -> new ResponseStatusException(HttpStatusCode.valueOf(404), String.format("User %d cannot be assigned to player %d, this player does not exist", playerPutDTO.getNewAssignedUserId(), playerId)));
-        player = PlayerDTOMapper.INSTANCE.convertPlayerPutDTOtoEntity(playerPutDTO, player);
+        Player player = playerRepository.findById(playerId).orElseThrow(() -> new ResponseStatusException(HttpStatusCode.valueOf(404), String.format("User cannot be assigned to player %d, this player does not exist", playerId)));
+        player.setUser(userService.getProfileById(userAssignDTO.getId()));
         playerRepository.save(player);
         playerRepository.flush();
         return player;
@@ -141,7 +142,7 @@ public class PlayerService {
         roleRepository.deleteById(roleId);
     }
 
-    public Backroomer createBackroomer(PlayerPutDTO playerPutDTO, long scenarioId){
+    public Backroomer createBackroomer(UserAssignDTO userAssignDTO, long scenarioId){
         Scenario scenario = scenarioRepository.findById(scenarioId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario not found"));
         Backroomer b = new Backroomer();
@@ -151,7 +152,7 @@ public class PlayerService {
         backroomerRepository.flush();
         scenario.addPlayer(b);
         scenarioRepository.save(scenario);
-        b = (Backroomer) updatePlayerAssociation(b.getId(), playerPutDTO);
+        b = (Backroomer) updatePlayerAssociation(b.getId(), userAssignDTO);
         return b;
     }
   
@@ -181,11 +182,12 @@ public class PlayerService {
 
     public Director createDirector(Long userId){
         //userService.validateUserToken(userToken);
-        System.out.println("In createDirectoFunction");
+        System.out.println("In createDirector Function");
         Director d = new Director();
         d.setToken(randomUUID().toString());
+        System.out.println(userId);
         d.setUser(userService.getProfileById(userId));
-        //
+        System.out.println("new entity successfully created");
         directorRepository.save(d);
         directorRepository.flush();
         return d;
