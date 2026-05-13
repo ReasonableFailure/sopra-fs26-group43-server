@@ -142,7 +142,6 @@ public class PlayerService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario not found"));
         Backroomer b = new Backroomer();
         b.setToken(randomUUID().toString());
-        b.setDelegatedCharacters(new ArrayList<Role>());
         backroomerRepository.save(b);
         backroomerRepository.flush();
         scenario.addPlayer(b);
