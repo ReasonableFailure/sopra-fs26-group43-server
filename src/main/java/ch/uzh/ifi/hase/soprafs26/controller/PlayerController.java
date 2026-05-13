@@ -112,7 +112,8 @@ public class PlayerController {
         playerService.validate(token,"Bearer");
         System.out.println(userAssignDTO);
         Director d = playerService.createDirector(userAssignDTO.getId());
-        return PlayerDTOMapper.INSTANCE.convertEntitytoPlayerGetDTO(d);
+        System.out.println(d.getToken());
+
     }
 
     @PostMapping("/scenarios/{scenarioId}/characters/{characterId}/messages")
