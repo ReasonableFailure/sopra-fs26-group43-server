@@ -18,10 +18,11 @@ import java.util.List;
 
 @RestController
 public class PlayerController {
+
     private final PlayerService playerService;
     private final ActionPointService actionPointService;
 
-    public PlayerController(PlayerService playerService, ActionPointService actionPointService) {
+    public PlayerController(PlayerService playerService, ActionPointService actionPointService){
         this.playerService = playerService;
         this.actionPointService = actionPointService;
     }
@@ -29,7 +30,7 @@ public class PlayerController {
     @PutMapping("/characters/{characterId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @ResponseBody
-    public void updateRole(@RequestBody RolePutDTO rolePutDTO, @RequestHeader("Authorization") String token, @PathVariable Long characterId) {
+    public void updateRole(@RequestBody RolePutDTO rolePutDTO, @RequestHeader("Authorization") String token, @PathVariable Long characterId){
         playerService.validate(token,"Director");
         Role holdsUpdates = PlayerDTOMapper.INSTANCE.convertRolePutDTOtoEntity(rolePutDTO);
         playerService.updateRole(holdsUpdates,characterId);
@@ -38,7 +39,7 @@ public class PlayerController {
     @GetMapping("/characters/{characterId}/detail")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public RoleGetDTO getRole(@RequestHeader("Authorization") String token, @PathVariable Long characterId) {
+    public RoleGetDTO getRole(@RequestHeader("Authorization") String token, @PathVariable Long characterId){
         playerService.validate(token,"any");
         return PlayerDTOMapper.INSTANCE.convertEntitytoRoleGetDTO(playerService.getRoleById(characterId));
     }
@@ -69,6 +70,7 @@ public class PlayerController {
         playerService.validate(token, "Bearer");
         Role r = (Role) playerService.updatePlayerAssociation(characterId,userAssignDTO);
         return  PlayerDTOMapper.INSTANCE.convertEntitytoRoleGetDTO(r);
+    }
 
 
     @GetMapping("/characters/{scenarioId}/{characterId}/interlocutors")
@@ -94,7 +96,7 @@ public class PlayerController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long scenarioId,
             @PathVariable Long characterId
-    ) {
+    ){
         playerService.validate(token,"Role");
         return PlayerDTOMapper.INSTANCE.convertEntitytoRoleGetDTO(
                 playerService.syncPointsAndGetRole(scenarioId, characterId)
@@ -108,11 +110,7 @@ public class PlayerController {
         System.out.println(userAssignDTO);
         Director d = playerService.createDirector(userAssignDTO.getId());
         System.out.println(d.getToken());
-<<<<<<< HEAD
-        return d;
-=======
         return new Director();
->>>>>>> 4542877 (updated backend to not use general player mapping)
     }
 
     @PostMapping("/scenarios/{scenarioId}/characters/{characterId}/messages")
@@ -121,9 +119,8 @@ public class PlayerController {
     public RoleGetDTO buyMessage(
             @RequestHeader("Authorization") String token,
             @PathVariable Long scenarioId,
-            @PathVariable Long characterId) {
+            @PathVariable Long characterId){
         playerService.validate(token, "Role");
         return PlayerDTOMapper.INSTANCE.convertEntitytoRoleGetDTO(actionPointService.buyMessage(scenarioId,characterId));
     }
-
-}
+}   

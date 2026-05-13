@@ -21,7 +21,7 @@ import org.mapstruct.Mapping;
     @AfterMapping
     default void addRolePrefix(@MappingTarget RoleGetDTO roleGetDTO, Role entity) {
         if (entity.getToken() == null) return;
-        roleGetDTO.setRoleToken("Role " + entity.getToken());
+        roleGetDTO.setToken("Role " + entity.getToken());
     }
     
     BackroomerGetDTO convertEntitytoBackroomerGetDTO(Backroomer Backroomer);
@@ -31,13 +31,6 @@ import org.mapstruct.Mapping;
 
     @Mapping(target = "portrait", source = "portrait", qualifiedByName = "base64ToBytes")
     Role convertRolePutDTOtoEntity(RolePutDTO rolePutDTO);
-
-    @AfterMapping
-    default void addRolePrefix(@MappingTarget RoleGetDTO roleGetDTO, Role entity) {
-        if (entity.getToken() == null) return;
-        roleGetDTO.setToken("Role " + entity.getToken());
-    }
-
 
 
     @Named("base64ToBytes")

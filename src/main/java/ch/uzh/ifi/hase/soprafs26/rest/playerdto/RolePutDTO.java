@@ -4,7 +4,7 @@ public class RolePutDTO {
     private String name;
     private String title;
     private String description;
-    private byte[] portrait;
+    private String portrait;
     private String secret;
     private Boolean alive;
 
@@ -40,11 +40,11 @@ public class RolePutDTO {
         this.secret = secret;
     }
 
-    public byte[] getPortrait() {
+    public String getPortrait() {
         return portrait;
     }
 
-    public void setPortrait(byte[] portrait) {
+    public void setPortrait(String portrait) {
         this.portrait = portrait;
     }
 

@@ -12,6 +12,6 @@ import ch.uzh.ifi.hase.soprafs26.entity.Player;
 @Repository("playerRepository")
 public interface PlayerRepository extends JpaRepository<Player, Long> {
     List<Player> findByUser_Id(Long userId);
-    Optional<Player> findFirstByUser_IdAndScenario_Id(Long userId, Long scenarioId);
+    Optional<Player> findById(Long userId);
     Optional<Player> findByToken(String token);
 }

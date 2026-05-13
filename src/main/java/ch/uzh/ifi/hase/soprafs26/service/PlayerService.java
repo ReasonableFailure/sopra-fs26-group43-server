@@ -80,7 +80,7 @@ public class PlayerService {
 
     public Player updatePlayerAssociation(Long playerId, UserAssignDTO userAssignDTO){
         //Assigns a user to an existing Player or child class
-        Player player = playerRepository.findFirstByUser_IdAndScenario_Id(playerId).orElseThrow(() -> new ResponseStatusException(HttpStatusCode.valueOf(404), String.format("User cannot be assigned to player %d, this player does not exist", playerId)));
+        Player player = playerRepository.findById(playerId).orElseThrow(() -> new ResponseStatusException(HttpStatusCode.valueOf(404), String.format("User cannot be assigned to player %d, this player does not exist", playerId)));
         player.setUser(userService.getProfileById(userAssignDTO.getId()));
         playerRepository.save(player);
         playerRepository.flush();
