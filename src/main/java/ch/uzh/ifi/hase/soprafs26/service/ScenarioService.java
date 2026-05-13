@@ -33,7 +33,7 @@ public class ScenarioService {
     private final ScenarioRepository scenarioRepository;
     private final NewsRepository newsRepository;
 
-    public ScenarioService(@Qualifier("scenarioRepository") ScenarioRepository scenarioRepository, @Qualifier("userService") UserService userService, @Qualifier("playerService") PlayerService playerService, @Qualifier("newsService") NewsService newsService, NewsRepository newsRepository) {
+    public ScenarioService(@Qualifier("scenarioRepository") ScenarioRepository scenarioRepository, @Qualifier("userService") UserService userService, @Qualifier("playerService") PlayerService playerService, @Qualifier("newsRepository") NewsRepository newsRepository) {
         this.scenarioRepository = scenarioRepository;
         this.userService = userService;
         this.playerService = playerService;

@@ -22,7 +22,6 @@ public class DirectiveService {
 
     private final DirectiveRepository directiveRepository;
     private final ScenarioService scenarioService;
-
     private final PlayerService playerService;
     private final CommunicationStatsService communicationStatsService;
 
