@@ -53,14 +53,14 @@ public class ScenarioController {
 
     @PostMapping("/scenarios")
     public ScenarioGetDTO createScenario(@RequestBody ScenarioPostDTO scenarioPostDTO, @RequestHeader("Authorization") String token){
-        playerService.validate(token, "Bearer");
+        playerService.validate(token, "Director");
         Scenario created = scenarioService.createScenario(token,scenarioPostDTO);
         return ScenarioDTOMapper.INSTANCE.convertEntityToScenarioGetDTO(created);
     }
 
     @GetMapping("/scenarios/{scenarioId}")
     public ScenarioGetDTO getScenarioById(@RequestHeader("Authorization") String token, @PathVariable Long scenarioId){
-        playerService.validate(token,"Bearer");
+        playerService.validate(token,"any");
         Scenario scenario = scenarioService.getScenarioById(scenarioId);
         return ScenarioDTOMapper.INSTANCE.convertEntityToScenarioGetDTO(scenario);
     }
