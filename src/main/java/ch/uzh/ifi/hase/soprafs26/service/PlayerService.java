@@ -51,7 +51,7 @@ public class PlayerService {
     @Qualifier("scenarioRepository") ScenarioRepository scenarioRepository, 
     @Qualifier("newsRepository") NewsRepository newsRepository, 
     @Qualifier("mastodonClient") MastodonClient mastodonClient,
-    ActionPointsService actionPointsService
+    @Qualifier("actionPointService") ActionPointsService actionPointsService
 ) {
         this.playerRepository = playerRepository;
         this.backroomerRepository = backroomerRepository;
@@ -65,8 +65,14 @@ public class PlayerService {
         this.actionPointsService = actionPointsService;
     }
 
-    public Role getRole(Long roleId)  {
+    public Role getRoleById( Long roleId)  {
+
         return roleRepository.findById(roleId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Role with id %d not found", roleId)));
+    }
+
+    public Director getDirectorByToken(String directorToken){
+
+        return directorRepository.findByToken(directorToken).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "This director does not exist"));
     }
 
     public Role updateMessagingStats(Long roleId, int initialMessageCount){
@@ -77,18 +83,19 @@ public class PlayerService {
         return toChange;
     }
 
-    public PlayerGetDTO updatePlayerAssociation(Long playerId, PlayerPutDTO playerPutDTO, String token){
+    public Player updatePlayerAssociation(Long playerId, PlayerPutDTO playerPutDTO){
         //Assigns a user to an existing Player or child class
-        validate(token,"any");
         Player player = playerRepository.findById(playerId).orElseThrow(() -> new ResponseStatusException(HttpStatusCode.valueOf(404), String.format("User %d cannot be assigned to player %d, this player does not exist", playerPutDTO.getNewAssignedUserId(), playerId)));
         player = PlayerDTOMapper.INSTANCE.convertPlayerPutDTOtoEntity(playerPutDTO, player);
         playerRepository.save(player);
-        return PlayerDTOMapper.INSTANCE.convertEntitytoPlayerGetDTO(player);
+        playerRepository.flush();
+        return player;
     }
 
-    public void updateRole(String token, RolePutDTO rolePutDTO, Long roleId){
-        //checkToken(token, "Director");
-        Role r = getRole(roleId);
+    public void updateRole(RolePutDTO rolePutDTO, Long roleId){
+
+        Role r = getRoleById( roleId);
+
         if (rolePutDTO.getName() != null) {
             r.setName(rolePutDTO.getName());
         }
@@ -104,15 +111,14 @@ public class PlayerService {
         if (rolePutDTO.getSecret() != null) {
             r.setSecret(rolePutDTO.getSecret());
         }
-        if (rolePutDTO.isAlive() != null) {
+        if (rolePutDTO.isAlive()) {
             r.setAlive(rolePutDTO.isAlive());
         }
         roleRepository.save(r);
         roleRepository.flush();
     }
 
-    public Role createRole(String token, RolePostDTO rolePostDTO){
-        validate(token, "Director");
+    public Role createRole( RolePostDTO rolePostDTO){
         Scenario scenario = scenarioRepository.findById(rolePostDTO.getScenarioId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario not found"));
         Role newRole = PlayerDTOMapper.INSTANCE.convertRolePostDTOtoEntity(rolePostDTO);
@@ -132,18 +138,18 @@ public class PlayerService {
         return newRole;
     }
 
-    public void deleteRole(String token, Long roleId){
-        validate(token, "Director");
+    public void deleteRole(Long roleId){
+
         roleRepository.deleteById(roleId);
     }
 
-    public Backroomer createBackroomer(String userToken){
-        userService.validateUserToken(userToken);
+    public Backroomer createBackroomer(PlayerPutDTO playerPutDTO){
         Backroomer b = new Backroomer();
         b.setToken(randomUUID().toString());
         b.setDelegatedCharacters(new ArrayList<Role>());
         backroomerRepository.save(b);
         backroomerRepository.flush();
+        b = (Backroomer) updatePlayerAssociation(b.getId(), playerPutDTO);
         return b;
     }
   
@@ -171,11 +177,11 @@ public class PlayerService {
         return new ArrayList<>(interlocutors);
     }
 
-    public Director createDirector(String userToken){
+    public Director createDirector(String userToken,Long userId){
         userService.validateUserToken(userToken);
         Director d = new Director();
         d.setToken(randomUUID().toString());
-        d.setUser(userService.getByToken(userToken));
+        d.setUser(userService.getProfileById(userId));
         directorRepository.save(d);
         directorRepository.flush();
         return d;
@@ -224,9 +230,9 @@ public class PlayerService {
     }
 
     @Transactional
-    public Role syncPointsAndGetRole(String authToken, Long scenarioId, Long characterId) {
+    public Role syncPointsAndGetRole(Long scenarioId, Long characterId) {
 
-        Role role = getRole(characterId);
+        Role role = getRoleById(characterId);
 
         Scenario scenario = scenarioRepository.findById(scenarioId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));

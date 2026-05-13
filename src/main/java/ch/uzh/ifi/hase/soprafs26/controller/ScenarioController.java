@@ -40,7 +40,8 @@ public class ScenarioController {
     @ResponseBody
     public List<ScenarioGetDTO> getAllScenarios(@RequestHeader("Authorization") String token) {
         // fetch all scenarios in the internal representation
-        List<Scenario> scenarios = scenarioService.getScenarios(token);
+        playerService.validate(token, "any");
+        List<Scenario> scenarios = scenarioService.getScenarios();
         List<ScenarioGetDTO> scenarioGetDTOs = new ArrayList<>();
 
         // convert each scenario to the API representation
@@ -52,29 +53,34 @@ public class ScenarioController {
 
     @PostMapping("/scenarios")
     public ScenarioGetDTO createScenario(@RequestBody ScenarioPostDTO scenarioPostDTO, @RequestHeader("Authorization") String token){
+        playerService.validate(token, "Bearer");
         Scenario created = scenarioService.createScenario(token,scenarioPostDTO);
         return ScenarioDTOMapper.INSTANCE.convertEntityToScenarioGetDTO(created);
     }
 
     @GetMapping("/scenarios/{scenarioId}")
     public ScenarioGetDTO getScenarioById(@RequestHeader("Authorization") String token, @PathVariable Long scenarioId){
+        playerService.validate(token,"Bearer");
         Scenario scenario = scenarioService.getScenarioById(scenarioId);
         return ScenarioDTOMapper.INSTANCE.convertEntityToScenarioGetDTO(scenario);
     }
 
     @PutMapping("/scenarios/{scenarioId}")
     public void updateScenario(@RequestHeader("Authorization") String token, @PathVariable Long scenarioId, @RequestBody ScenarioPutDTO scenarioPutDTO){
-        scenarioService.updateScenario(token,scenarioId,scenarioPutDTO);
+        playerService.validate(token,"Director");
+        scenarioService.updateScenario(scenarioId,scenarioPutDTO);
     }
 
     @DeleteMapping("/scenarios/{scenarioId}")
     public void deleteScenario(@RequestHeader("Authorization") String token, @PathVariable Long scenarioId){
+        playerService.validate(token,"Director");
         scenarioService.deleteScenario(scenarioId);
     }
 
     @GetMapping("/characters/scenario/{scenarioId}")
     public List<RoleGetDTO> retrieveAllRoles(@PathVariable Long scenarioId, @RequestHeader("Authorization") String token){
-        List<Role> list = scenarioService.getRoles(scenarioId,token);
+        playerService.validate(token, "any");
+        List<Role> list = scenarioService.getRoles(scenarioId);
         ArrayList<RoleGetDTO> toReturn = new ArrayList<RoleGetDTO>();
         for(Role role : list){
             toReturn.add(PlayerDTOMapper.INSTANCE.convertEntitytoRoleGetDTO(role));
@@ -84,7 +90,8 @@ public class ScenarioController {
 
     @GetMapping("/characters/{scenarioId}/cabinet/{cabinetId}")
     public List<RoleGetDTO> retrieveAllRolesInCabinet(@PathVariable Long scenarioId, @PathVariable Long cabinetId, @RequestHeader("Authorization") String token){
-        List<Role> list = scenarioService.getRolesPerCabinet(scenarioId,cabinetId,token);
+        playerService.validate(token, "any");
+        List<Role> list = scenarioService.getRolesPerCabinet(scenarioId,cabinetId);
         ArrayList<RoleGetDTO> toReturn = new ArrayList<RoleGetDTO>();
         for (Role role : list){
             toReturn.add(PlayerDTOMapper.INSTANCE.convertEntitytoRoleGetDTO(role));
@@ -100,7 +107,8 @@ public class ScenarioController {
             @RequestHeader("Authorization") String token,
             @RequestBody ScenarioMastodonDTO dto) {
 
-        //validate(token, "Director");
+        playerService.validate(token, "Director");
+
         scenarioService.updateMastodonConfig(scenarioId, dto);
         Scenario scenario = scenarioService.getScenarioById(scenarioId);
         List<NewsStory> newsList = newsService.getNewsByScenario(scenarioId);
@@ -110,10 +118,6 @@ public class ScenarioController {
         }
     }
 
-    private String validate(String header, String type) {
-        String[] tokens = splitToken(header);
-        playerService.checkToken(tokens[1], type);
-        return tokens[1];
-    }
+
 
 }

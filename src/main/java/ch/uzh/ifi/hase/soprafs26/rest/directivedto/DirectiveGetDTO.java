@@ -1,6 +1,7 @@
 package ch.uzh.ifi.hase.soprafs26.rest.directivedto;
 
 import ch.uzh.ifi.hase.soprafs26.constant.CommsStatus;
+import ch.uzh.ifi.hase.soprafs26.constant.DirectiveCategory;
 import java.time.Instant;
 
 public class DirectiveGetDTO {
@@ -12,7 +13,7 @@ public class DirectiveGetDTO {
     private CommsStatus status;
     private Long creatorId;
     private String response;
-
+    private DirectiveCategory category;
     public Long getId() {
         return id;
     }
@@ -67,5 +68,12 @@ public class DirectiveGetDTO {
 
     public void setResponse(String response) {
         this.response = response;
+    }
+    public DirectiveCategory getCategory() {
+        return category;
+    }
+
+    public void setCategory(DirectiveCategory category) {
+        this.category = category;
     }
 }

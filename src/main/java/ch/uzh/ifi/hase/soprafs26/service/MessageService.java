@@ -50,9 +50,9 @@ public class MessageService {
                     HttpStatus.BAD_REQUEST, "Sender or recipient missing");
         }
 
-        Role creator = playerService.getRole(postDTO.getCreatorId());
+        Role creator = playerService.getRoleById(postDTO.getCreatorId());
 
-        Role recipient = playerService.getRole(postDTO.getRecipientId());
+        Role recipient = playerService.getRoleById(postDTO.getRecipientId());
 
         if (creator.getId().equals(recipient.getId())) {
             throw new ResponseStatusException(
@@ -103,8 +103,8 @@ public class MessageService {
 
     public List<Message> getMessagesBetween(Long characterAId, Long characterBId) {
 
-        playerService.getRole(characterAId);
-        playerService.getRole(characterBId);
+        playerService.getRoleById(characterAId);
+        playerService.getRoleById(characterBId);
 
         if (characterAId.equals(characterBId)) {
             throw new ResponseStatusException(
@@ -145,5 +145,9 @@ public class MessageService {
         }
 
         return result;
+    }
+
+    public void deleteMessage(Long messageId) {
+        messageRepository.deleteById(messageId);
     }
 }

@@ -48,11 +48,11 @@ public class RolePutDTO {
         this.portrait = portrait;
     }
 
-    public Boolean isAlive() {
+    public boolean isAlive() {
         return alive;
     }
 
-    public void setAlive(Boolean alive) {
+    public void setAlive(boolean alive) {
         this.alive = alive;
     }
 }

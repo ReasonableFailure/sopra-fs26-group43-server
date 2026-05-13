@@ -41,9 +41,9 @@ public class DirectiveController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long directiveId) {
 
-        String callerToken = playerService.validate(token, "any");
+        playerService.validate(token, "any");
 
-        Directive directive = directiveService.getDirectiveById(directiveId, callerToken);
+        Directive directive = directiveService.getDirectiveById(directiveId);
 
         return DirectiveDTOMapper.INSTANCE.convertEntityToGetDTO(directive);
     }
@@ -77,9 +77,9 @@ public class DirectiveController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long scenarioId) {
 
-        String callerToken = playerService.validate(token, "any");
+        playerService.validate(token, "any");
 
-        List<Directive> directives = directiveService.getDirectivesByScenario(scenarioId, callerToken);
+        List<Directive> directives = directiveService.getDirectivesByScenario(scenarioId);
 
         return directives.stream()
                 .map(DirectiveDTOMapper.INSTANCE::convertEntityToGetDTO)
@@ -92,12 +92,13 @@ public class DirectiveController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long characterId) {
 
-        String callerToken = playerService.validate(token, "any");
+        playerService.validate(token, "any");
 
-        List<Directive> directives = directiveService.getDirectivesByCreator(characterId, callerToken);
+        List<Directive> directives = directiveService.getDirectivesByCreator(characterId);
 
         return directives.stream()
                 .map(DirectiveDTOMapper.INSTANCE::convertEntityToGetDTO)
                 .toList();
     }
+
 }

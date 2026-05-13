@@ -78,9 +78,9 @@ public class MessageController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long scenarioId) {
 
-        String callerToken = playerService.validate(token, "any");
+        playerService.validate(token, "any");
 
-        return messageService.getMessagePairsByScenario(scenarioId, callerToken);
+        return messageService.getMessagePairsByScenario(scenarioId);
     }
 
     @GetMapping("/messages/between/{characterAId}/{characterBId}")
@@ -90,13 +90,14 @@ public class MessageController {
             @PathVariable Long characterAId,
             @PathVariable Long characterBId) {
 
-        String callerToken = playerService.validate(token, "any");
+        playerService.validate(token, "any");
 
         List<Message> messages =
-                messageService.getMessagesBetween(callerToken, characterAId, characterBId);
+                messageService.getMessagesBetween(characterAId, characterBId);
 
         return messages.stream()
                 .map(MessageDTOMapper.INSTANCE::convertEntityToGetDTO)
                 .toList();
     }
+
 }

@@ -47,7 +47,7 @@ public class NewsService {
 
         if (dto.getAuthorId() != null) {
 
-            Role author =playerService.getRole(dto.getAuthorId());
+            Role author =playerService.getRoleById(dto.getAuthorId());
 
             Pronouncement p = new Pronouncement();
             p.setTitle(dto.getTitle());
@@ -106,5 +106,9 @@ public class NewsService {
         } catch (Exception e) {
             System.err.println("Failed to post to Mastodon: " + e.getMessage());
         }
+    }
+
+    public void deleteNews(Long newsId) {
+        newsRepository.deleteById(newsId);
     }
 }

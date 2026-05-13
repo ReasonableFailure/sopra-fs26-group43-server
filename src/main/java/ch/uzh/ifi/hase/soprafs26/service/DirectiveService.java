@@ -45,7 +45,7 @@ public class DirectiveService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Creator ID missing");
         }
 
-        Role creator = playerService.getRole(postDTO.getCreatorId());
+        Role creator = playerService.getRoleById(postDTO.getCreatorId());
 
         if (!scenario.getPlayers().contains(creator)) {
             throw new ResponseStatusException(
@@ -104,7 +104,11 @@ public class DirectiveService {
 
     public List<Directive> getDirectivesByCreator(Long characterId) {
         
-        playerService.getRole(characterId);
+        playerService.getRoleById(characterId);
         return directiveRepository.findByCreatorId(characterId);
+    }
+
+    public void deleteDirective(Long Id){
+        directiveRepository.deleteById(Id);
     }
 }

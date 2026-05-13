@@ -28,5 +28,6 @@ public interface DirectiveDTOMapper {
     @Mapping(source = "status", target = "status")
     @Mapping(source = "creator.id", target = "creatorId")
     @Mapping(source = "response", target = "response")
+    @Mapping(source = "category", target = "category")
     DirectiveGetDTO convertEntityToGetDTO(Directive directive);
 }
