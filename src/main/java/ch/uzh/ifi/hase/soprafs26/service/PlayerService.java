@@ -4,12 +4,10 @@ import ch.uzh.ifi.hase.soprafs26.entity.*;
 import ch.uzh.ifi.hase.soprafs26.repository.*;
 import ch.uzh.ifi.hase.soprafs26.integration.MastodonClient;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.PlayerDTOMapper;
-import ch.uzh.ifi.hase.soprafs26.rest.playerdto.PlayerGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.PlayerPutDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RolePostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RolePutDTO;
 import jakarta.transaction.Transactional;
-import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +37,7 @@ public class PlayerService {
     private final ScenarioRepository scenarioRepository;
     private final UserService userService;
     private final MastodonClient mastodonClient;
-    private final ActionPointsService actionPointsService;
+    private final ActionPointService actionPointService;
     private final Logger log = LoggerFactory.getLogger(PlayerService.class);
 
     public PlayerService(@Qualifier("playerRepository") PlayerRepository playerRepository, 
@@ -51,7 +49,7 @@ public class PlayerService {
     @Qualifier("scenarioRepository") ScenarioRepository scenarioRepository, 
     @Qualifier("newsRepository") NewsRepository newsRepository, 
     @Qualifier("mastodonClient") MastodonClient mastodonClient,
-    @Qualifier("actionPointService") ActionPointsService actionPointsService
+    @Qualifier("actionPointService") ActionPointService actionPointService
 ) {
         this.playerRepository = playerRepository;
         this.backroomerRepository = backroomerRepository;
@@ -62,7 +60,7 @@ public class PlayerService {
         this.scenarioRepository = scenarioRepository;
         this.newsRepository = newsRepository;
         this.mastodonClient = mastodonClient;
-        this.actionPointsService = actionPointsService;
+        this.actionPointService = actionPointService;
     }
 
     public Role getRoleById( Long roleId)  {
@@ -237,7 +235,7 @@ public class PlayerService {
         Scenario scenario = scenarioRepository.findById(scenarioId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-        actionPointsService.syncActionPoints(role, scenario);
+        actionPointService.syncActionPoints(role, scenario);
 
         return roleRepository.save(role);
     }

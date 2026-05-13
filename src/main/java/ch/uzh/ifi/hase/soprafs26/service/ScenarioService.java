@@ -1,6 +1,7 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
 import ch.uzh.ifi.hase.soprafs26.entity.*;
+import ch.uzh.ifi.hase.soprafs26.repository.NewsRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.PlayerRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.ScenarioDTOMapper;
@@ -30,13 +31,13 @@ public class ScenarioService {
     private final PlayerService playerService;
     private final UserService userService;
     private final ScenarioRepository scenarioRepository;
-    private final NewsService newsService;
+    private final NewsRepository newsRepository;
 
-    public ScenarioService(@Qualifier("scenarioRepository") ScenarioRepository scenarioRepository, @Qualifier("userService") UserService userService, @Qualifier("playerService") PlayerService playerService, @Qualifier("newsService") NewsService newsService) {
+    public ScenarioService(@Qualifier("scenarioRepository") ScenarioRepository scenarioRepository, @Qualifier("userService") UserService userService, @Qualifier("playerService") PlayerService playerService, @Qualifier("newsService") NewsService newsService, NewsRepository newsRepository) {
         this.scenarioRepository = scenarioRepository;
         this.userService = userService;
         this.playerService = playerService;
-        this.newsService = newsService;
+        this.newsRepository = newsRepository;
     }
 
     public List<Scenario> getScenarios() {
@@ -143,7 +144,7 @@ public class ScenarioService {
 
         scenario.setMastodonProfileUrl(profileUrl);
 
-         List<NewsStory> newsList = newsService.getNewsByScenario(scenarioId);
+        List<NewsStory> newsList = newsRepository.findByScenarioIdOrderByCreatedAtAsc(scenarioId);
 
         for (NewsStory news : newsList) {
             try {

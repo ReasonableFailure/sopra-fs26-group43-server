@@ -8,21 +8,20 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
 @Service
 @Transactional
-public class ActionPointsService {
+public class ActionPointService {
 
     private final NewsRepository newsRepository;
     private final RoleRepository roleRepository;
     private final ScenarioRepository scenarioRepository;
     private final MastodonClient mastodonClient;
 
-    public ActionPointsService(
+    public ActionPointService(
             @Qualifier("newsRepository") NewsRepository newsRepository,
             @Qualifier("roleRepository") RoleRepository roleRepository,
             @Qualifier("scenarioRepository") ScenarioRepository scenarioRepository,

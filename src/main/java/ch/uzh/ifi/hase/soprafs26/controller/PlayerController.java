@@ -5,22 +5,21 @@ import ch.uzh.ifi.hase.soprafs26.entity.Role;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.PlayerDTOMapper;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.*;
 import ch.uzh.ifi.hase.soprafs26.service.PlayerService;
-import ch.uzh.ifi.hase.soprafs26.service.ActionPointsService;
+import ch.uzh.ifi.hase.soprafs26.service.ActionPointService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
 public class PlayerController {
     private final PlayerService playerService;
-    private final ActionPointsService actionPointsService;
+    private final ActionPointService actionPointService;
 
-    public PlayerController(PlayerService playerService, ActionPointsService actionPointsService) {
+    public PlayerController(PlayerService playerService, ActionPointService actionPointService) {
         this.playerService = playerService;
-        this.actionPointsService = actionPointsService;
+        this.actionPointService = actionPointService;
     }
     @PutMapping("/player/{playerId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -121,7 +120,7 @@ public class PlayerController {
             @PathVariable Long scenarioId,
             @PathVariable Long characterId) {
         playerService.validate(token, "Role");
-        return PlayerDTOMapper.INSTANCE.convertEntitytoRoleGetDTO(actionPointsService.buyMessage(scenarioId,characterId));
+        return PlayerDTOMapper.INSTANCE.convertEntitytoRoleGetDTO(actionPointService.buyMessage(scenarioId,characterId));
     }
 
 }

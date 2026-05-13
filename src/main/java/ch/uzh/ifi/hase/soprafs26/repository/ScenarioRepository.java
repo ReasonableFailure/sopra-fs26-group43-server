@@ -5,7 +5,11 @@ import org.springframework.stereotype.Repository;
 
 import ch.uzh.ifi.hase.soprafs26.entity.Scenario;
 
+import java.util.Optional;
+
 @Repository("scenarioRepository")
 public interface ScenarioRepository extends JpaRepository<Scenario, Long> {
-    Scenario findByTitle(String title);
+    Optional<Scenario> findByTitle(String title);
+    Optional<Scenario> findById(Long id);
+
 }
