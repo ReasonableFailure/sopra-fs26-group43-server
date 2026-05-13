@@ -60,12 +60,13 @@ public class UserService {
         newUser.setStatus(UserStatus.ONLINE);
         newUser.setCreationDate(new Date());
         newUser.setPlaying(false);
-        // saves the given entity but data is only persisted in the database once
-        // flush() is called
+            // saves the given entity but data is only persisted in the database once
+            // flush() is called
         newUser = userRepository.save(newUser);
         userRepository.flush();
         log.debug("Created Information for User: {}", newUser);
         return newUser;
+
     }
 
     public User setUserPlaying(Long id) {
@@ -142,7 +143,9 @@ public class UserService {
     }
 
     private void checkIfUsernameTaken(String username) {
-        User foundByName = userRepository.findByUsername(username).orElseThrow(()->new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username taken!"));
+        if(userRepository.findByUsername(username).isPresent()){
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Username " + username + " taken!");
+        }
     }
 
     private boolean isValidProfileData(String uname, String pwd){
