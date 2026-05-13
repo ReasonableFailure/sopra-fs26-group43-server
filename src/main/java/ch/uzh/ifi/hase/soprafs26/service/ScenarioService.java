@@ -89,7 +89,6 @@ public class ScenarioService {
     }
 
     public void addPlayerToScenario(Long scenarioId, Long playerId){
-
         Role toAdd = playerService.getRoleById(playerId);
         Scenario scenario = getScenarioById(scenarioId);
         toAdd = playerService.updateMessagingStats(playerId, scenario.getStartingMessageCount());

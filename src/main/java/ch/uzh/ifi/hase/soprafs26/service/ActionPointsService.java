@@ -4,6 +4,7 @@ import ch.uzh.ifi.hase.soprafs26.entity.*;
 import ch.uzh.ifi.hase.soprafs26.repository.*;
 import ch.uzh.ifi.hase.soprafs26.integration.MastodonClient;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.http.HttpStatus;
@@ -22,10 +23,10 @@ public class ActionPointsService {
     private final MastodonClient mastodonClient;
 
     public ActionPointsService(
-            NewsRepository newsRepository,
-            RoleRepository roleRepository,
-            ScenarioRepository scenarioRepository,
-            MastodonClient mastodonClient
+            @Qualifier("newsRepository") NewsRepository newsRepository,
+            @Qualifier("roleRepository") RoleRepository roleRepository,
+            @Qualifier("scenarioRepository") ScenarioRepository scenarioRepository,
+            @Qualifier("mastodonClient") MastodonClient mastodonClient
     ) {
         this.newsRepository = newsRepository;
         this.roleRepository = roleRepository;

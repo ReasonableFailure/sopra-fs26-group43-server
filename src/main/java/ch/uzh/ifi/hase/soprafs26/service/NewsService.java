@@ -29,8 +29,8 @@ public class NewsService {
             @Qualifier("newsRepository") NewsRepository newsRepository,
             @Qualifier("scenarioService") ScenarioService scenarioService,
             @Qualifier("playerService") PlayerService playerService,
-            CommunicationStatsService communicationStatsService,
-            MastodonClient mastodonClient
+            @Qualifier("communicationStatsService") CommunicationStatsService communicationStatsService,
+            @Qualifier("mastodonClient") MastodonClient mastodonClient
     ) {
         this.newsRepository = newsRepository;
         this.scenarioService = scenarioService;

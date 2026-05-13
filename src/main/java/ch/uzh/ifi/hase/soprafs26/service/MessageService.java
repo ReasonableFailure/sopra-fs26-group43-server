@@ -33,7 +33,7 @@ public class MessageService {
             @Qualifier("messageRepository") MessageRepository messageRepository,
             @Qualifier("scenarioService") ScenarioService scenarioService,
             @Qualifier("playerService") PlayerService playerService,
-            CommunicationStatsService communicationStatsService
+            @Qualifier("communicationStatsService") CommunicationStatsService communicationStatsService
     ) {
         this.messageRepository = messageRepository;
         this.scenarioService = scenarioService;

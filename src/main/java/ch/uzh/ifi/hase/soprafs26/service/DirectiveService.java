@@ -29,7 +29,7 @@ public class DirectiveService {
             @Qualifier("directiveRepository") DirectiveRepository directiveRepository,
             @Qualifier("scenarioService") ScenarioService scenarioService,
             @Qualifier("playerService") PlayerService playerService,
-            CommunicationStatsService communicationStatsService
+            @Qualifier("communicationStatsService") CommunicationStatsService communicationStatsService
     ) {
         this.directiveRepository = directiveRepository;
         this.scenarioService = scenarioService;
