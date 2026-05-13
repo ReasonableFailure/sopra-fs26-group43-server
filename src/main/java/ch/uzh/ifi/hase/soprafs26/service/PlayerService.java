@@ -205,11 +205,6 @@ public class PlayerService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
                     "Your role is not permitted to perform this action");
         }
-        // "any" only covers the three player roles, not "Bearer"
-        if (intendedRole.equalsIgnoreCase("any") && type.equalsIgnoreCase("Bearer")) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
-                    "A player-typed token is required");
-        }
 
         if (type.equalsIgnoreCase("Director")) {
             if (directorRepository.findByToken(rawToken) == null) {
