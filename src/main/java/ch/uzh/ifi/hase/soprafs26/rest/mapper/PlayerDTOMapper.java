@@ -9,45 +9,28 @@ import java.util.Base64;
 import org.mapstruct.Named;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING, uses = PlayerMapper.class)
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
  public interface PlayerDTOMapper {
 
 
     PlayerDTOMapper INSTANCE = Mappers.getMapper(PlayerDTOMapper.class);
-
-
-    @Mapping(source = "token", target = "roleToken")
+    //since they are named the same, automatic mapping
     @Mapping(target = "portrait", source = "portrait", qualifiedByName = "bytesToBase64")
     RoleGetDTO convertEntitytoRoleGetDTO(Role role);
-
-    @AfterMapping
-    default void addRolePrefix(@MappingTarget RoleGetDTO roleGetDTO, Role entity) {
-        if (entity.getToken() == null) return;
-        roleGetDTO.setRoleToken("Role " + entity.getToken());
-    }
 
     @Mapping(target = "portrait", source = "portrait", qualifiedByName = "base64ToBytes")
     Role convertRolePostDTOtoEntity(RolePostDTO rolePostDTO);
 
-    @Mapping(source = "token", target = "authToken")
-    @Mapping(source = "id", target = "id")
-    PlayerGetDTO convertEntitytoPlayerGetDTO(Player player);
+    @Mapping(target = "portrait", source = "portrait", qualifiedByName = "base64ToBytes")
+    Role convertRolePutDTOtoEntity(RolePutDTO rolePutDTO);
 
     @AfterMapping
-    default void addPrefix(@MappingTarget PlayerGetDTO playerGetDTO, Player entity) {
+    default void addRolePrefix(@MappingTarget RoleGetDTO roleGetDTO, Role entity) {
         if (entity.getToken() == null) return;
-
-        String prefix = "";
-        if (entity instanceof Role) {
-            prefix = "Role ";
-        } else if (entity instanceof Director) {
-            prefix = "Director ";
-        } else if (entity instanceof Backroomer) {
-            prefix = "Backroomer ";
-        }
-
-        playerGetDTO.setAuthToken(prefix + entity.getToken());
+        roleGetDTO.setToken("Role " + entity.getToken());
     }
+
+
 
     @Named("base64ToBytes")
     default byte[] base64ToBytes(String base64) {

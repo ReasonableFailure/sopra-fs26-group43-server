@@ -13,7 +13,6 @@ import ch.uzh.ifi.hase.soprafs26.rest.mapper.ScenarioDTOMapper;
 import ch.uzh.ifi.hase.soprafs26.service.ScenarioService;
 import ch.uzh.ifi.hase.soprafs26.service.PlayerService;
 import ch.uzh.ifi.hase.soprafs26.service.NewsService;
-import static ch.uzh.ifi.hase.soprafs26.controller.PlayerController.splitToken;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;

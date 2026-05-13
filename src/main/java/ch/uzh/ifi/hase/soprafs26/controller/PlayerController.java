@@ -1,5 +1,6 @@
 package ch.uzh.ifi.hase.soprafs26.controller;
 
+import ch.uzh.ifi.hase.soprafs26.entity.Backroomer;
 import ch.uzh.ifi.hase.soprafs26.entity.Director;
 import ch.uzh.ifi.hase.soprafs26.entity.Player;
 import ch.uzh.ifi.hase.soprafs26.entity.Role;
@@ -8,6 +9,7 @@ import ch.uzh.ifi.hase.soprafs26.rest.playerdto.*;
 import ch.uzh.ifi.hase.soprafs26.rest.userdto.UserAssignDTO;
 import ch.uzh.ifi.hase.soprafs26.service.PlayerService;
 import ch.uzh.ifi.hase.soprafs26.service.ActionPointService;
+import org.h2.command.dml.BackupCommand;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -23,20 +25,14 @@ public class PlayerController {
         this.playerService = playerService;
         this.actionPointService = actionPointService;
     }
-    @PutMapping("/player/{playerId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void assignUserToPlayer(@PathVariable Long playerId, @RequestBody UserAssignDTO userAssignDTO,  @RequestHeader("Authorization") String token) {
-        playerService.validate(token,"Bearer");
-        playerService.updatePlayerAssociation(playerId, userAssignDTO);
-
-    }
 
     @PutMapping("/characters/{characterId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @ResponseBody
     public void updateRole(@RequestBody RolePutDTO rolePutDTO, @RequestHeader("Authorization") String token, @PathVariable Long characterId) {
         playerService.validate(token,"Director");
-        playerService.updateRole(rolePutDTO,characterId);
+        Role holdsUpdates = PlayerDTOMapper.INSTANCE.convertRolePutDTOtoEntity(rolePutDTO);
+        playerService.updateRole(holdsUpdates,characterId);
     }
 
     @GetMapping("/characters/{characterId}/detail")
@@ -62,11 +58,20 @@ public class PlayerController {
 
     @PostMapping("/scenario/{scenarioId}/backroomers")
     @ResponseStatus(HttpStatus.OK)
-    public PlayerGetDTO createBackroomer(@RequestHeader("Authorization")String token, @PathVariable Long scenarioId, @RequestBody UserAssignDTO userAssignDTO){
+    public Backroomer createBackroomer(@RequestHeader("Authorization")String token, @PathVariable Long scenarioId, @RequestBody UserAssignDTO userAssignDTO){
         playerService.validate(token, "Bearer");
-        return PlayerDTOMapper.INSTANCE.convertEntitytoPlayerGetDTO(playerService.createBackroomer(userAssignDTO, scenarioId));
+        //return PlayerDTOMapper.INSTANCE.convertEntitytoPlayerGetDTO(playerService.createBackroomer(userAssignDTO, scenarioId));
+        return new Backroomer();
     }
-  
+
+    @PostMapping("/characters/{characterId}/assignment")
+    @ResponseStatus(HttpStatus.OK)
+    public RoleGetDTO selectCharacter(@RequestHeader("Authorization") String token,@PathVariable Long characterId, @RequestBody UserAssignDTO userAssignDTO){
+        playerService.validate(token, "Bearer");
+        Role r = (Role) playerService.updatePlayerAssociation(characterId,userAssignDTO);
+        return  PlayerDTOMapper.INSTANCE.convertEntitytoRoleGetDTO(r);
+
+    }
     @GetMapping("/characters/{scenarioId}/{characterId}/interlocutors")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
@@ -81,16 +86,7 @@ public class PlayerController {
                 .toList();
     }
   
-     public static String[] splitToken(String token){
-        if(token == null || token.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token is empty");
-        }
-        String[] thingy = token.split(" ");
-        if(thingy[0].equals("Role") || thingy[0].equals("Backroomer") || thingy[0].equals("Director")){
-            return thingy;
-        }
-        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token is invalid");
-    }
+
 
     @GetMapping("/characters/{scenarioId}/{characterId}/points")
     @ResponseStatus(HttpStatus.OK)
@@ -108,12 +104,12 @@ public class PlayerController {
     @PostMapping("/directors")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public PlayerGetDTO createScenarioDirector(@RequestHeader("Authorization") String token, @RequestBody UserAssignDTO userAssignDTO){
+    public Director createScenarioDirector(@RequestHeader("Authorization") String token, @RequestBody UserAssignDTO userAssignDTO){
         playerService.validate(token,"Bearer");
         System.out.println(userAssignDTO);
         Director d = playerService.createDirector(userAssignDTO.getId());
         System.out.println(d.getToken());
-
+        return d;
     }
 
     @PostMapping("/scenarios/{scenarioId}/characters/{characterId}/messages")

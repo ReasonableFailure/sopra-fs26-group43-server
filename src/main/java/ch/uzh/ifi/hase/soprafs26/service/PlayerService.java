@@ -4,9 +4,7 @@ import ch.uzh.ifi.hase.soprafs26.entity.*;
 import ch.uzh.ifi.hase.soprafs26.repository.*;
 import ch.uzh.ifi.hase.soprafs26.integration.MastodonClient;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.PlayerDTOMapper;
-import ch.uzh.ifi.hase.soprafs26.rest.playerdto.PlayerPutDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RolePostDTO;
-import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RolePutDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.userdto.UserAssignDTO;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -65,12 +63,10 @@ public class PlayerService {
     }
 
     public Role getRoleById( Long roleId)  {
-
         return roleRepository.findById(roleId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Role with id %d not found", roleId)));
     }
 
     public Director getDirectorByToken(String directorToken){
-
         return directorRepository.findByToken(directorToken).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "This director does not exist"));
     }
 
@@ -84,34 +80,33 @@ public class PlayerService {
 
     public Player updatePlayerAssociation(Long playerId, UserAssignDTO userAssignDTO){
         //Assigns a user to an existing Player or child class
-        Player player = playerRepository.findById(playerId).orElseThrow(() -> new ResponseStatusException(HttpStatusCode.valueOf(404), String.format("User cannot be assigned to player %d, this player does not exist", playerId)));
+        Player player = playerRepository.findFirstByUser_IdAndScenario_Id(playerId).orElseThrow(() -> new ResponseStatusException(HttpStatusCode.valueOf(404), String.format("User cannot be assigned to player %d, this player does not exist", playerId)));
         player.setUser(userService.getProfileById(userAssignDTO.getId()));
         playerRepository.save(player);
         playerRepository.flush();
         return player;
     }
 
-    public void updateRole(RolePutDTO rolePutDTO, Long roleId){
+    public void updateRole(Role role, Long roleId){
 
-        Role r = getRoleById( roleId);
-
-        if (rolePutDTO.getName() != null) {
-            r.setName(rolePutDTO.getName());
+        Role r = getRoleById(roleId);
+        if (role.getName() != null) {
+            r.setName(role.getName());
         }
-        if (rolePutDTO.getTitle() != null) {
-            r.setTitle(rolePutDTO.getTitle());
+        if (role.getTitle() != null) {
+            r.setTitle(role.getTitle());
         }
-        if (rolePutDTO.getDescription() != null) {
-            r.setDescription(rolePutDTO.getDescription());
+        if (role.getDescription() != null) {
+            r.setDescription(role.getDescription());
         }
-        if (rolePutDTO.getPortrait() != null) {
-            r.setPortrait(rolePutDTO.getPortrait());
+        if (role.getPortrait() != null) {
+            r.setPortrait(role.getPortrait());
         }
-        if (rolePutDTO.getSecret() != null) {
-            r.setSecret(rolePutDTO.getSecret());
+        if (role.getSecret() != null) {
+            r.setSecret(role.getSecret());
         }
-        if (rolePutDTO.isAlive()) {
-            r.setAlive(rolePutDTO.isAlive());
+        if (role.getAlive()) {
+            r.setAlive(role.getAlive());
         }
         roleRepository.save(r);
         roleRepository.flush();
