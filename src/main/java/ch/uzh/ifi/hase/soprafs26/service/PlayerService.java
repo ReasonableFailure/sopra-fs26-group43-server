@@ -79,7 +79,7 @@ public class PlayerService {
 
     public PlayerGetDTO updatePlayerAssociation(Long playerId, PlayerPutDTO playerPutDTO, String token){
         //Assigns a user to an existing Player or child class
-        checkToken(token,"any");
+        validate(token,"any");
         Player player = playerRepository.findById(playerId).orElseThrow(() -> new ResponseStatusException(HttpStatusCode.valueOf(404), String.format("User %d cannot be assigned to player %d, this player does not exist", playerPutDTO.getNewAssignedUserId(), playerId)));
         player = PlayerDTOMapper.INSTANCE.convertPlayerPutDTOtoEntity(playerPutDTO, player);
         playerRepository.save(player);
@@ -89,37 +89,30 @@ public class PlayerService {
     public void updateRole(String token, RolePutDTO rolePutDTO, Long roleId){
         //checkToken(token, "Director");
         Role r = getRole(roleId);
-
         if (rolePutDTO.getName() != null) {
             r.setName(rolePutDTO.getName());
         }
-
         if (rolePutDTO.getTitle() != null) {
             r.setTitle(rolePutDTO.getTitle());
         }
-
         if (rolePutDTO.getDescription() != null) {
             r.setDescription(rolePutDTO.getDescription());
         }
-
         if (rolePutDTO.getPortrait() != null) {
             r.setPortrait(rolePutDTO.getPortrait());
         }
-
         if (rolePutDTO.getSecret() != null) {
             r.setSecret(rolePutDTO.getSecret());
         }
-
         if (rolePutDTO.isAlive() != null) {
             r.setAlive(rolePutDTO.isAlive());
         }
-
         roleRepository.save(r);
         roleRepository.flush();
     }
 
     public Role createRole(String token, RolePostDTO rolePostDTO){
-        checkToken(token, "Director");
+        validate(token, "Director");
         Scenario scenario = scenarioRepository.findById(rolePostDTO.getScenarioId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario not found"));
         Role newRole = PlayerDTOMapper.INSTANCE.convertRolePostDTOtoEntity(rolePostDTO);
@@ -140,12 +133,12 @@ public class PlayerService {
     }
 
     public void deleteRole(String token, Long roleId){
-        checkToken(token, "Director");
+        validate(token, "Director");
         roleRepository.deleteById(roleId);
     }
 
     public Backroomer createBackroomer(String userToken){
-        userService.checkIfValidToken(userToken);
+        userService.validateUserToken(userToken);
         Backroomer b = new Backroomer();
         b.setToken(randomUUID().toString());
         b.setDelegatedCharacters(new ArrayList<Role>());
@@ -155,7 +148,7 @@ public class PlayerService {
     }
   
     public List<Role> getInterlocutors(String token, Long scenarioId, Long roleId) {
-        userService.checkIfValidToken(token);
+        userService.validateUserToken(token);
         Role role = roleRepository.findById(roleId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
@@ -179,7 +172,7 @@ public class PlayerService {
     }
 
     public Director createDirector(String userToken){
-        userService.checkIfValidToken(userToken);
+        userService.validateUserToken(userToken);
         Director d = new Director();
         d.setToken(randomUUID().toString());
         d.setUser(userService.getByToken(userToken));
@@ -188,20 +181,46 @@ public class PlayerService {
         return d;
     }
 
-    public void checkToken(String token, @NonNull String type){
-        Role toReturn = roleRepository.findByToken(token);
-        Backroomer toReturnBackroomer = backroomerRepository.findByToken(token);
-        Director toReturnDirector = directorRepository.findByToken(token);
-        Player toReturnPlayer = playerRepository.findByToken(token);
-        if(type.equals("Role") && toReturn == null){
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-        } else if(type.equals("Backroomer") && toReturnBackroomer == null && toReturnDirector == null){
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-        } else if (type.equals("Director") && toReturnDirector == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-        } else if (type.equals("any") && toReturnPlayer == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+    public String validate(String fromHeader, String intendedRole) {
+        if (fromHeader == null || fromHeader.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token is empty");
         }
+        String[] parts = fromHeader.split(" ", 2);
+        if (parts.length < 2 || parts[1].isBlank()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token format must be '<Type> <token>'");
+        }
+        String type = parts[0];
+        String rawToken = parts[1];
+
+        boolean typeOk = type.equalsIgnoreCase(intendedRole) || intendedRole.equalsIgnoreCase("any");
+        if (!typeOk) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                    "Your role is not permitted to perform this action");
+        }
+        // "any" only covers the three player roles, not "Bearer"
+        if (intendedRole.equalsIgnoreCase("any") && type.equalsIgnoreCase("Bearer")) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                    "A player-typed token is required");
+        }
+
+        if (type.equalsIgnoreCase("Director")) {
+            if (directorRepository.findByToken(rawToken) == null) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid director token");
+            }
+        } else if (type.equalsIgnoreCase("Backroomer")) {
+            if (backroomerRepository.findByToken(rawToken) == null) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid backroomer token");
+            }
+        } else if (type.equalsIgnoreCase("Role")) {
+            if (roleRepository.findByToken(rawToken) == null) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid role token");
+            }
+        } else if (type.equalsIgnoreCase("Bearer")) {
+            userService.validateUserToken(rawToken);
+        } else {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unknown token type: " + type);
+        }
+        return rawToken;
     }
 
     @Transactional
