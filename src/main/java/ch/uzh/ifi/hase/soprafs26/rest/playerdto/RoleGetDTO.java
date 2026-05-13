@@ -3,28 +3,29 @@ package ch.uzh.ifi.hase.soprafs26.rest.playerdto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class RoleGetDTO {
+
     private Long id;
     private String name;
     private String title;
     private String description;
+    private String portrait;
     private String secret;
     private boolean alive;
-    private int messageCount;
+    private String token;
     private int totalPoints;
     private int pointsBalance;
-    private String portrait;
-    private int numberDirectives;
+    private int messageCount;
     private int numberMessages;
+    private int numberDirectives;
     private int numberPronouncements;
     private int totalTextLength;
-    private String roleToken;
 
-    public String getRoleToken() {
-        return roleToken;
+    public String getToken() {
+        return token;
     }
 
-    public void setRoleToken(String roleToken) {
-        this.roleToken = roleToken;
+    public void setToken(String token) {
+        this.token = token;
     }
 
     public Long getId() {

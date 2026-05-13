@@ -34,9 +34,6 @@ public class Role extends Player{
     @Column(unique=false,nullable=false)
     private int totalTextLength;
 
-    public void die(){
-        this.alive = false;
-    }
 
     public void buyMessages(int exchangeRate, int desiredIncrease) throws Exception{
         if(this.pointsBalance >= exchangeRate*desiredIncrease){

@@ -4,8 +4,8 @@ public class RolePostDTO {
     private String name;
     private String title;
     private String description;
-    private String secret;
     private String portrait;
+    private String secret;
     private Long scenarioId;
 
     public String getName() { return name; }

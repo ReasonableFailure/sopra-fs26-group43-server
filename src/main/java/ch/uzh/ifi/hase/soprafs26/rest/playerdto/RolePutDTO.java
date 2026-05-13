@@ -4,8 +4,8 @@ public class RolePutDTO {
     private String name;
     private String title;
     private String description;
-    private String secret;
     private byte[] portrait;
+    private String secret;
     private Boolean alive;
 
     public String getName() {
