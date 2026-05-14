@@ -32,8 +32,7 @@ public class PlayerController {
     @ResponseBody
     public void updateRole(@RequestBody RolePutDTO rolePutDTO, @RequestHeader("Authorization") String token, @PathVariable Long characterId){
         playerService.validate(token,"Director");
-        Role holdsUpdates = PlayerDTOMapper.INSTANCE.convertRolePutDTOtoEntity(rolePutDTO);
-        playerService.updateRole(holdsUpdates,characterId);
+        playerService.updateRole(rolePutDTO,characterId);
     }
 
     @GetMapping("/characters/{characterId}/detail")

@@ -5,6 +5,7 @@ import ch.uzh.ifi.hase.soprafs26.repository.*;
 import ch.uzh.ifi.hase.soprafs26.integration.MastodonClient;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.PlayerDTOMapper;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RolePostDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RolePutDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.userdto.UserAssignDTO;
 import io.netty.handler.codec.http2.Http2PushPromiseFrame;
 import jakarta.transaction.Transactional;
@@ -88,26 +89,24 @@ public class PlayerService {
         return player;
     }
 
-    public void updateRole(Role role, Long roleId){
+    public void updateRole(RolePutDTO dto, Long roleId){
 
         Role r = getRoleById(roleId);
-        if (role.getName() != null) {
-            r.setName(role.getName());
+
+        if (dto.getName() != null) {
+            r.setName(dto.getName());
         }
-        if (role.getTitle() != null) {
-            r.setTitle(role.getTitle());
+        if (dto.getTitle() != null) {
+            r.setTitle(dto.getTitle());
         }
-        if (role.getDescription() != null) {
-            r.setDescription(role.getDescription());
+        if (dto.getDescription() != null) {
+            r.setDescription(dto.getDescription());
         }
-        if (role.getPortrait() != null) {
-            r.setPortrait(role.getPortrait());
+        if (dto.getSecret() != null) {
+            r.setSecret(dto.getSecret());
         }
-        if (role.getSecret() != null) {
-            r.setSecret(role.getSecret());
-        }
-        if (role.getAlive()) {
-            r.setAlive(role.getAlive());
+        if (dto.getAlive() != null) {
+            r.setAlive(dto.getAlive());
         }
         roleRepository.save(r);
         roleRepository.flush();

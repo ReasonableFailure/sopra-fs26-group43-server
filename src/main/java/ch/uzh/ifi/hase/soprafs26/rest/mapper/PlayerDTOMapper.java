@@ -19,9 +19,6 @@ import java.util.Base64;
     @Mapping(target = "portrait", source = "portrait", qualifiedByName = "base64ToBytes")
     Role convertRolePostDTOtoEntity(RolePostDTO rolePostDTO);
 
-    @Mapping(target = "portrait", source = "portrait", qualifiedByName = "base64ToBytes")
-    Role convertRolePutDTOtoEntity(RolePutDTO rolePutDTO);
-
     BackroomerGetDTO convertEntitytoBackroomerGetDTO(Backroomer Backroomer);
 
     @Mapping(source = "id", target = "id")
