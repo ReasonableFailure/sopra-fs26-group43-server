@@ -190,6 +190,7 @@ public class UserService {
                     String.format("User with id %d not found", userId));
         }
         List<Player> players = playerRepository.findByUser_Id(userId);
+        System.out.println(players.size());
         return players.stream()
                 .map(this::toEngagementDTO)
                 .filter(dto -> dto.getScenarioId() != null)

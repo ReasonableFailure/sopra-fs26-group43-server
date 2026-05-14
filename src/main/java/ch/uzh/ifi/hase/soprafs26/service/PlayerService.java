@@ -174,13 +174,9 @@ public class PlayerService {
     }
 
     public Director createDirector(Long userId){
-        //userService.validateUserToken(userToken);
-        //System.out.println("In createDirector Function");
         Director d = new Director();
         d.setToken(randomUUID().toString());
-        //System.out.println(userId);
         d.setUser(userService.getProfileById(userId));
-        //System.out.println("new entity successfully created");
         directorRepository.save(d);
         directorRepository.flush();
         return d;

@@ -106,11 +106,8 @@ public class PlayerController {
     @ResponseBody
     public DirectorGetDTO createScenarioDirector(@RequestHeader("Authorization") String token, @RequestBody UserAssignDTO userAssignDTO){
         playerService.validate(token,"Bearer");
-        //System.out.println(userAssignDTO);
         Director d = playerService.createDirector(userAssignDTO.getId());
-//        System.out.println(d.getToken());
         DirectorGetDTO dir =  PlayerDTOMapper.INSTANCE.convertEntityToDirectorGetDTO(d);
-//        System.out.println(dir.getToken());
         return dir;
     }
 
