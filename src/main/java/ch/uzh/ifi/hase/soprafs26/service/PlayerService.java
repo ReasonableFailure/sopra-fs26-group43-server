@@ -116,6 +116,46 @@ public class PlayerService {
         backroomerRepository.flush();
         return b;
     }
+
+    /**
+     * Atomically validate the join code, check capacity, increment the
+     * scenario's backroomer count, and create the Backroomer.
+     *
+     * @throws ResponseStatusException 404 if scenario not found,
+     *                                 401 if user token is invalid,
+     *                                 403 if code is wrong or unset,
+     *                                 409 if scenario is full.
+     */
+    public Backroomer joinBackroom(String userToken, Long scenarioId, String suppliedCode) {
+        userService.checkIfValidToken(userToken);
+        Scenario scenario = scenarioRepository.findById(scenarioId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        String.format("Scenario with id %d not found", scenarioId)));
+
+        String expected = scenario.getBackroomerCode();
+        if (expected == null || expected.isEmpty()) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "No backroomer code has been set for this scenario");
+        }
+        if (suppliedCode == null || !suppliedCode.trim().equals(expected)) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Incorrect backroomer code");
+        }
+        if (scenario.getBackroomerCount() >= scenario.getMaxBackroomers()) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "The backroom is full");
+        }
+
+        Backroomer b = createBackroomer(userToken);
+        scenario.setBackroomerCount(scenario.getBackroomerCount() + 1);
+        scenarioRepository.save(scenario);
+        scenarioRepository.flush();
+        return b;
+    }
   
     public List<Role> getInterlocutors(String token, Long scenarioId, Long roleId) {
         userService.checkIfValidToken(token);

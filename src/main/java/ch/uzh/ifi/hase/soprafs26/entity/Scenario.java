@@ -42,6 +42,17 @@ public class Scenario implements Serializable {
     @Column(nullable = false, unique = false)
     private int startingMessageCount;
 
+    // ---- Backroom configuration & counter (PR 2 feature) ----
+    /** Max number of backroomers allowed to join this scenario. */
+    @Column(nullable = false)
+    private int maxBackroomers = 2;
+    /** Secret code a player must supply to become a backroomer. Empty/null disables joining. */
+    @Column(nullable = true)
+    private String backroomerCode;
+    /** Number of backroomers that have already joined. */
+    @Column(nullable = false)
+    private int backroomerCount = 0;
+
     @OneToMany(mappedBy = "scenario")
     private List<Communication> history;
 
@@ -155,5 +166,29 @@ public class Scenario implements Serializable {
 
     public void setStartingMessageCount(int startingMessageCount) {
         this.startingMessageCount = startingMessageCount;
+    }
+
+    public int getMaxBackroomers() {
+        return maxBackroomers;
+    }
+
+    public void setMaxBackroomers(int maxBackroomers) {
+        this.maxBackroomers = maxBackroomers;
+    }
+
+    public String getBackroomerCode() {
+        return backroomerCode;
+    }
+
+    public void setBackroomerCode(String backroomerCode) {
+        this.backroomerCode = backroomerCode;
+    }
+
+    public int getBackroomerCount() {
+        return backroomerCount;
+    }
+
+    public void setBackroomerCount(int backroomerCount) {
+        this.backroomerCount = backroomerCount;
     }
 }

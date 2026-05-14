@@ -9,6 +9,12 @@ public class ScenarioPutDTO {
     private Integer dayNumber;
     private Integer exchangeRate;
 
+    // ---- Backroom configuration (PR 2 feature) ----
+    /** New maximum number of backroomers. Null means "do not change". */
+    private Integer maxBackroomers;
+    /** New backroomer join code. Null means "do not change". Empty string clears the code. */
+    private String backroomerCode;
+
     public String getTitle() {
         return title;
     }
@@ -47,5 +53,21 @@ public class ScenarioPutDTO {
 
     public void setExchangeRate(Integer exchangeRate) {
         this.exchangeRate = exchangeRate;
+    }
+
+    public Integer getMaxBackroomers() {
+        return maxBackroomers;
+    }
+
+    public void setMaxBackroomers(Integer maxBackroomers) {
+        this.maxBackroomers = maxBackroomers;
+    }
+
+    public String getBackroomerCode() {
+        return backroomerCode;
+    }
+
+    public void setBackroomerCode(String backroomerCode) {
+        this.backroomerCode = backroomerCode;
     }
 }

@@ -1,7 +1,10 @@
 package ch.uzh.ifi.hase.soprafs26.controller;
 
 import ch.uzh.ifi.hase.soprafs26.entity.Role;
+import ch.uzh.ifi.hase.soprafs26.entity.Backroomer;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.PlayerDTOMapper;
+import ch.uzh.ifi.hase.soprafs26.rest.playerdto.BackroomerJoinPostDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.playerdto.PlayerGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.PlayerPutDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RoleGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RolePostDTO;
@@ -130,6 +133,33 @@ public class PlayerController {
             playerService.buyMessage(token, scenarioId, characterId);
 
         return PlayerDTOMapper.INSTANCE.convertEntitytoRoleGetDTO(updatedRole);
+    }
+
+    /**
+     * Player attempts to become a backroomer for the given scenario.
+     * Requires a Bearer user token and the director-set join code in the body.
+     * Returns the freshly issued Backroomer token (prefixed by "Backroomer ").
+     */
+    @PostMapping("/scenarios/{scenarioId}/backroomers")
+    @ResponseStatus(HttpStatus.CREATED)
+    @ResponseBody
+    public PlayerGetDTO joinBackroom(
+            @PathVariable Long scenarioId,
+            @RequestHeader("Authorization") String authHeader,
+            @RequestBody BackroomerJoinPostDTO dto) {
+        // We do NOT use splitToken here because it rejects the "Bearer "
+        // prefix outright. Parse the Bearer token ourselves.
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED, "Bearer user token required");
+        }
+        String userToken = authHeader.substring("Bearer ".length()).trim();
+        if (userToken.isEmpty()) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED, "Bearer user token required");
+        }
+        Backroomer b = playerService.joinBackroom(userToken, scenarioId, dto.getCode());
+        return PlayerDTOMapper.INSTANCE.convertEntitytoPlayerGetDTO(b);
     }
 
 }

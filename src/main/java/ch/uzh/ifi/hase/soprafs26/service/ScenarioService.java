@@ -84,6 +84,17 @@ public class ScenarioService {
         if (dto.getExchangeRate() != null) {
             s.setExchangeRate(dto.getExchangeRate());
         }
+        if (dto.getMaxBackroomers() != null) {
+            if (dto.getMaxBackroomers() < 0) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "maxBackroomers must be >= 0");
+            }
+            s.setMaxBackroomers(dto.getMaxBackroomers());
+        }
+        if (dto.getBackroomerCode() != null) {
+            // empty string explicitly clears the code; null means "do not change"
+            String trimmed = dto.getBackroomerCode().trim();
+            s.setBackroomerCode(trimmed.isEmpty() ? null : trimmed);
+        }
     }
 
     public void addPlayerToScenario(String token, Long scenarioId, Long playerId){

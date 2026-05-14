@@ -17,6 +17,11 @@ public interface ScenarioDTOMapper {
     @Mapping(source = "dayNumber", target = "dayNumber")
     @Mapping(source = "exchangeRate", target = "exchangeRate")
     @Mapping(source = "director.token", target = "directorToken")
+    @Mapping(source = "maxBackroomers", target = "maxBackroomers")
+    @Mapping(source = "backroomerCount", target = "backroomerCount")
+    // backroomerCode itself is NOT exposed; only whether it is set.
+    @Mapping(target = "hasBackroomerCode",
+             expression = "java(scenario.getBackroomerCode() != null && !scenario.getBackroomerCode().isEmpty())")
     ScenarioGetDTO convertEntityToScenarioGetDTO(Scenario scenario);
 
     @Mapping(target = "players", ignore = true)
@@ -28,5 +33,8 @@ public interface ScenarioDTOMapper {
     @Mapping(target = "mastodonAccessToken", ignore = true)
     @Mapping(target = "director", ignore = true)
     @Mapping(target = "mastodonProfileUrl", ignore = true)
+    @Mapping(target = "maxBackroomers", ignore = true)
+    @Mapping(target = "backroomerCode", ignore = true)
+    @Mapping(target = "backroomerCount", ignore = true)
     Scenario convertScenarioPostDTOtoEntity(ScenarioPostDTO scenarioPostDTO);
 }

@@ -13,6 +13,13 @@ public class ScenarioGetDTO {
     private String directorToken;
     private String mastodonProfileUrl;
 
+    // ---- Backroom configuration & state (PR 2 feature) ----
+    private int maxBackroomers;
+    private int backroomerCount;
+    /** True iff a non-empty backroomer code is set on the scenario.
+     *  We intentionally do NOT expose the code itself to clients. */
+    private boolean hasBackroomerCode;
+
     public Long getId() {
         return id;
     }
@@ -75,5 +82,29 @@ public class ScenarioGetDTO {
 
     public void setMastodonProfileUrl(String mastodonProfileUrl) {
         this.mastodonProfileUrl = mastodonProfileUrl;
+    }
+
+    public int getMaxBackroomers() {
+        return maxBackroomers;
+    }
+
+    public void setMaxBackroomers(int maxBackroomers) {
+        this.maxBackroomers = maxBackroomers;
+    }
+
+    public int getBackroomerCount() {
+        return backroomerCount;
+    }
+
+    public void setBackroomerCount(int backroomerCount) {
+        this.backroomerCount = backroomerCount;
+    }
+
+    public boolean isHasBackroomerCode() {
+        return hasBackroomerCode;
+    }
+
+    public void setHasBackroomerCode(boolean hasBackroomerCode) {
+        this.hasBackroomerCode = hasBackroomerCode;
     }
 }
