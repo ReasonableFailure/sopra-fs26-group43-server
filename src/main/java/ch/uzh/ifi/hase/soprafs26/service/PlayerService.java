@@ -113,7 +113,7 @@ public class PlayerService {
         roleRepository.flush();
     }
 
-    public Role createRole( RolePostDTO rolePostDTO){
+    public Role createRole(RolePostDTO rolePostDTO){
         Scenario scenario = scenarioRepository.findById(rolePostDTO.getScenarioId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario not found"));
         Role newRole = PlayerDTOMapper.INSTANCE.convertRolePostDTOtoEntity(rolePostDTO);
@@ -126,10 +126,9 @@ public class PlayerService {
         newRole.setNumberMessages(0);
         newRole.setNumberPronouncements(0);
         newRole.setTotalTextLength(0);
-        roleRepository.save(newRole);
-        roleRepository.flush();
         scenario.addPlayer(newRole);
         scenarioRepository.save(scenario);
+
         return newRole;
     }
 

@@ -48,7 +48,7 @@ public class PlayerController {
     @ResponseStatus(HttpStatus.OK)
     public RoleGetDTO createRole(@RequestBody RolePostDTO rolePostDTO, @RequestHeader("Authorization") String token){
         playerService.validate(token,"Director");
-        return PlayerDTOMapper.INSTANCE.convertEntitytoRoleGetDTO(playerService.createRole( rolePostDTO));
+        return PlayerDTOMapper.INSTANCE.convertEntitytoRoleGetDTO(playerService.createRole(rolePostDTO));
     }
 
     @DeleteMapping("/characters/{characterId}")

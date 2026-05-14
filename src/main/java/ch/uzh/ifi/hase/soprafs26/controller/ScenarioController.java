@@ -59,7 +59,6 @@ public class ScenarioController {
 
     @GetMapping("/scenarios/{scenarioId}")
     public ScenarioGetDTO getScenarioById(@RequestHeader("Authorization") String token, @PathVariable Long scenarioId){
-        //System.out.println(token);
         playerService.validate(token,"any");
         Scenario scenario = scenarioService.getScenarioById(scenarioId);
         return ScenarioDTOMapper.INSTANCE.convertEntityToScenarioGetDTO(scenario);
