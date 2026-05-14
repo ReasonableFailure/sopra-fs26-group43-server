@@ -5,7 +5,7 @@ import ch.uzh.ifi.hase.soprafs26.rest.directivedto.*;
 import ch.uzh.ifi.hase.soprafs26.service.DirectiveService;
 import ch.uzh.ifi.hase.soprafs26.service.PlayerService;
 import static ch.uzh.ifi.hase.soprafs26.controller.PlayerController.splitToken;
-import ch.uzh.ifi.hase.soprafs26.mapper.DirectiveDTOMapper;
+import ch.uzh.ifi.hase.soprafs26.rest.mapper.DirectiveDTOMapper;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
 

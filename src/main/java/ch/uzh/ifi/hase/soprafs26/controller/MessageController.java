@@ -5,7 +5,7 @@ import ch.uzh.ifi.hase.soprafs26.rest.messagedto.*;
 import ch.uzh.ifi.hase.soprafs26.service.MessageService;
 import ch.uzh.ifi.hase.soprafs26.service.PlayerService;
 import static ch.uzh.ifi.hase.soprafs26.controller.PlayerController.splitToken;
-import ch.uzh.ifi.hase.soprafs26.mapper.MessageDTOMapper;
+import ch.uzh.ifi.hase.soprafs26.rest.mapper.MessageDTOMapper;
 
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;

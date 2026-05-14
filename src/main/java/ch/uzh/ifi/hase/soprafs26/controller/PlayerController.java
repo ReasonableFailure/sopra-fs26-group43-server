@@ -45,7 +45,7 @@ public class PlayerController {
     }
 
     @GetMapping("/characters/{characterId}/detail")
-    @ResponseStatus
+    @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public RoleGetDTO getRole(@RequestHeader("Authorization") String token, @PathVariable Long characterId) {
         String[] tokens = splitToken(token);
