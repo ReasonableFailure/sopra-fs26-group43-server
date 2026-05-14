@@ -85,6 +85,9 @@ public class ScenarioService {
         if (dto.getExchangeRate() != null) {
             s.setExchangeRate(dto.getExchangeRate());
         }
+        if (dto.getStartingMessageCount() != null) {
+            s.setStartingMessageCount(dto.getStartingMessageCount());
+        }
         scenarioRepository.save(s);
         scenarioRepository.flush();
     }

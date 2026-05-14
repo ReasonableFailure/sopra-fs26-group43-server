@@ -14,7 +14,6 @@ public class ScenarioGetDTO {
     private int exchangeRate;
     private int startingMessageCount;
     private LocalDateTime finishTime;
-    private String directorToken;
     private String mastodonProfileUrl;
 
     public int getStartingMessageCount() {
@@ -79,14 +78,6 @@ public class ScenarioGetDTO {
 
     public void setExchangeRate(int exchangeRate) {
         this.exchangeRate = exchangeRate;
-    }
-
-    public String getDirectorToken() {
-        return directorToken;
-    }
-
-    public void setDirectorToken(String directorToken) {
-        this.directorToken = directorToken;
     }
 
     public String getMastodonProfileUrl() {

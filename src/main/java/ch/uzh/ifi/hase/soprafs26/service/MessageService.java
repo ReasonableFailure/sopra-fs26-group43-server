@@ -102,6 +102,19 @@ public class MessageService {
     }
 
     public List<Message> getMessagesBetween(Long characterAId, Long characterBId) {
+        return getMessagesBetween(characterAId, characterBId, null);
+    }
+
+    /**
+     * Returns messages between two characters.
+     * If {@code requesterRoleId} matches one of the participants, that
+     * participant only sees incoming messages once they have been ACCEPTED
+     * by a backroomer (PENDING/REJECTED/FAILED inbound messages are hidden).
+     * Outbound messages are always visible to their sender.
+     * If {@code requesterRoleId} is null (e.g. backroomer/director viewer),
+     * all messages are returned.
+     */
+    public List<Message> getMessagesBetween(Long characterAId, Long characterBId, Long requesterRoleId) {
 
         playerService.getRoleById(characterAId);
         playerService.getRoleById(characterBId);
@@ -111,7 +124,26 @@ public class MessageService {
                     HttpStatus.BAD_REQUEST, "Cannot retrieve conversation with self");
         }
 
-        return messageRepository.findConversation(characterAId, characterBId);
+        List<Message> all = messageRepository.findConversation(characterAId, characterBId);
+
+        if (requesterRoleId == null) {
+            return all;
+        }
+
+        List<Message> visible = new ArrayList<>();
+        for (Message m : all) {
+            Long creatorId = m.getCreator() != null ? m.getCreator().getId() : null;
+            Long recipientId = m.getRecipient() != null ? m.getRecipient().getId() : null;
+            boolean isMine = requesterRoleId.equals(creatorId);
+            boolean isIncoming = requesterRoleId.equals(recipientId);
+            if (isMine) {
+                visible.add(m);
+            } else if (isIncoming && m.getStatus() == CommsStatus.ACCEPTED) {
+                visible.add(m);
+            }
+            // else: third-party (shouldn't happen since requester is one of the two), skip
+        }
+        return visible;
     }
 
     public List<MessagePairDTO> getMessagePairsByScenario(Long scenarioId) {

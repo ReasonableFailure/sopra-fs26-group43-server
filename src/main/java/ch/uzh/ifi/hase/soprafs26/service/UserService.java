@@ -81,9 +81,14 @@ public class UserService {
     }
 
     public User loginUser(User user) {
-        checkPwd(user.getUsername(), user.getPassword());
-        checkIfUserExistsByID(user.getId());
-        User fromStore = userRepository.findByUsername(user.getUsername()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,String.format("User with id %d not found", user.getId())));
+        if (user.getUsername() == null || user.getPassword() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username and password required");
+        }
+        User fromStore = userRepository.findByUsername(user.getUsername())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password"));
+        if (!fromStore.getPassword().equals(user.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password");
+        }
         fromStore.setToken(UUID.randomUUID().toString());
         fromStore.setStatus(UserStatus.ONLINE);
         fromStore = userRepository.save(fromStore);
@@ -114,17 +119,29 @@ public class UserService {
     }
 
     public void updateProfile(Long id, User holdsUpdate) {
-        if (!checkIfUserExistsByID(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND,String.format("User with id %d not found", id));
+        User toBeModified = userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        String.format("User with id %d not found", id)));
+
+        // Merge: only update fields that the caller actually supplied (non-null, non-blank).
+        if (holdsUpdate.getUsername() != null) {
+            if (holdsUpdate.getUsername().isBlank()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username cannot be blank");
+            }
+            if (!holdsUpdate.getUsername().equals(toBeModified.getUsername())) {
+                checkIfUsernameTaken(holdsUpdate.getUsername());
+            }
+            toBeModified.setUsername(holdsUpdate.getUsername());
         }
-        if (!isValidProfileData(holdsUpdate.getUsername(), holdsUpdate.getPassword())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid username or password");
+        if (holdsUpdate.getPassword() != null) {
+            if (holdsUpdate.getPassword().isBlank()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password cannot be blank");
+            }
+            toBeModified.setPassword(holdsUpdate.getPassword());
         }
-        User toBeModified = userRepository.findById(id).get();
-        if(toBeModified != null){
-        toBeModified.setUsername(holdsUpdate.getUsername());
-        toBeModified.setPassword(holdsUpdate.getPassword());
-        toBeModified.setBio(holdsUpdate.getBio());}
+        if (holdsUpdate.getBio() != null) {
+            toBeModified.setBio(holdsUpdate.getBio());
+        }
         userRepository.save(toBeModified);
         userRepository.flush();
     }
@@ -137,14 +154,6 @@ public class UserService {
     * userid does not exist |||| Done
     * invalid data in update Done
     * */
-    private boolean checkPwd(String username, String password) {
-        User foundByName = userRepository.findByUsername(username).orElseThrow(()->new ResponseStatusException(HttpStatus.BAD_REQUEST, "user cannot be found for password comparison!"));
-        if (!foundByName.getPassword().equals(password)) {
-            return false;
-        }
-        return true;
-    }
-
     private void checkIfUsernameTaken(String username) {
         if(userRepository.findByUsername(username).isPresent()){
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Username " + username + " taken!");

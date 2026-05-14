@@ -1,6 +1,8 @@
 package ch.uzh.ifi.hase.soprafs26.controller;
 
 import ch.uzh.ifi.hase.soprafs26.entity.Message;
+import ch.uzh.ifi.hase.soprafs26.entity.Player;
+import ch.uzh.ifi.hase.soprafs26.entity.Role;
 import ch.uzh.ifi.hase.soprafs26.rest.messagedto.*;
 import ch.uzh.ifi.hase.soprafs26.service.MessageService;
 import ch.uzh.ifi.hase.soprafs26.service.PlayerService;
@@ -92,8 +94,14 @@ public class MessageController {
 
         playerService.validate(token, "any");
 
+        // If the requester is one of the two characters (Role token), hide
+        // PENDING/REJECTED/FAILED inbound messages from them. Backroomer/
+        // Director viewers see everything.
+        Player requester = playerService.resolvePlayerFromHeader(token);
+        Long requesterRoleId = (requester instanceof Role) ? requester.getId() : null;
+
         List<Message> messages =
-                messageService.getMessagesBetween(characterAId, characterBId);
+                messageService.getMessagesBetween(characterAId, characterBId, requesterRoleId);
 
         return messages.stream()
                 .map(MessageDTOMapper.INSTANCE::convertEntityToGetDTO)

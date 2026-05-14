@@ -1,5 +1,6 @@
 package ch.uzh.ifi.hase.soprafs26.controller;
 
+import ch.uzh.ifi.hase.soprafs26.entity.Director;
 import ch.uzh.ifi.hase.soprafs26.entity.Role;
 import ch.uzh.ifi.hase.soprafs26.entity.Scenario;
 import ch.uzh.ifi.hase.soprafs26.entity.NewsStory;
@@ -16,6 +17,7 @@ import ch.uzh.ifi.hase.soprafs26.service.NewsService;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,7 +54,11 @@ public class ScenarioController {
 
     @PostMapping("/scenarios")
     public ScenarioGetDTO createScenario(@RequestBody ScenarioPostDTO scenarioPostDTO, @RequestHeader("Authorization") String token){
-        playerService.validate(token, "Director");
+        String rawToken = playerService.validate(token, "Director");
+        Director director = playerService.getDirectorByToken(rawToken);
+        if (scenarioPostDTO.getDirector() == null || !director.getId().equals(scenarioPostDTO.getDirector())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Director id does not match authenticated director");
+        }
         Scenario created = scenarioService.createScenario(scenarioPostDTO);
         return ScenarioDTOMapper.INSTANCE.convertEntityToScenarioGetDTO(created);
     }
@@ -66,14 +72,23 @@ public class ScenarioController {
 
     @PutMapping("/scenarios/{scenarioId}")
     public void updateScenario(@RequestHeader("Authorization") String token, @PathVariable Long scenarioId, @RequestBody ScenarioPutDTO scenarioPutDTO){
-        playerService.validate(token,"Director");
+        String rawToken = playerService.validate(token,"Director");
+        requireDirectorOf(scenarioId, rawToken);
         scenarioService.updateScenario(scenarioId,scenarioPutDTO);
     }
 
     @DeleteMapping("/scenarios/{scenarioId}")
     public void deleteScenario(@RequestHeader("Authorization") String token, @PathVariable Long scenarioId){
-        playerService.validate(token,"Director");
+        String rawToken = playerService.validate(token,"Director");
+        requireDirectorOf(scenarioId, rawToken);
         scenarioService.deleteScenario(scenarioId);
+    }
+
+    private void requireDirectorOf(Long scenarioId, String rawToken) {
+        Scenario scenario = scenarioService.getScenarioById(scenarioId);
+        if (scenario.getDirector() == null || !rawToken.equals(scenario.getDirector().getToken())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not the director of this scenario");
+        }
     }
 
     @GetMapping("/characters/scenario/{scenarioId}")
@@ -106,7 +121,8 @@ public class ScenarioController {
             @RequestHeader("Authorization") String token,
             @RequestBody ScenarioMastodonDTO dto) {
 
-        playerService.validate(token, "Director");
+        String rawToken = playerService.validate(token, "Director");
+        requireDirectorOf(scenarioId, rawToken);
 
         scenarioService.updateMastodonConfig(scenarioId, dto);
         Scenario scenario = scenarioService.getScenarioById(scenarioId);
