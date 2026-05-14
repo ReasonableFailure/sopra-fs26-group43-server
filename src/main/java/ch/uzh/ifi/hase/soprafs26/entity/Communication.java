@@ -27,6 +27,15 @@ public abstract class Communication implements Serializable {
     @Column(nullable = false)
     private Instant createdAt;
 
+    /**
+     * The scenario day this communication was created on, captured at
+     * creation time. Stays fixed even after the director advances the
+     * day so the dashboard can show "today's activity" by filtering
+     * `dayNumber == scenario.dayNumber`.
+     */
+    @Column(nullable = false)
+    private int dayNumber;
+
     @ManyToOne
     @JoinColumn(name = "scenario_id", nullable = false)
     private Scenario scenario;
@@ -67,6 +76,14 @@ public abstract class Communication implements Serializable {
 
     public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public int getDayNumber() {
+        return dayNumber;
+    }
+
+    public void setDayNumber(int dayNumber) {
+        this.dayNumber = dayNumber;
     }
 
     public Scenario getScenario() {

@@ -55,7 +55,16 @@ public class ScenarioService {
         newScenario.setStatus(ScenarioStatus.UNSTARTED);
         newScenario.setPlayers(new ArrayList<Player>());
         newScenario.setHistory(new ArrayList<Communication>());
-        newScenario.setDirector(playerService.getDirectorByID(scenarioPostDTO.getDirector()));
+
+        Director director = playerService.getDirectorByID(scenarioPostDTO.getDirector());
+        newScenario.setDirector(director);
+        // Register the director as a player of this scenario so the
+        // bidirectional link is set on both sides. Without this,
+        // director.scenario stays null and the Director never appears
+        // in GET /users/{id}/engagements (the engagement filter requires
+        // a non-null scenarioId).
+        newScenario.addPlayer(director);
+
         scenarioRepository.save(newScenario);
         scenarioRepository.flush();
         return newScenario;

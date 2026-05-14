@@ -12,6 +12,14 @@ public class EngagementGetDTO {
     private String roleType;
     private Long playerId;
     private String characterName;
+    /**
+     * The player's role-typed token (Director/Backroomer/Role).
+     * Returned only because GET /users/{userid}/engagements is restricted
+     * to the user themselves, so this is never leaked to other users.
+     * The client uses it to restore per-scenario role-token localStorage
+     * after a re-login so "Resume" works.
+     */
+    private String token;
 
     public Long getScenarioId() { return scenarioId; }
     public void setScenarioId(Long scenarioId) { this.scenarioId = scenarioId; }
@@ -33,4 +41,7 @@ public class EngagementGetDTO {
 
     public String getCharacterName() { return characterName; }
     public void setCharacterName(String characterName) { this.characterName = characterName; }
+
+    public String getToken() { return token; }
+    public void setToken(String token) { this.token = token; }
 }

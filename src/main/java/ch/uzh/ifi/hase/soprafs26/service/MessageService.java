@@ -1,6 +1,7 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
 import ch.uzh.ifi.hase.soprafs26.constant.CommsStatus;
+import ch.uzh.ifi.hase.soprafs26.constant.ScenarioStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.*;
 import ch.uzh.ifi.hase.soprafs26.repository.*;
 import ch.uzh.ifi.hase.soprafs26.rest.messagedto.MessagePostDTO;
@@ -45,6 +46,11 @@ public class MessageService {
 
         Scenario scenario = scenarioService.getScenarioById(postDTO.getScenarioId());
 
+        if (scenario.getStatus() == ScenarioStatus.COMPLETED) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Cannot send messages in a completed scenario");
+        }
+
         if (postDTO.getCreatorId() == null || postDTO.getRecipientId() == null) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST, "Sender or recipient missing");
@@ -64,6 +70,7 @@ public class MessageService {
         Message message = MessageDTOMapper.INSTANCE.convertPostDTOToEntity(postDTO);
 
         message.setCreatedAt(Instant.now());
+        message.setDayNumber(scenario.getDayNumber());
         message.setStatus(CommsStatus.PENDING);
         message.setCreator(creator);
         message.setRecipient(recipient);

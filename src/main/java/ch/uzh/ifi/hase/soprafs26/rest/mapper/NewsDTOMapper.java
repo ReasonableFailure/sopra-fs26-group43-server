@@ -20,5 +20,6 @@ public interface NewsDTOMapper {
     @Mapping(source = "title", target = "title")
     @Mapping(source = "body", target = "body")
     @Mapping(source = "createdAt", target = "createdAt")
+    @Mapping(source = "dayNumber", target = "dayNumber")
     NewsGetDTO convertEntityToGetDTO(NewsStory entity);
 }

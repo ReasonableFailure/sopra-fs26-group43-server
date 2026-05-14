@@ -209,6 +209,7 @@ public class UserService {
     private EngagementGetDTO toEngagementDTO(Player player) {
         EngagementGetDTO dto = new EngagementGetDTO();
         dto.setPlayerId(player.getId());
+        dto.setToken(player.getToken());
         Scenario scenario = player.getScenario();
         if (scenario != null) {
             dto.setScenarioId(scenario.getId());
