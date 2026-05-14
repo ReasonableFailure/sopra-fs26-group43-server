@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import ch.uzh.ifi.hase.soprafs26.constant.CommsStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.Message;
 import ch.uzh.ifi.hase.soprafs26.entity.Role;
-import ch.uzh.ifi.hase.soprafs26.mapper.MessageDTOMapper;
+import ch.uzh.ifi.hase.soprafs26.rest.mapper.MessageDTOMapper;
 import ch.uzh.ifi.hase.soprafs26.rest.messagedto.MessageGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.messagedto.MessagePostDTO;
 import java.time.Instant;
