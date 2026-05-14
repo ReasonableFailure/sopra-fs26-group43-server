@@ -68,7 +68,6 @@ public class RoleGetDTO {
         this.secret = secret;
     }
 
-    @JsonProperty("isAlive")
     public boolean isAlive() {
         return alive;
     }
