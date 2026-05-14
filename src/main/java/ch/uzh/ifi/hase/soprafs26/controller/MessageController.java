@@ -9,6 +9,7 @@ import ch.uzh.ifi.hase.soprafs26.service.PlayerService;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.MessageDTOMapper;
 
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
 import java.util.List;
@@ -83,6 +84,29 @@ public class MessageController {
         playerService.validate(token, "any");
 
         return messageService.getMessagePairsByScenario(scenarioId);
+    }
+
+    @GetMapping("/messages/character/{characterId}/inbox")
+    @ResponseStatus(HttpStatus.OK)
+    public List<MessageGetDTO> getCharacterInbox(
+            @RequestHeader("Authorization") String token,
+            @PathVariable Long characterId,
+            @RequestParam Long scenarioId) {
+
+        // Inbox is for the role itself — only the matching Role token may
+        // read it. Backroomer/Director can already see everything via
+        // getMessagesBetween if they need a broader view.
+        playerService.validate(token, "Role");
+        Player requester = playerService.resolvePlayerFromHeader(token);
+        if (!(requester instanceof Role) || !requester.getId().equals(characterId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Inbox is restricted to the recipient character");
+        }
+
+        List<Message> inbox = messageService.getInbox(characterId, scenarioId);
+        return inbox.stream()
+                .map(MessageDTOMapper.INSTANCE::convertEntityToGetDTO)
+                .toList();
     }
 
     @GetMapping("/messages/between/{characterAId}/{characterBId}")

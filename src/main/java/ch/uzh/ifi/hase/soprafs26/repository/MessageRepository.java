@@ -11,6 +11,11 @@ import org.springframework.data.jpa.repository.Query;
 @Repository("messageRepository")
 public interface MessageRepository extends JpaRepository<Message, Long> {
     List<Message> findByScenarioId(Long scenarioId);
+
+    /** Messages addressed to a specific role within a scenario. Used to
+     *  compute the per-recipient inbox (for unread badges etc). */
+    List<Message> findByRecipientIdAndScenarioId(Long recipientId, Long scenarioId);
+
     @Query("""
     SELECT m FROM Message m
         WHERE (m.creator.id = :a AND m.recipient.id = :b)

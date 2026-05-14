@@ -138,6 +138,7 @@ public class MessageService {
         }
 
         List<Message> visible = new ArrayList<>();
+        boolean markedAny = false;
         for (Message m : all) {
             Long creatorId = m.getCreator() != null ? m.getCreator().getId() : null;
             Long recipientId = m.getRecipient() != null ? m.getRecipient().getId() : null;
@@ -146,11 +147,33 @@ public class MessageService {
             if (isMine) {
                 visible.add(m);
             } else if (isIncoming && m.getStatus() == CommsStatus.ACCEPTED) {
+                // The recipient has now seen this approved message. Marking
+                // here means the unread indicator clears on the very next
+                // dashboard poll without needing a separate "mark read" call.
+                if (!m.isSeenByRecipient()) {
+                    m.setSeenByRecipient(true);
+                    markedAny = true;
+                }
                 visible.add(m);
             }
             // else: third-party (shouldn't happen since requester is one of the two), skip
         }
+        if (markedAny) {
+            messageRepository.flush();
+        }
         return visible;
+    }
+
+    /**
+     * Read-only inbox view: every message addressed to this role within
+     * the scenario. Does NOT mark anything as seen — that's the job of
+     * getMessagesBetween (which fires when the recipient actually opens
+     * the conversation page).
+     */
+    public List<Message> getInbox(Long recipientRoleId, Long scenarioId) {
+        playerService.getRoleById(recipientRoleId);
+        scenarioService.getScenarioById(scenarioId);
+        return messageRepository.findByRecipientIdAndScenarioId(recipientRoleId, scenarioId);
     }
 
     public List<MessagePairDTO> getMessagePairsByScenario(Long scenarioId) {
