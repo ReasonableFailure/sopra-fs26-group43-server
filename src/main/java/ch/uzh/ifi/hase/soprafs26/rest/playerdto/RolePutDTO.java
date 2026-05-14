@@ -4,7 +4,6 @@ public class RolePutDTO {
     private String name;
     private String title;
     private String description;
-    private String portrait;
     private String secret;
     private Boolean alive;
 
@@ -38,14 +37,6 @@ public class RolePutDTO {
 
     public void setSecret(String secret) {
         this.secret = secret;
-    }
-
-    public String getPortrait() {
-        return portrait;
-    }
-
-    public void setPortrait(String portrait) {
-        this.portrait = portrait;
     }
 
     public Boolean getAlive() {
