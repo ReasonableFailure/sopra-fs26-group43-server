@@ -64,7 +64,7 @@ public class PlayerController {
         return PlayerDTOMapper.INSTANCE.convertEntitytoBackroomerGetDTO(playerService.createBackroomer(userAssignDTO, scenarioId));
     }
 
-    @PostMapping("/characters/{characterId}/assignment")
+    @PutMapping("/characters/{characterId}/assignment")
     @ResponseStatus(HttpStatus.OK)
     public RoleGetDTO selectCharacter(@RequestHeader("Authorization") String token,@PathVariable Long characterId, @RequestBody UserAssignDTO userAssignDTO){
         playerService.validate(token, "Bearer");
