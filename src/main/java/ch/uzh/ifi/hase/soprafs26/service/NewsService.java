@@ -1,5 +1,6 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
+import ch.uzh.ifi.hase.soprafs26.constant.ScenarioStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.*;
 import ch.uzh.ifi.hase.soprafs26.repository.*;
 import ch.uzh.ifi.hase.soprafs26.integration.MastodonClient;
@@ -20,74 +21,65 @@ import java.util.List;
 public class NewsService {
 
     private final NewsRepository newsRepository;
-    private final ScenarioRepository scenarioRepository;
-    private final RoleRepository roleRepository;
+    private final ScenarioService scenarioService;
+    private final PlayerService playerService;
+    private final CommunicationStatsService communicationStatsService;
     private final MastodonClient mastodonClient;
 
     public NewsService(
             @Qualifier("newsRepository") NewsRepository newsRepository,
-            @Qualifier("scenarioRepository") ScenarioRepository scenarioRepository,
-            @Qualifier("roleRepository") RoleRepository roleRepository,
-            MastodonClient mastodonClient
+            @Qualifier("scenarioService") ScenarioService scenarioService,
+            @Qualifier("playerService") PlayerService playerService,
+            @Qualifier("communicationStatsService") CommunicationStatsService communicationStatsService,
+            @Qualifier("mastodonClient") MastodonClient mastodonClient
     ) {
         this.newsRepository = newsRepository;
-        this.scenarioRepository = scenarioRepository;
-        this.roleRepository = roleRepository;
+        this.scenarioService = scenarioService;
+        this.playerService = playerService;
+        this.communicationStatsService = communicationStatsService;
         this.mastodonClient = mastodonClient;
     }
 
     public NewsStory createNews(NewsPostDTO dto) {
 
-        Scenario scenario = scenarioRepository.findById(dto.getScenarioId())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Scenario not found"));
+        Scenario scenario = scenarioService.getScenarioById(dto.getScenarioId());
+
+        if (scenario.getStatus() == ScenarioStatus.COMPLETED) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Cannot post news to a completed scenario");
+        }
 
         NewsStory entity;
 
         if (dto.getAuthorId() != null) {
 
-            Role author = roleRepository.findById(dto.getAuthorId())
-                    .orElseThrow(() -> new ResponseStatusException(
-                            HttpStatus.NOT_FOUND, "Author role not found"));
+            Role author = playerService.getRoleById(dto.getAuthorId());
 
             Pronouncement p = new Pronouncement();
             p.setTitle(dto.getTitle());
             p.setBody(dto.getBody());
             p.setCreatedAt(Instant.now());
+            p.setDayNumber(scenario.getDayNumber());
             p.setLikes(0);
             p.setAuthor(author);
             p.setScenario(scenario);
 
-            author.setNumberPronouncements(author.getNumberPronouncements() + 1);
-            author.setTotalTextLength(author.getTotalTextLength() + p.totalTextLength());
-            roleRepository.save(author);
+            communicationStatsService.registerCommunication(author, p);
 
             entity = p;
 
         } else {
             entity = NewsDTOMapper.INSTANCE.convertPostDTOToNewsStory(dto);
             entity.setCreatedAt(Instant.now());
+            entity.setDayNumber(scenario.getDayNumber());
             entity.setScenario(scenario);
         }
 
         entity = newsRepository.save(entity);
 
-        scenario.getHistory().add(entity);
-        scenarioRepository.save(scenario);
+        scenarioService.addCommunicationToHistory(scenario.getId(), entity);
 
-        try {
-            String statusId = mastodonClient.postStatus(
-                    scenario.getMastodonBaseUrl(),
-                    scenario.getMastodonAccessToken(),
-                    entity.formatSelf()
-            );
-
-            entity.setMastodonStatusId(statusId);
-            newsRepository.save(entity);
-
-        } catch (Exception e) {
-            System.err.println("Failed to post to Mastodon: " + e.getMessage());
-        }
+        postToMastodon(scenario, entity);
 
         return entity;
     }
@@ -103,11 +95,33 @@ public class NewsService {
 
     public List<NewsStory> getNewsByScenario(Long scenarioId) {
 
-        if (!scenarioRepository.existsById(scenarioId)) {
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND, "Scenario not found");
-        }
+        scenarioService.getScenarioById(scenarioId);
 
         return newsRepository.findByScenarioIdOrderByCreatedAtAsc(scenarioId);
+    }
+
+    public void postToMastodon (Scenario scenario, NewsStory news) {
+
+        if (news.getMastodonStatusId() != null) {
+            return;
+        }
+
+        try {
+            String statusId = mastodonClient.postStatus(
+                    scenario.getMastodonBaseUrl(),
+                    scenario.getMastodonAccessToken(),
+                    news.formatSelf()
+            );
+
+            news.setMastodonStatusId(statusId);
+            newsRepository.save(news);
+
+        } catch (Exception e) {
+            System.err.println("Failed to post to Mastodon: " + e.getMessage());
+        }
+    }
+
+    public void deleteNews(Long newsId) {
+        newsRepository.deleteById(newsId);
     }
 }

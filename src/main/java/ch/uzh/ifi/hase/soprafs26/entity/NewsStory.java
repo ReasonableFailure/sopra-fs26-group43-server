@@ -8,6 +8,12 @@ public class NewsStory extends Communication {
     @Column(nullable = true)
     private String mastodonStatusId;
 
+    @Override
+    public void applyStats(Role role) {
+        // Intentionally empty:
+        // NewsStory instances do not modify role statistics.
+    }
+
     public String getMastodonStatusId() {
         return mastodonStatusId;
     }

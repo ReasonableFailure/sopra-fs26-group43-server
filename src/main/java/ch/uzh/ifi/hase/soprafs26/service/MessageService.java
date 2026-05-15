@@ -1,12 +1,13 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
 import ch.uzh.ifi.hase.soprafs26.constant.CommsStatus;
+import ch.uzh.ifi.hase.soprafs26.constant.ScenarioStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.*;
 import ch.uzh.ifi.hase.soprafs26.repository.*;
 import ch.uzh.ifi.hase.soprafs26.rest.messagedto.MessagePostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.messagedto.MessagePutDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.messagedto.MessagePairDTO;
-import ch.uzh.ifi.hase.soprafs26.mapper.MessageDTOMapper;
+import ch.uzh.ifi.hase.soprafs26.rest.mapper.MessageDTOMapper;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -25,49 +26,51 @@ import java.util.ArrayList;
 public class MessageService {
 
     private final MessageRepository messageRepository;
-    private final ScenarioRepository scenarioRepository;
-    private final RoleRepository roleRepository;
+    private final ScenarioService scenarioService;
+    private final PlayerService playerService;
+    private final CommunicationStatsService communicationStatsService;
 
     public MessageService(
             @Qualifier("messageRepository") MessageRepository messageRepository,
-            @Qualifier("scenarioRepository") ScenarioRepository scenarioRepository,
-            @Qualifier("roleRepository") RoleRepository roleRepository
+            @Qualifier("scenarioService") ScenarioService scenarioService,
+            @Qualifier("playerService") PlayerService playerService,
+            @Qualifier("communicationStatsService") CommunicationStatsService communicationStatsService
     ) {
         this.messageRepository = messageRepository;
-        this.scenarioRepository = scenarioRepository;
-        this.roleRepository = roleRepository;
+        this.scenarioService = scenarioService;
+        this.playerService = playerService;
+        this.communicationStatsService = communicationStatsService;
     }
 
     public Message createMessage(MessagePostDTO postDTO) {
 
-        Scenario scenario = scenarioRepository.findById(postDTO.getScenarioId())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Scenario not found"));
+        Scenario scenario = scenarioService.getScenarioById(postDTO.getScenarioId());
+
+        if (scenario.getStatus() == ScenarioStatus.COMPLETED) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Cannot send messages in a completed scenario");
+        }
 
         if (postDTO.getCreatorId() == null || postDTO.getRecipientId() == null) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST, "Sender or recipient missing");
         }
 
-        Role creator = roleRepository.findById(postDTO.getCreatorId())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Creator role not found"));
+        Role creator = playerService.getRoleById(postDTO.getCreatorId());
 
-        Role recipient = roleRepository.findById(postDTO.getRecipientId())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Recipient role not found"));
+        Role recipient = playerService.getRoleById(postDTO.getRecipientId());
 
         if (creator.getId().equals(recipient.getId())) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST, "Cannot send message to self");
         }
 
-        creator.useMessageSlot();
-        roleRepository.save(creator);
+        playerService.consumeMessageSlot(creator);
 
         Message message = MessageDTOMapper.INSTANCE.convertPostDTOToEntity(postDTO);
 
         message.setCreatedAt(Instant.now());
+        message.setDayNumber(scenario.getDayNumber());
         message.setStatus(CommsStatus.PENDING);
         message.setCreator(creator);
         message.setRecipient(recipient);
@@ -75,8 +78,7 @@ public class MessageService {
 
         message = messageRepository.save(message);
 
-        scenario.getHistory().add(message);
-        scenarioRepository.save(scenario);
+        scenarioService.addCommunicationToHistory(scenario.getId(), message);
 
         return message;
     }
@@ -92,19 +94,14 @@ public class MessageService {
 
     public void updateMessageStatus(Long messageId, MessagePutDTO putDTO) {
 
-        Message message = messageRepository.findById(messageId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Message not found"));
+        Message message = getMessageById(messageId);
 
         if (putDTO.getStatus() == null) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST, "Status must not be null");
         }
 
-        Role creator = message.getCreator();
-        creator.setNumberMessages(creator.getNumberMessages() + 1);
-        creator.setTotalTextLength(creator.getTotalTextLength() + message.totalTextLength());
-        roleRepository.save(creator);
+        communicationStatsService.registerCommunication(message.getCreator(), message);
 
         message.setStatus(putDTO.getStatus());
 
@@ -112,28 +109,76 @@ public class MessageService {
     }
 
     public List<Message> getMessagesBetween(Long characterAId, Long characterBId) {
+        return getMessagesBetween(characterAId, characterBId, null);
+    }
 
-        if (!roleRepository.existsById(characterAId) ||
-                !roleRepository.existsById(characterBId)) {
+    /**
+     * Returns messages between two characters.
+     * If {@code requesterRoleId} matches one of the participants, that
+     * participant only sees incoming messages once they have been ACCEPTED
+     * by a backroomer (PENDING/REJECTED/FAILED inbound messages are hidden).
+     * Outbound messages are always visible to their sender.
+     * If {@code requesterRoleId} is null (e.g. backroomer/director viewer),
+     * all messages are returned.
+     */
+    public List<Message> getMessagesBetween(Long characterAId, Long characterBId, Long requesterRoleId) {
 
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND, "One or both characters not found");
-        }
+        playerService.getRoleById(characterAId);
+        playerService.getRoleById(characterBId);
 
         if (characterAId.equals(characterBId)) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST, "Cannot retrieve conversation with self");
         }
 
-        return messageRepository.findConversation(characterAId, characterBId);
+        List<Message> all = messageRepository.findConversation(characterAId, characterBId);
+
+        if (requesterRoleId == null) {
+            return all;
+        }
+
+        List<Message> visible = new ArrayList<>();
+        boolean markedAny = false;
+        for (Message m : all) {
+            Long creatorId = m.getCreator() != null ? m.getCreator().getId() : null;
+            Long recipientId = m.getRecipient() != null ? m.getRecipient().getId() : null;
+            boolean isMine = requesterRoleId.equals(creatorId);
+            boolean isIncoming = requesterRoleId.equals(recipientId);
+            if (isMine) {
+                visible.add(m);
+            } else if (isIncoming && m.getStatus() == CommsStatus.ACCEPTED) {
+                // The recipient has now seen this approved message. Marking
+                // here means the unread indicator clears on the very next
+                // dashboard poll without needing a separate "mark read" call.
+                if (!m.isSeenByRecipient()) {
+                    m.setSeenByRecipient(true);
+                    markedAny = true;
+                }
+                visible.add(m);
+            }
+            // else: third-party (shouldn't happen since requester is one of the two), skip
+        }
+        if (markedAny) {
+            messageRepository.flush();
+        }
+        return visible;
+    }
+
+    /**
+     * Read-only inbox view: every message addressed to this role within
+     * the scenario. Does NOT mark anything as seen — that's the job of
+     * getMessagesBetween (which fires when the recipient actually opens
+     * the conversation page).
+     */
+    public List<Message> getInbox(Long recipientRoleId, Long scenarioId) {
+        playerService.getRoleById(recipientRoleId);
+        scenarioService.getScenarioById(scenarioId);
+        return messageRepository.findByRecipientIdAndScenarioId(recipientRoleId, scenarioId);
     }
 
     public List<MessagePairDTO> getMessagePairsByScenario(Long scenarioId) {
 
-        if (!scenarioRepository.existsById(scenarioId)) {
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND, "Scenario not found");
-        }
+        scenarioService.getScenarioById(scenarioId);
 
         List<Message> messages = messageRepository.findByScenarioId(scenarioId);
 
@@ -162,5 +207,9 @@ public class MessageService {
         }
 
         return result;
+    }
+
+    public void deleteMessage(Long messageId) {
+        messageRepository.deleteById(messageId);
     }
 }

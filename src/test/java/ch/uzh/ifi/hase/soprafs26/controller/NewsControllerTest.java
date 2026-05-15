@@ -60,11 +60,13 @@ public class NewsControllerTest {
     public void setupTest() {
         objectMapper = new ObjectMapper();
 
-        Mockito.lenient().doNothing().when(playerService).checkToken(anyString(), anyString());
+        Mockito.lenient().when(playerService.validate(anyString(), anyString())).thenReturn("token123");
 
         testRole = new Role();
         testRole.setId(1L);
         testRole.setName("Test Role");
+
+        Mockito.lenient().when(playerService.resolvePlayerFromHeader(anyString())).thenReturn(testRole);
 
         testScenario = new Scenario();
         testScenario.setId(1L);
@@ -103,7 +105,7 @@ public class NewsControllerTest {
 
         MockHttpServletRequestBuilder postRequest = post("/news")
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Role token123")
+                .header("Authorization", "Bearer token123")
                 .content(asJsonString(newsPostDTO));
 
         mockMvc.perform(postRequest)
@@ -125,7 +127,7 @@ public class NewsControllerTest {
 
         MockHttpServletRequestBuilder postRequest = post("/news")
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Role token123")
+                .header("Authorization", "Bearer token123")
                 .content(asJsonString(newsPostDTO));
 
         mockMvc.perform(postRequest)
@@ -146,7 +148,7 @@ public class NewsControllerTest {
 
         MockHttpServletRequestBuilder postRequest = post("/news")
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Role token123")
+                .header("Authorization", "Bearer token123")
                 .content(asJsonString(newsPostDTO));
 
         mockMvc.perform(postRequest)
@@ -162,7 +164,7 @@ public class NewsControllerTest {
 
         MockHttpServletRequestBuilder postRequest = post("/news")
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Role token123")
+                .header("Authorization", "Bearer token123")
                 .content(asJsonString(newsPostDTO));
 
         mockMvc.perform(postRequest)
@@ -177,7 +179,7 @@ public class NewsControllerTest {
                 .thenReturn(testPronouncement);
 
         MockHttpServletRequestBuilder getRequest = get("/news/2")
-                .header("Authorization", "Role token123");
+                .header("Authorization", "Bearer token123");
 
         mockMvc.perform(getRequest)
                 .andExpect(status().isOk())
@@ -196,7 +198,7 @@ public class NewsControllerTest {
                 .thenReturn(testNewsStory);
 
         MockHttpServletRequestBuilder getRequest = get("/news/1")
-                .header("Authorization", "Role token123");
+                .header("Authorization", "Bearer token123");
 
         mockMvc.perform(getRequest)
                 .andExpect(status().isOk())
@@ -215,7 +217,7 @@ public class NewsControllerTest {
                 .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "News item not found"));
 
         MockHttpServletRequestBuilder getRequest = get("/news/999")
-                .header("Authorization", "Role token123");
+                .header("Authorization", "Bearer token123");
 
         mockMvc.perform(getRequest)
                 .andExpect(status().isNotFound());
@@ -230,7 +232,7 @@ public class NewsControllerTest {
                 .thenReturn(newsList);
 
         MockHttpServletRequestBuilder getRequest = get("/news/scenario/1")
-                .header("Authorization", "Role token123");
+                .header("Authorization", "Bearer token123");
 
         mockMvc.perform(getRequest)
                 .andExpect(status().isOk())
@@ -252,7 +254,7 @@ public class NewsControllerTest {
                 .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario not found"));
 
         MockHttpServletRequestBuilder getRequest = get("/news/scenario/999")
-                .header("Authorization", "Role token123");
+                .header("Authorization", "Bearer token123");
 
         mockMvc.perform(getRequest)
                 .andExpect(status().isNotFound());

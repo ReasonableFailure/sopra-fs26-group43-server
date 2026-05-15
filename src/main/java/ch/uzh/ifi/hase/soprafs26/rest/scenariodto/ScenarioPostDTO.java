@@ -5,6 +5,15 @@ public class ScenarioPostDTO {
     private String title;
     private int exchangeRate;
     private int startingMessageCount;
+    private Long director;
+
+    public Long getDirector() {
+        return director;
+    }
+
+    public void setDirector(Long director) {
+        this.director = director;
+    }
 
     public String getTitle() {
         return title;
@@ -26,7 +35,9 @@ public class ScenarioPostDTO {
         return description;
     }
 
-    public void setDescription(String description) {}
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
     public int getStartingMessageCount() {
         return startingMessageCount;

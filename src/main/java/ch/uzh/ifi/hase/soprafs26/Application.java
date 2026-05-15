@@ -29,7 +29,14 @@ public class Application {
 		return new WebMvcConfigurer() {
 			@Override
 			public void addCorsMappings(CorsRegistry registry) {
-				registry.addMapping("/**").allowedOrigins("*").allowedMethods("*");
+				// TODO(prod): lock down to the deployed frontend origin
+				// (e.g. https://your-app.example.com) and to the verbs we
+				// actually use (GET, POST, PUT, DELETE). The wildcard below
+				// is convenient in dev only.
+				registry.addMapping("/**")
+						.allowedOrigins("*")
+						.allowedMethods("*")
+						.allowedHeaders("*");
 			}
 		};
 	}

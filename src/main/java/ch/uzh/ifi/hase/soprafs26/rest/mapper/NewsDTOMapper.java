@@ -5,7 +5,7 @@ import ch.uzh.ifi.hase.soprafs26.rest.newsdto.*;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface NewsDTOMapper {
 
     NewsDTOMapper INSTANCE = Mappers.getMapper(NewsDTOMapper.class);
@@ -20,5 +20,6 @@ public interface NewsDTOMapper {
     @Mapping(source = "title", target = "title")
     @Mapping(source = "body", target = "body")
     @Mapping(source = "createdAt", target = "createdAt")
+    @Mapping(source = "dayNumber", target = "dayNumber")
     NewsGetDTO convertEntityToGetDTO(NewsStory entity);
 }

@@ -7,6 +7,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import ch.uzh.ifi.hase.soprafs26.constant.CommsStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.Directive;
@@ -32,10 +33,13 @@ public class DirectiveServiceTest {
 	private DirectiveRepository directiveRepository;
 
 	@Mock
-	private ScenarioRepository scenarioRepository;
+	private ScenarioService scenarioService;
 
 	@Mock
-	private RoleRepository roleRepository;
+	private PlayerService playerService;
+
+	@Mock
+	private CommunicationStatsService communicationStatsService;
 
 	@InjectMocks
 	private DirectiveService directiveService;
@@ -80,10 +84,10 @@ public class DirectiveServiceTest {
 		testDirective.setScenario(testScenario);
 		testDirective.setCreatedAt(Instant.now());
 
-		Mockito.when(scenarioRepository.findById(1L)).thenReturn(Optional.of(testScenario));
-		Mockito.when(roleRepository.findById(1L)).thenReturn(Optional.of(testRole));
+		Mockito.when(scenarioService.getScenarioById(1L)).thenReturn(testScenario);
+		Mockito.when(playerService.getRoleById(1L)).thenReturn(testRole);
 		Mockito.when(directiveRepository.save(Mockito.any())).thenReturn(testDirective);
-		Mockito.when(scenarioRepository.save(Mockito.any())).thenReturn(testScenario);
+		Mockito.doNothing().when(scenarioService).addCommunicationToHistory(Mockito.anyLong(), Mockito.any());
 	}
 
 	@Test
@@ -91,7 +95,6 @@ public class DirectiveServiceTest {
 		Directive createdDirective = directiveService.createDirective(testDirectivePostDTO);
 
 		Mockito.verify(directiveRepository, Mockito.times(1)).save(Mockito.any());
-		Mockito.verify(scenarioRepository, Mockito.times(1)).save(testScenario);
 
 		assertEquals(testDirectivePostDTO.getTitle(), createdDirective.getTitle());
 		assertEquals(testDirectivePostDTO.getBody(), createdDirective.getBody());
@@ -110,14 +113,14 @@ public class DirectiveServiceTest {
 
 	@Test
 	public void createDirective_scenarioNotFound_throwsException() {
-		Mockito.when(scenarioRepository.findById(1L)).thenReturn(Optional.empty());
+		Mockito.when(scenarioService.getScenarioById(1L)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario not found"));
 
 		assertThrows(ResponseStatusException.class, () -> directiveService.createDirective(testDirectivePostDTO));
 	}
 
 	@Test
 	public void createDirective_roleNotFound_throwsException() {
-		Mockito.when(roleRepository.findById(1L)).thenReturn(Optional.empty());
+		Mockito.when(playerService.getRoleById(1L)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Role not found"));
 
 		assertThrows(ResponseStatusException.class, () -> directiveService.createDirective(testDirectivePostDTO));
 	}
@@ -129,7 +132,7 @@ public class DirectiveServiceTest {
 		scenarioWithoutRole.setPlayers(new ArrayList<>());
 		scenarioWithoutRole.setHistory(new ArrayList<>());
 		
-		Mockito.when(scenarioRepository.findById(1L)).thenReturn(Optional.of(scenarioWithoutRole));
+		Mockito.when(scenarioService.getScenarioById(1L)).thenReturn((scenarioWithoutRole));
 
 		assertThrows(ResponseStatusException.class, () -> directiveService.createDirective(testDirectivePostDTO));
 	}
@@ -180,19 +183,19 @@ public class DirectiveServiceTest {
 	@Test
 	public void getDirectivesByScenario_validScenarioId_success() {
 		List<Directive> expectedDirectives = Arrays.asList(testDirective);
-		Mockito.when(scenarioRepository.existsById(1L)).thenReturn(true);
+		Mockito.when(scenarioService.getScenarioById(1L)).thenReturn(testScenario);
 		Mockito.when(directiveRepository.findByScenarioId(1L)).thenReturn(expectedDirectives);
 
 		List<Directive> result = directiveService.getDirectivesByScenario(1L);
 
 		assertEquals(expectedDirectives, result);
-		Mockito.verify(scenarioRepository, Mockito.times(1)).existsById(1L);
+		Mockito.verify(scenarioService, Mockito.times(1)).getScenarioById(1L);
 		Mockito.verify(directiveRepository, Mockito.times(1)).findByScenarioId(1L);
 	}
 
 	@Test
 	public void getDirectivesByScenario_scenarioNotFound_throwsException() {
-		Mockito.when(scenarioRepository.existsById(1L)).thenReturn(false);
+		Mockito.when(scenarioService.getScenarioById(1L)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario not found"));
 
 		assertThrows(ResponseStatusException.class, () -> directiveService.getDirectivesByScenario(1L));
 	}
@@ -200,19 +203,19 @@ public class DirectiveServiceTest {
 	@Test
 	public void getDirectivesByCreator_validCharacterId_success() {
 		List<Directive> expectedDirectives = Arrays.asList(testDirective);
-		Mockito.when(roleRepository.existsById(1L)).thenReturn(true);
+		Mockito.when(playerService.getRoleById(1L)).thenReturn(testRole);
 		Mockito.when(directiveRepository.findByCreatorId(1L)).thenReturn(expectedDirectives);
 
 		List<Directive> result = directiveService.getDirectivesByCreator(1L);
 
 		assertEquals(expectedDirectives, result);
-		Mockito.verify(roleRepository, Mockito.times(1)).existsById(1L);
+		Mockito.verify(playerService, Mockito.times(1)).getRoleById(1L);
 		Mockito.verify(directiveRepository, Mockito.times(1)).findByCreatorId(1L);
 	}
 
 	@Test
 	public void getDirectivesByCreator_characterNotFound_throwsException() {
-		Mockito.when(roleRepository.existsById(1L)).thenReturn(false);
+		Mockito.when(playerService.getRoleById(1L)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Character not found"));
 
 		assertThrows(ResponseStatusException.class, () -> directiveService.getDirectivesByCreator(1L));
 	}

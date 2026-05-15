@@ -1,11 +1,12 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
 import ch.uzh.ifi.hase.soprafs26.constant.CommsStatus;
+import ch.uzh.ifi.hase.soprafs26.constant.ScenarioStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.*;
 import ch.uzh.ifi.hase.soprafs26.repository.*;
 import ch.uzh.ifi.hase.soprafs26.rest.directivedto.DirectivePostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.directivedto.DirectivePutDTO;
-import ch.uzh.ifi.hase.soprafs26.mapper.DirectiveDTOMapper;
+import ch.uzh.ifi.hase.soprafs26.rest.mapper.DirectiveDTOMapper;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -21,34 +22,42 @@ import java.util.List;
 public class DirectiveService {
 
     private final DirectiveRepository directiveRepository;
-    private final ScenarioRepository scenarioRepository;
-    private final RoleRepository roleRepository;
+    private final ScenarioService scenarioService;
+    private final PlayerService playerService;
+    private final CommunicationStatsService communicationStatsService;
 
     public DirectiveService(
             @Qualifier("directiveRepository") DirectiveRepository directiveRepository,
-            @Qualifier("scenarioRepository") ScenarioRepository scenarioRepository,
-            @Qualifier("roleRepository") RoleRepository roleRepository
+            @Qualifier("scenarioService") ScenarioService scenarioService,
+            @Qualifier("playerService") PlayerService playerService,
+            @Qualifier("communicationStatsService") CommunicationStatsService communicationStatsService
     ) {
         this.directiveRepository = directiveRepository;
-        this.scenarioRepository = scenarioRepository;
-        this.roleRepository = roleRepository;
+        this.scenarioService = scenarioService;
+        this.playerService = playerService;
+        this.communicationStatsService = communicationStatsService;
     }
 
     public Directive createDirective(DirectivePostDTO postDTO) {
 
-        Scenario scenario = scenarioRepository.findById(postDTO.getScenarioId())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Scenario not found"));
+        Scenario scenario = scenarioService.getScenarioById(postDTO.getScenarioId());
+
+        if (scenario.getStatus() == ScenarioStatus.COMPLETED) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Cannot submit directives in a completed scenario");
+        }
 
         if (postDTO.getCreatorId() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Creator ID missing");
         }
 
-        Role creator = roleRepository.findById(postDTO.getCreatorId())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Role not found"));
+        Role creator = playerService.getRoleById(postDTO.getCreatorId());
 
-        if (!scenario.getPlayers().contains(creator)) {
+        boolean roleInScenario = scenario.getPlayers().stream()
+                .map(Player::getId)
+                .anyMatch(id -> id.equals(creator.getId()));
+
+        if (!roleInScenario) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST, "Role not part of scenario");
         }
@@ -56,6 +65,7 @@ public class DirectiveService {
         Directive directive = DirectiveDTOMapper.INSTANCE.convertPostDTOToEntity(postDTO);
 
         directive.setCreatedAt(Instant.now());
+        directive.setDayNumber(scenario.getDayNumber());
         directive.setStatus(CommsStatus.PENDING);
         directive.setCreator(creator);
         directive.setResponse(null);
@@ -63,8 +73,10 @@ public class DirectiveService {
 
         directive = directiveRepository.save(directive);
 
-        scenario.getHistory().add(directive);
-        scenarioRepository.save(scenario);
+        scenarioService.addCommunicationToHistory(
+            scenario.getId(),
+            directive
+        );
 
         return directive;
     }
@@ -80,14 +92,9 @@ public class DirectiveService {
 
     public void updateDirectiveStatus(Long directiveId, DirectivePutDTO putDTO) {
 
-        Directive directive = directiveRepository.findById(directiveId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Directive not found"));
+        Directive directive = getDirectiveById(directiveId);
         
-        Role creator = directive.getCreator();
-        creator.setNumberDirectives(creator.getNumberDirectives() + 1);
-        creator.setTotalTextLength(creator.getTotalTextLength() + directive.totalTextLength());
-        roleRepository.save(creator);
+        communicationStatsService.registerCommunication(directive.getCreator(), directive);
 
         if (putDTO.getStatus() == null) {
             throw new ResponseStatusException(
@@ -102,21 +109,17 @@ public class DirectiveService {
 
     public List<Directive> getDirectivesByScenario(Long scenarioId) {
 
-        if (!scenarioRepository.existsById(scenarioId)) {
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND, "Scenario not found");
-        }
-
+        scenarioService.getScenarioById(scenarioId);
         return directiveRepository.findByScenarioId(scenarioId);
     }
 
     public List<Directive> getDirectivesByCreator(Long characterId) {
-
-        if (!roleRepository.existsById(characterId)) {
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND, "Character not found");
-        }
-
+        
+        playerService.getRoleById(characterId);
         return directiveRepository.findByCreatorId(characterId);
+    }
+
+    public void deleteDirective(Long Id){
+        directiveRepository.deleteById(Id);
     }
 }

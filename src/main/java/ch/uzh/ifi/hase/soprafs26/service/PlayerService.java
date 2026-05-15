@@ -4,12 +4,11 @@ import ch.uzh.ifi.hase.soprafs26.entity.*;
 import ch.uzh.ifi.hase.soprafs26.repository.*;
 import ch.uzh.ifi.hase.soprafs26.integration.MastodonClient;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.PlayerDTOMapper;
-import ch.uzh.ifi.hase.soprafs26.rest.playerdto.PlayerGetDTO;
-import ch.uzh.ifi.hase.soprafs26.rest.playerdto.PlayerPutDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RolePostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RolePutDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.userdto.UserAssignDTO;
+import io.netty.handler.codec.http2.Http2PushPromiseFrame;
 import jakarta.transaction.Transactional;
-import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,9 +38,20 @@ public class PlayerService {
     private final ScenarioRepository scenarioRepository;
     private final UserService userService;
     private final MastodonClient mastodonClient;
+    private final ActionPointService actionPointService;
     private final Logger log = LoggerFactory.getLogger(PlayerService.class);
 
-    public PlayerService(@Qualifier("playerRepository") PlayerRepository playerRepository, @Qualifier("roleRepository") RoleRepository roleRepository,@Qualifier("backroomerRepository") BackroomerRepository backroomerRepository,@Qualifier("directorRepository") DirectorRepository directorRepository, @Qualifier("userService") UserService userService, @Qualifier("messageRepository") MessageRepository messageRepository, @Qualifier("scenarioRepository") ScenarioRepository scenarioRepository, @Qualifier("newsRepository") NewsRepository newsRepository, @Qualifier("mastodonClient") MastodonClient mastodonClient) {
+    public PlayerService(@Qualifier("playerRepository") PlayerRepository playerRepository, 
+    @Qualifier("roleRepository") RoleRepository roleRepository,
+    @Qualifier("backroomerRepository") BackroomerRepository backroomerRepository,
+    @Qualifier("directorRepository") DirectorRepository directorRepository, 
+    @Qualifier("userService") UserService userService, 
+    @Qualifier("messageRepository") MessageRepository messageRepository, 
+    @Qualifier("scenarioRepository") ScenarioRepository scenarioRepository, 
+    @Qualifier("newsRepository") NewsRepository newsRepository, 
+    @Qualifier("mastodonClient") MastodonClient mastodonClient,
+    @Qualifier("actionPointService") ActionPointService actionPointService
+) {
         this.playerRepository = playerRepository;
         this.backroomerRepository = backroomerRepository;
         this.directorRepository = directorRepository;
@@ -51,38 +61,103 @@ public class PlayerService {
         this.scenarioRepository = scenarioRepository;
         this.newsRepository = newsRepository;
         this.mastodonClient = mastodonClient;
+        this.actionPointService = actionPointService;
     }
 
-    public Role getRole(String token, Long roleId)  {
-        //checkToken(token,"any");
-        return roleRepository.findById(roleId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Role with id %d not found", roleId)));
+    private static final String ROLE_NOT_FOUND = "Role with id %d not found";
+
+    public Role getRoleById( Long roleId)  {
+        return roleRepository.findById(roleId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format(ROLE_NOT_FOUND, roleId)));
+    }
+
+    public Director getDirectorByID(Long id){
+        return directorRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Director " + id + " not found in repository"));
+    }
+
+    public Director getDirectorByToken(String rawToken){
+        return directorRepository.findByToken(rawToken)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid director token"));
+    }
+
+    /**
+     * Resolves the Authorization header to the Role/Backroomer/Director that
+     * owns the token. Returns null for Bearer-typed (user-only) headers,
+     * which don't correspond to a player.
+     */
+    public Player resolvePlayerFromHeader(String fromHeader) {
+        if (fromHeader == null || fromHeader.isEmpty()) return null;
+        String[] parts = fromHeader.split(" ", 2);
+        if (parts.length < 2 || parts[1].isBlank()) return null;
+        String type = parts[0];
+        String rawToken = parts[1];
+        if (type.equalsIgnoreCase("Role")) {
+            return roleRepository.findByToken(rawToken).orElse(null);
+        }
+        if (type.equalsIgnoreCase("Director")) {
+            return directorRepository.findByToken(rawToken).orElse(null);
+        }
+        if (type.equalsIgnoreCase("Backroomer")) {
+            return backroomerRepository.findByToken(rawToken).orElse(null);
+        }
+        return null;
+    }
+
+    /**
+     * Throws CONFLICT if the user is already engaged (Director/Backroomer/Role)
+     * in the given scenario. Used to enforce "one role per user per scenario".
+     */
+    public void ensureUserNotEngagedInScenario(Long userId, Long scenarioId) {
+        List<Player> existing = playerRepository.findByUser_Id(userId);
+        for (Player p : existing) {
+            Scenario s = p.getScenario();
+            if (s != null && s.getId().equals(scenarioId)) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "User is already engaged in this scenario");
+            }
+        }
     }
 
     public Role updateMessagingStats(Long roleId, int initialMessageCount){
-        Role toChange = roleRepository.findById(roleId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Role with id %d not found", roleId)));
+        Role toChange = roleRepository.findById(roleId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format(ROLE_NOT_FOUND, roleId)));
         toChange.setMessageCount(initialMessageCount);
         roleRepository.save(toChange);
         roleRepository.flush();
         return toChange;
     }
 
-    public PlayerGetDTO updatePlayerAssociation(Long playerId, PlayerPutDTO playerPutDTO, String token){
+    public Player updatePlayerAssociation(Long playerId, UserAssignDTO userAssignDTO){
         //Assigns a user to an existing Player or child class
-        checkToken(token,"any");
-        Player player = playerRepository.findById(playerId).orElseThrow(() -> new ResponseStatusException(HttpStatusCode.valueOf(404), String.format("User %d cannot be assigned to player %d, this player does not exist", playerPutDTO.getNewAssignedUserId(), playerId)));
-        player = PlayerDTOMapper.INSTANCE.convertPlayerPutDTOtoEntity(playerPutDTO, player);
+        Player player = playerRepository.findById(playerId).orElseThrow(() -> new ResponseStatusException(HttpStatusCode.valueOf(404), String.format("User cannot be assigned to player %d, this player does not exist", playerId)));
+        player.setUser(userService.getProfileById(userAssignDTO.getId()));
         playerRepository.save(player);
-        return PlayerDTOMapper.INSTANCE.convertEntitytoPlayerGetDTO(player);
+        playerRepository.flush();
+        return player;
     }
 
-    public void updateRole(String token, RolePutDTO rolePutDTO, Long roleId){
-        checkToken(token, "Director");
-        Role role = roleRepository.findById(roleId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Character with id %d not found", roleId)));
-        PlayerDTOMapper.INSTANCE.convertRolePutDTOtoEntity(rolePutDTO, role);
+    public void updateRole(RolePutDTO dto, Long roleId){
+
+        Role r = getRoleById(roleId);
+
+        if (dto.getName() != null) {
+            r.setName(dto.getName());
+        }
+        if (dto.getTitle() != null) {
+            r.setTitle(dto.getTitle());
+        }
+        if (dto.getDescription() != null) {
+            r.setDescription(dto.getDescription());
+        }
+        if (dto.getSecret() != null) {
+            r.setSecret(dto.getSecret());
+        }
+        if (dto.getAlive() != null) {
+            r.setAlive(dto.getAlive());
+        }
+        roleRepository.save(r);
+        roleRepository.flush();
     }
 
-    public Role createRole(String token, RolePostDTO rolePostDTO){
-        checkToken(token, "Director");
+    public Role createRole(RolePostDTO rolePostDTO){
         Scenario scenario = scenarioRepository.findById(rolePostDTO.getScenarioId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario not found"));
         Role newRole = PlayerDTOMapper.INSTANCE.convertRolePostDTOtoEntity(rolePostDTO);
@@ -95,35 +170,65 @@ public class PlayerService {
         newRole.setNumberMessages(0);
         newRole.setNumberPronouncements(0);
         newRole.setTotalTextLength(0);
-        roleRepository.save(newRole);
-        roleRepository.flush();
         scenario.addPlayer(newRole);
         scenarioRepository.save(scenario);
+
         return newRole;
     }
 
-    public void deleteRole(String token, Long roleId){
-        checkToken(token, "Director");
+    public void deleteRole(Long roleId){
+
         roleRepository.deleteById(roleId);
     }
 
-    public Backroomer createBackroomer(String userToken){
-        userService.checkIfValidToken(userToken);
+    public Backroomer createBackroomer(UserAssignDTO userAssignDTO, long scenarioId){
+        Scenario scenario = scenarioRepository.findById(scenarioId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario not found"));
+        if (userAssignDTO == null || userAssignDTO.getId() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User id is required");
+        }
+        ensureUserNotEngagedInScenario(userAssignDTO.getId(), scenarioId);
         Backroomer b = new Backroomer();
         b.setToken(randomUUID().toString());
-        b.setDelegatedCharacters(new ArrayList<Role>());
+        b.setUser(userService.getProfileById(userAssignDTO.getId()));
         backroomerRepository.save(b);
         backroomerRepository.flush();
+        scenario.addPlayer(b);
+        scenarioRepository.save(scenario);
         return b;
+    }
+
+    /**
+     * Claim an unclaimed Role for the given user. Throws if the role already has
+     * a different user, or if the user is already engaged in this scenario.
+     */
+    public Role claimRole(Long roleId, Long userId) {
+        Role role = roleRepository.findById(roleId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        String.format(ROLE_NOT_FOUND, roleId)));
+        if (role.getUser() != null && !role.getUser().getId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Character already taken");
+        }
+        Scenario scenario = role.getScenario();
+        if (scenario == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Role is not attached to a scenario");
+        }
+        if (role.getUser() == null) {
+            ensureUserNotEngagedInScenario(userId, scenario.getId());
+        }
+        role.setUser(userService.getProfileById(userId));
+        roleRepository.save(role);
+        roleRepository.flush();
+        return role;
     }
   
     public List<Role> getInterlocutors(String token, Long scenarioId, Long roleId) {
-        userService.checkIfValidToken(token);
-        Role role = roleRepository.findById(roleId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        String.format("Character with id %d not found", roleId)
-                ));
+        userService.validateUserToken(token);
+        if (!roleRepository.existsById(roleId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    String.format(ROLE_NOT_FOUND, roleId));
+        }
         if (!scenarioRepository.existsById(scenarioId)) {
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND, "Scenario not found");
@@ -141,110 +246,117 @@ public class PlayerService {
         return new ArrayList<>(interlocutors);
     }
 
-    public Director createDirector(String userToken){
-        userService.checkIfValidToken(userToken);
+    public Director createDirector(Long userId){
         Director d = new Director();
         d.setToken(randomUUID().toString());
-        d.setUser(userService.getByToken(userToken));
+        d.setUser(userService.getProfileById(userId));
         directorRepository.save(d);
         directorRepository.flush();
         return d;
     }
 
-    public void checkToken(String token, @NonNull String type){
-        Role toReturn = roleRepository.findByToken(token);
-        Backroomer toReturnBackroomer = backroomerRepository.findByToken(token);
-        Director toReturnDirector = directorRepository.findByToken(token);
-        Player toReturnPlayer = playerRepository.findByToken(token);
-        if(type.equals("Role") && toReturn == null){
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-        } else if(type.equals("Backroomer") && toReturnBackroomer == null && toReturnDirector == null){
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-        } else if (type.equals("Director") && toReturnDirector == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-        } else if (type.equals("any") && toReturnPlayer == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+    public String validate(String fromHeader, String intendedRole) {
+
+        if (fromHeader == null || fromHeader.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token is empty");
+        }
+
+        String[] parts = fromHeader.split(" ", 2);
+
+        if (parts.length < 2 || parts[1].isBlank()) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "Token format must be '<Type> <token>'"
+            );
+        }
+
+        String type = parts[0];
+        String rawToken = parts[1];
+
+        validateRolePermission(type, intendedRole);
+        validateTokenByType(type, rawToken);
+
+        return rawToken;
+    }
+
+    private void validateRolePermission(String type, String intendedRole) {
+
+        boolean typeOk =
+                type.equalsIgnoreCase(intendedRole)
+                || intendedRole.equalsIgnoreCase("any");
+
+        if (!typeOk) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "Your role is not permitted to perform this action"
+            );
+        }
+    }
+
+    private void validateTokenByType(String type, String rawToken) {
+
+        if (type.equalsIgnoreCase("Director")) {
+            validateDirectorToken(rawToken);
+
+        } else if (type.equalsIgnoreCase("Backroomer")) {
+            validateBackroomerToken(rawToken);
+
+        } else if (type.equalsIgnoreCase("Role")) {
+            validateRoleToken(rawToken);
+
+        } else if (type.equalsIgnoreCase("Bearer")) {
+            userService.validateUserToken(rawToken);
+
+        } else {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "Unknown token type: " + type
+            );
+        }
+    }
+
+    private void validateDirectorToken(String rawToken) {
+        if (directorRepository.findByToken(rawToken).isEmpty()) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "Invalid director token"
+            );
+        }
+    }
+
+    private void validateBackroomerToken(String rawToken) {
+        if (backroomerRepository.findByToken(rawToken).isEmpty()) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "Invalid backroomer token"
+            );
+        }
+    }
+
+    private void validateRoleToken(String rawToken) {
+        if (roleRepository.findByToken(rawToken).isEmpty()) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "Invalid role token"
+            );
         }
     }
 
     @Transactional
-    public Role syncPointsAndGetRole(String authToken, Long scenarioId, Long characterId) {
+    public Role syncPointsAndGetRole(Long scenarioId, Long characterId) {
 
-        Role role = getRole(authToken, characterId);
+        Role role = getRoleById(characterId);
 
         Scenario scenario = scenarioRepository.findById(scenarioId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-        syncActionPoints(role, scenario);
+        actionPointService.syncActionPoints(role, scenario);
 
         return roleRepository.save(role);
     }
 
-    public void syncActionPoints(Role role, Scenario scenario) {
-
-        List<Pronouncement> pronouncements =
-                newsRepository.findPronouncementsByAuthorIdAndScenarioId(
-                        role.getId(),
-                        scenario.getId()
-                );
-
-        int newTotal = 0;
-
-        for (Pronouncement p : pronouncements) {
-
-            Integer likes = mastodonClient.getLikes(
-                    scenario.getMastodonBaseUrl(),
-                    scenario.getMastodonAccessToken(),
-                    p.getMastodonStatusId()
-            );
-
-            if (likes == null) {
-                likes = 0;
-            }
-
-            newTotal += likes;
-        }
-
-        int oldTotal = role.getTotalPoints();
-
-        if (newTotal > oldTotal) {
-            int delta = newTotal - oldTotal;
-
-            role.setTotalPoints(newTotal);
-            role.setPointsBalance(role.getPointsBalance() + delta);
-
-        } else {
-            role.setTotalPoints(newTotal);
-        }
-
+    public void consumeMessageSlot(Role role) {
+        role.useMessageSlot();
         roleRepository.save(role);
     }
-
-    @Transactional
-    public Role buyMessage(String token, Long scenarioId, Long characterId) {
-
-        //checkToken(token, "Role");
-
-        Role role = roleRepository.findById(characterId)
-            .orElseThrow(() -> new ResponseStatusException(
-                HttpStatus.NOT_FOUND, "Character not found"));
-
-        Scenario scenario = scenarioRepository.findById(scenarioId)
-            .orElseThrow(() -> new ResponseStatusException(
-                HttpStatus.NOT_FOUND, "Scenario not found"));
-
-        syncActionPoints(role, scenario);
-
-        try {
-            role.buyMessages(scenario.getExchangeRate(), 1);
-        } catch (Exception e) {
-            throw new ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                e.getMessage()
-            );
-        }
-
-        return roleRepository.save(role);
-    }
-
 }

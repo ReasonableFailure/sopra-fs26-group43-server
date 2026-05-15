@@ -1,14 +1,16 @@
 package ch.uzh.ifi.hase.soprafs26.controller;
 
 import ch.uzh.ifi.hase.soprafs26.entity.NewsStory;
+import ch.uzh.ifi.hase.soprafs26.entity.Player;
 import ch.uzh.ifi.hase.soprafs26.entity.Pronouncement;
+import ch.uzh.ifi.hase.soprafs26.entity.Role;
 import ch.uzh.ifi.hase.soprafs26.rest.newsdto.*;
-import ch.uzh.ifi.hase.soprafs26.service.PlayerService;
 import ch.uzh.ifi.hase.soprafs26.service.NewsService;
+import ch.uzh.ifi.hase.soprafs26.service.PlayerService;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.NewsDTOMapper;
-import static ch.uzh.ifi.hase.soprafs26.controller.PlayerController.splitToken;
 
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
 import java.util.List;
@@ -30,13 +32,21 @@ public class NewsController {
     public NewsGetDTO createNews(
             @RequestHeader("Authorization") String token,
             @RequestBody NewsPostDTO dto) {
-        /*
+
+        // Pronouncement (authorId set) must be created by the authoring Role;
+        // News story (no authorId) must be created by a Backroomer (which
+        // covers Directors too — Director extends Backroomer).
         if (dto.getAuthorId() != null) {
-            validate(token, "Role");
+            playerService.validate(token, "Role");
+            Player requester = playerService.resolvePlayerFromHeader(token);
+            if (!(requester instanceof Role) || !requester.getId().equals(dto.getAuthorId())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                        "Pronouncement author must match the authenticated role");
+            }
         } else {
-            validate(token, "Backroomer");
+            playerService.validate(token, "Backroomer");
         }
-        */
+
         NewsStory entity = newsService.createNews(dto);
 
         NewsGetDTO output =
@@ -56,7 +66,7 @@ public class NewsController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long newsId) {
 
-        //validate(token, "any");
+        playerService.validate(token, "any");
 
         NewsStory entity = newsService.getNewsById(newsId);
 
@@ -77,7 +87,7 @@ public class NewsController {
             @RequestHeader("Authorization") String token,
             @PathVariable Long scenarioId) {
 
-        //validate(token, "any");
+        playerService.validate(token, "any");
 
         List<NewsStory> newsList =
                 newsService.getNewsByScenario(scenarioId);
@@ -97,9 +107,16 @@ public class NewsController {
         }).toList();
     }
 
-    private String validate(String header, String type) {
-        String[] tokens = splitToken(header);
-        playerService.checkToken(tokens[1], type);
-        return tokens[1];
+    @DeleteMapping("/news/{newsId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteNews(
+            @RequestHeader("Authorization") String token,
+            @PathVariable Long newsId) {
+
+        playerService.validate(token, "Backroomer");
+
+        newsService.deleteNews(newsId);
     }
+
+
 }

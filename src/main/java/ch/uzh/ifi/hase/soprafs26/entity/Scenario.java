@@ -4,6 +4,7 @@ import ch.uzh.ifi.hase.soprafs26.constant.ScenarioStatus;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Entity
@@ -27,9 +28,10 @@ public class Scenario implements Serializable {
     private int dayNumber;
     @Column(nullable = true)
     private int exchangeRate;
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "scenario_id")
+    @OneToMany(mappedBy = "scenario", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Player> players;
+    @Column(nullable = true)
+    private LocalDateTime finishTime;
     @Column(nullable = true)
     private String mastodonBaseUrl;
     @Column(nullable = true)
@@ -37,13 +39,17 @@ public class Scenario implements Serializable {
     @Column(nullable = true)
     private String mastodonProfileUrl;
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = false)
-    @JoinColumn(name="scenario_id")
+    @JoinColumn(name="director_id")
     private Director director;
     @Column(nullable = false, unique = false)
     private int startingMessageCount;
-
     @OneToMany(mappedBy = "scenario")
     private List<Communication> history;
+
+    public void addPlayer(Player player){
+        this.players.add(player);
+        player.setScenario(this);
+    }
 
     public List<Player> getPlayers() {
         return players;
@@ -53,9 +59,6 @@ public class Scenario implements Serializable {
         this.players = players;
     }
 
-    public void addPlayer(Player player){
-        this.players.add(player);
-    }
 
     public void addComm(Communication comm){
         this.history.add(comm);
@@ -155,5 +158,13 @@ public class Scenario implements Serializable {
 
     public void setStartingMessageCount(int startingMessageCount) {
         this.startingMessageCount = startingMessageCount;
+    }
+
+    public LocalDateTime getFinishTime() {
+        return finishTime;
+    }
+
+    public void setFinishTime(LocalDateTime finishTime) {
+        this.finishTime = finishTime;
     }
 }

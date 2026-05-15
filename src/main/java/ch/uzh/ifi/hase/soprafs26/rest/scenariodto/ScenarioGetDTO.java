@@ -2,6 +2,8 @@ package ch.uzh.ifi.hase.soprafs26.rest.scenariodto;
 
 import ch.uzh.ifi.hase.soprafs26.constant.ScenarioStatus;
 
+import java.time.LocalDateTime;
+
 public class ScenarioGetDTO {
 
     private Long id;
@@ -10,8 +12,25 @@ public class ScenarioGetDTO {
     private ScenarioStatus status;
     private int dayNumber;
     private int exchangeRate;
-    private String directorToken;
+    private int startingMessageCount;
+    private LocalDateTime finishTime;
     private String mastodonProfileUrl;
+
+    public int getStartingMessageCount() {
+        return startingMessageCount;
+    }
+
+    public void setStartingMessageCount(int startingMessageCount) {
+        this.startingMessageCount = startingMessageCount;
+    }
+
+    public LocalDateTime getFinishTime() {
+        return finishTime;
+    }
+
+    public void setFinishTime(LocalDateTime finishTime) {
+        this.finishTime = finishTime;
+    }
 
     public Long getId() {
         return id;
@@ -59,14 +78,6 @@ public class ScenarioGetDTO {
 
     public void setExchangeRate(int exchangeRate) {
         this.exchangeRate = exchangeRate;
-    }
-
-    public String getDirectorToken() {
-        return directorToken;
-    }
-
-    public void setDirectorToken(String directorToken) {
-        this.directorToken = directorToken;
     }
 
     public String getMastodonProfileUrl() {

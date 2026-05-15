@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import ch.uzh.ifi.hase.soprafs26.entity.User;
+import ch.uzh.ifi.hase.soprafs26.rest.playerdto.EngagementGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.userdto.UserGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.userdto.UserPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.UserDTOMapper;
@@ -49,16 +50,20 @@ public class UserController {
     @ResponseBody
     public UserGetDTO retrieveUser(@PathVariable Long userid, @RequestHeader("Authorization") String token){
         String strippedToken = stripPrefix(token);
-        User user = userService.getProfileById(userid,strippedToken);
+        userService.validateUserToken(strippedToken);
+        User user = userService.getProfileById(userid);
         return UserDTOMapper.INSTANCE.convertEntityToUserGetDTO(user);
     }
 
     @PutMapping("/users/{userid}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void updateUser(@PathVariable Long userid, @RequestHeader("Authorization") String token, @RequestBody UserPutDTO userPutDTO){
-        User holdsUpdateData = UserDTOMapper.INSTANCE.convertUserPutDTOtoEntity(userPutDTO);
         String strippedToken = stripPrefix(token);
-        userService.updateProfile(strippedToken, userid, holdsUpdateData);
+        User bearer = userService.getByToken(strippedToken);
+        if (!bearer.getId().equals(userid)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cannot update another user");
+        }
+        userService.updateProfile(userid, userPutDTO);
     }
 
     @PostMapping("/login")
@@ -74,7 +79,31 @@ public class UserController {
     @ResponseStatus(HttpStatus.OK)
     public void logout(@PathVariable Long userid, @RequestHeader("Authorization") String token){
         String strippedToken = stripPrefix(token);
-        userService.logoutUser(userid,strippedToken);
+        User bearer = userService.getByToken(strippedToken);
+        if (!bearer.getId().equals(userid)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cannot log out another user");
+        }
+        userService.logoutUser(userid);
+    }
+
+    @DeleteMapping("/users/{userid}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteUser(@PathVariable Long userid, @RequestHeader("Authorization") String token){
+        String strippedToken = stripPrefix(token);
+        userService.deleteUser(userid, strippedToken);
+    }
+
+    @GetMapping("/users/{userid}/engagements")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public List<EngagementGetDTO> getEngagements(@PathVariable Long userid,
+                                                  @RequestHeader("Authorization") String token) {
+        String strippedToken = stripPrefix(token);
+        User bearer = userService.getByToken(strippedToken);
+        if (!bearer.getId().equals(userid)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cannot view another user's engagements");
+        }
+        return userService.getEngagements(strippedToken, userid);
     }
 
     @GetMapping("/users")
@@ -83,7 +112,8 @@ public class UserController {
     public List<UserGetDTO> getAllUsers(@RequestHeader("Authorization") String token) {
         // fetch all users in the internal representation
         String strippedToken = stripPrefix(token);
-        List<User> users = userService.getUsers(strippedToken);
+        userService.validateUserToken(strippedToken);
+        List<User> users = userService.getUsers();
         List<UserGetDTO> userGetDTOs = new ArrayList<>();
 
         // convert each user to the API representation

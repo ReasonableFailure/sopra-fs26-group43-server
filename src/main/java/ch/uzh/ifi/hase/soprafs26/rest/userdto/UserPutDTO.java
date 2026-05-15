@@ -4,6 +4,9 @@ public class UserPutDTO {
     private String password;
     private String username;
     private String bio;
+    private String name;
+    /** Profile picture as a data URL or bare base64; null clears it. */
+    private String profilePic;
 
 
     public String getPassword() {
@@ -30,5 +33,19 @@ public class UserPutDTO {
         this.bio = bio;
     }
 
+    public String getName() {
+        return name;
+    }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getProfilePic() {
+        return profilePic;
+    }
+
+    public void setProfilePic(String profilePic) {
+        this.profilePic = profilePic;
+    }
 }

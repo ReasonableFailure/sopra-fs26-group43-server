@@ -20,6 +20,7 @@ public class Role extends Player{
     private int totalPoints;
     @Column(unique=false,nullable=true)
     private int pointsBalance;
+    @Lob
     @Column(unique=false,nullable=true)
     private byte[] portrait;
     @Column(unique = false, nullable = true)
@@ -33,9 +34,6 @@ public class Role extends Player{
     @Column(unique=false,nullable=false)
     private int totalTextLength;
 
-    public void die(){
-        this.alive = false;
-    }
 
     public void buyMessages(int exchangeRate, int desiredIncrease) throws Exception{
         if(this.pointsBalance >= exchangeRate*desiredIncrease){
@@ -163,5 +161,9 @@ public class Role extends Player{
 
     public void setTotalTextLength(int totalTextLength) {
         this.totalTextLength = totalTextLength;
+    }
+
+    public void gainActionPoints(int i) {
+        this.pointsBalance+=i;
     }
 }

@@ -1,8 +1,9 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
 import ch.uzh.ifi.hase.soprafs26.entity.*;
-import ch.uzh.ifi.hase.soprafs26.repository.PlayerRepository;
-import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
+import ch.uzh.ifi.hase.soprafs26.repository.DirectiveRepository;
+import ch.uzh.ifi.hase.soprafs26.repository.MessageRepository;
+import ch.uzh.ifi.hase.soprafs26.repository.NewsRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.ScenarioDTOMapper;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioPutDTO;
@@ -30,44 +31,98 @@ public class ScenarioService {
     private final PlayerService playerService;
     private final UserService userService;
     private final ScenarioRepository scenarioRepository;
+    private final NewsRepository newsRepository;
+    private final MessageRepository messageRepository;
+    private final DirectiveRepository directiveRepository;
 
-    public ScenarioService(@Qualifier("scenarioRepository") ScenarioRepository scenarioRepository, @Qualifier("userService") UserService userService, @Qualifier("playerService") PlayerService playerService) {
+    public ScenarioService(@Qualifier("scenarioRepository") ScenarioRepository scenarioRepository,
+                           @Qualifier("userService") UserService userService,
+                           @Qualifier("playerService") PlayerService playerService,
+                           @Qualifier("newsRepository") NewsRepository newsRepository,
+                           @Qualifier("messageRepository") MessageRepository messageRepository,
+                           @Qualifier("directiveRepository") DirectiveRepository directiveRepository) {
         this.scenarioRepository = scenarioRepository;
         this.userService = userService;
         this.playerService = playerService;
+        this.newsRepository = newsRepository;
+        this.messageRepository = messageRepository;
+        this.directiveRepository = directiveRepository;
     }
 
-    public List<Scenario> getScenarios(String token) {
-        userService.checkIfValidToken(token);
+    public List<Scenario> getScenarios() {
         return this.scenarioRepository.findAll();
     }
 
-    public Scenario getScenarioById(String token, Long scenarioId) {
-        userService.checkIfValidToken(token);
+    public Scenario getScenarioById(Long scenarioId) {
         return this.scenarioRepository.findById(scenarioId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario with id " + scenarioId + " not found"));
     }
 
-    public Scenario createScenario(String token, ScenarioPostDTO scenarioPostDTO){
-        //checkIfValidToken(token);
+    @Transactional
+    public Scenario createScenario( ScenarioPostDTO scenarioPostDTO){
         Scenario newScenario = ScenarioDTOMapper.INSTANCE.convertScenarioPostDTOtoEntity(scenarioPostDTO);
         newScenario.setDayNumber(0);
         newScenario.setStatus(ScenarioStatus.UNSTARTED);
         newScenario.setPlayers(new ArrayList<Player>());
         newScenario.setHistory(new ArrayList<Communication>());
-        newScenario.setDirector(playerService.createDirector(token));
+        Director director = playerService.getDirectorByID(scenarioPostDTO.getDirector());
+        newScenario.setDirector(director);
+        newScenario.addPlayer(director);
         scenarioRepository.save(newScenario);
         scenarioRepository.flush();
         return newScenario;
     }
 
-    public void deleteScenario(String token, Long scenarioId){
-        Scenario toDelete = getScenarioById(token,scenarioId);
+    public void deleteScenario(Long scenarioId){
+        Scenario toDelete = getScenarioById(scenarioId);
+
+        // We must delete in FK-dependency order. Otherwise the cascade on
+        // scenario.players tries to delete Roles while Message.creator,
+        // Directive.creator, Pronouncement.author, and pronouncement_likes
+        // still reference them, which trips the H2 constraint
+        // FKPAM9EGWMHBGTSAIYSOYGE4LEQ.
+        //
+        // Order:
+        //   1. Clear Pronouncement.likedBy (owning side of pronouncement_likes)
+        //   2. Delete messages (FK creator/recipient → characters)
+        //   3. Delete directives (FK creator → characters)
+        //   4. Delete news + pronouncements (FK author → characters)
+        //   5. Delete the scenario (cascade on players + director cleans up
+        //      Roles, Backroomers, and the Director itself)
+        List<Communication> history = new ArrayList<>(toDelete.getHistory());
+        for (Communication c : history) {
+            if (c instanceof Pronouncement p) {
+                p.getLikedBy().clear();
+            }
+        }
+        scenarioRepository.flush();
+
+        // Bulk-detach communications from the in-memory scenario.history list
+        // before deletion so JPA doesn't re-cascade them when we delete the
+        // scenario.
+        toDelete.getHistory().clear();
+
+        // Delete via the per-type repository so JOINED inheritance rows
+        // (e.g. Pronouncement's parent NewsStory row, plus the Communication
+        // parent row) are removed together.
+        List<Message> messages = messageRepository.findByScenarioId(scenarioId);
+        messageRepository.deleteAll(messages);
+        messageRepository.flush();
+
+        List<Directive> directives = directiveRepository.findByScenarioId(scenarioId);
+        directiveRepository.deleteAll(directives);
+        directiveRepository.flush();
+
+        List<NewsStory> news = newsRepository.findByScenarioIdOrderByCreatedAtAsc(scenarioId);
+        newsRepository.deleteAll(news);
+        newsRepository.flush();
+
+        // Now players have no incoming references; cascade can delete them.
         scenarioRepository.delete(toDelete);
         scenarioRepository.flush();
     }
 
-    public void updateScenario(String token, Long scenarioId, ScenarioPutDTO dto){
-        Scenario s = getScenarioById(token, scenarioId);
+    public void updateScenario(Long scenarioId, ScenarioPutDTO dto){
+        Scenario s = getScenarioById(scenarioId);
 
         if (dto.getTitle() != null) {
             s.setTitle(dto.getTitle());
@@ -84,27 +139,32 @@ public class ScenarioService {
         if (dto.getExchangeRate() != null) {
             s.setExchangeRate(dto.getExchangeRate());
         }
+        if (dto.getStartingMessageCount() != null) {
+            s.setStartingMessageCount(dto.getStartingMessageCount());
+        }
+        scenarioRepository.save(s);
+        scenarioRepository.flush();
     }
 
-    public void addPlayerToScenario(String token, Long scenarioId, Long playerId){
-        userService.checkIfValidToken(token);
-        Role toAdd = playerService.getRole(token,playerId);
-        Scenario scenario = getScenarioById(token,scenarioId);
+    public void addPlayerToScenario(Long scenarioId, Long playerId){
+        Role toAdd = playerService.getRoleById(playerId);
+        Scenario scenario = getScenarioById(scenarioId);
         toAdd = playerService.updateMessagingStats(playerId, scenario.getStartingMessageCount());
         scenario.addPlayer(toAdd);
         scenarioRepository.save(scenario);
         scenarioRepository.flush();
     }
 
-    public void addCommunicationToHistory(String token, Long scenarioId, Long communicationId){
-        Scenario toAddTo =  getScenarioById(token,scenarioId);
-        toAddTo.addComm(null);
-        //TODO: @HalaiRhea
+    public void addCommunicationToHistory(Long scenarioId, Communication communication) {
+        Scenario scenario = getScenarioById(scenarioId);
+
+        scenario.addComm(communication);
+
+        scenarioRepository.save(scenario);
     }
 
-    public List<Role> getRoles(Long scenarioId, String token) {
-        userService.checkIfValidToken(token);
-        Scenario scenario = getScenarioById(token,scenarioId);
+    public List<Role> getRoles(Long scenarioId) {
+        Scenario scenario = getScenarioById(scenarioId);
         List<Role> toReturn = new ArrayList<Role>();
         for(Player player : scenario.getPlayers()){
             if(player instanceof Role){
@@ -114,9 +174,9 @@ public class ScenarioService {
         return toReturn;
     }
 
-    public List<Role> getRolesPerCabinet(Long scenarioId, Long cabinetId, String token){
-        userService.checkIfValidToken(token);
-        Scenario scenario = getScenarioById(token,scenarioId);
+    public List<Role> getRolesPerCabinet(Long scenarioId, Long cabinetId){
+
+        Scenario scenario = getScenarioById(scenarioId);
         List<Role> toReturn = new ArrayList<Role>();
         for(Player player : scenario.getPlayers()){
             if(player instanceof Role && (((Role) player).getAssignedCabinet() == cabinetId)){
@@ -140,6 +200,22 @@ public class ScenarioService {
         );
 
         scenario.setMastodonProfileUrl(profileUrl);
+
+        List<NewsStory> newsList = newsRepository.findByScenarioIdOrderByCreatedAtAsc(scenarioId);
+
+        for (NewsStory news : newsList) {
+            try {
+                String content = news.formatSelf();
+
+                MastodonClient.postStatus(
+                        dto.getMastodonBaseUrl(),
+                        dto.getMastodonAccessToken(),
+                        content
+                );
+            } catch (Exception e) {
+                System.err.println("Failed to post news id " + news.getId());
+            }
+        }
 
         scenarioRepository.save(scenario);
     }

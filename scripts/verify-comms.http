@@ -1,0 +1,463 @@
+# verify-comms.http — black-box check of the message + directive approval flow.
+#
+# Prereq: the BE is running.
+#     cd sopra-fs26-group43-server && ./gradlew bootRun
+#
+# Then in IntelliJ (or VSCode w/ the REST Client extension): open this file and
+# click "Run All Requests in File" (or run them one at a time top-to-bottom).
+#
+# Variables (`@base`, `{{sid}}`, etc.) are populated by response handlers as the
+# requests fire. The file uses a random suffix `@sfx` so usernames stay unique
+# even if you re-run within the same BE process (in-memory H2 resets only on
+# restart).
+
+@base   = http://localhost:8080
+@sfx    = {{$randomInt 1000 999999}}
+
+### Register A
+POST {{base}}/users
+Content-Type: application/json
+
+{ "username": "userA_{{sfx}}", "password": "pw" }
+
+> {%
+client.test("201 Created", () => client.assert(response.status === 201));
+client.global.set("aT", response.body.token);
+client.global.set("aI", response.body.id);
+%}
+
+### Register B
+POST {{base}}/users
+Content-Type: application/json
+
+{ "username": "userB_{{sfx}}", "password": "pw" }
+
+> {%
+client.test("201 Created", () => client.assert(response.status === 201));
+client.global.set("bT", response.body.token);
+client.global.set("bI", response.body.id);
+%}
+
+### Register BR (backroomer)
+POST {{base}}/users
+Content-Type: application/json
+
+{ "username": "userBR_{{sfx}}", "password": "pw" }
+
+> {%
+client.test("201 Created", () => client.assert(response.status === 201));
+client.global.set("brT", response.body.token);
+client.global.set("brI", response.body.id);
+%}
+
+### Register OUT (non-participant)
+POST {{base}}/users
+Content-Type: application/json
+
+{ "username": "outsider_{{sfx}}", "password": "pw" }
+
+> {%
+client.test("201 Created", () => client.assert(response.status === 201));
+client.global.set("outT", response.body.token);
+%}
+
+### A creates scenario (response contains directorToken because creator IS director)
+POST {{base}}/scenarios
+Authorization: Bearer {{aT}}
+Content-Type: application/json
+
+{
+  "title": "VerifyScenario",
+  "description": "d",
+  "exchangeRate": 10,
+  "startingMessageCount": 5
+}
+
+> {%
+client.test("200 OK", () => client.assert(response.status === 200));
+client.test("has directorToken", () => client.assert(typeof response.body.directorToken === "string" && response.body.directorToken.length > 0));
+client.global.set("sid",  response.body.id);
+client.global.set("dTok", response.body.directorToken);
+%}
+
+### A creates character Alpha (Director-prefix auth)
+POST {{base}}/characters
+Authorization: Director {{dTok}}
+Content-Type: application/json
+
+{ "name": "Alpha", "title": "", "description": "", "secret": "", "scenarioId": {{sid}} }
+
+> {%
+client.test("200 OK", () => client.assert(response.status === 200));
+client.global.set("ca", response.body.id);
+%}
+
+### A creates character Bravo (Director-prefix auth)
+POST {{base}}/characters
+Authorization: Director {{dTok}}
+Content-Type: application/json
+
+{ "name": "Bravo", "title": "", "description": "", "secret": "", "scenarioId": {{sid}} }
+
+> {%
+client.test("200 OK", () => client.assert(response.status === 200));
+client.global.set("cb", response.body.id);
+%}
+
+### A claims Alpha
+POST {{base}}/scenarios/{{sid}}/claim-character/{{ca}}
+Authorization: Bearer {{aT}}
+Content-Type: application/json
+
+{}
+
+> {%
+client.test("200 OK", () => client.assert(response.status === 200));
+%}
+
+### B claims Bravo
+POST {{base}}/scenarios/{{sid}}/claim-character/{{cb}}
+Authorization: Bearer {{bT}}
+Content-Type: application/json
+
+{}
+
+> {%
+client.test("200 OK", () => client.assert(response.status === 200));
+%}
+
+### BR becomes backroomer
+POST {{base}}/scenarios/{{sid}}/become-backroomer
+Authorization: Bearer {{brT}}
+Content-Type: application/json
+
+{}
+
+> {%
+client.test("200 OK", () => client.assert(response.status === 200));
+%}
+
+### A (director) advances scenario to UNFROZEN so messages may be sent
+PUT {{base}}/scenarios/{{sid}}
+Authorization: Bearer {{aT}}
+Content-Type: application/json
+
+{ "status": "UNFROZEN", "dayNumber": 1 }
+
+> {%
+client.test("200 OK", () => client.assert(response.status === 200));
+%}
+
+# =============================================================================
+# Messages: PENDING gate
+# =============================================================================
+
+### A sends message #1 to B (status will be PENDING)
+POST {{base}}/messages
+Authorization: Bearer {{aT}}
+Content-Type: application/json
+
+{
+  "title": "hi",
+  "body": "secret payload",
+  "creatorId": {{ca}},
+  "recipientId": {{cb}},
+  "scenarioId": {{sid}}
+}
+
+> {%
+client.test("201 Created", () => client.assert(response.status === 201));
+client.test("status PENDING", () => client.assert(response.body.status === "PENDING"));
+client.global.set("mid1", response.body.id);
+%}
+
+### B reads conversation BEFORE approval — must see 0 messages
+GET {{base}}/messages/between/{{ca}}/{{cb}}
+Authorization: Bearer {{bT}}
+
+> {%
+client.test("200 OK", () => client.assert(response.status === 200));
+client.test("B sees 0 messages pre-approval", () =>
+    client.assert(response.body.length === 0,
+        "expected 0, got " + response.body.length + ": " + JSON.stringify(response.body)));
+%}
+
+### A reads conversation — must see own PENDING
+GET {{base}}/messages/between/{{ca}}/{{cb}}
+Authorization: Bearer {{aT}}
+
+> {%
+client.test("200 OK", () => client.assert(response.status === 200));
+client.test("A sees 1 message", () => client.assert(response.body.length === 1));
+client.test("A sees PENDING", () => client.assert(response.body[0].status === "PENDING"));
+%}
+
+### BR reads conversation — must see PENDING (queue)
+GET {{base}}/messages/between/{{ca}}/{{cb}}
+Authorization: Bearer {{brT}}
+
+> {%
+client.test("200 OK", () => client.assert(response.status === 200));
+client.test("BR sees 1 message", () => client.assert(response.body.length === 1));
+client.test("BR sees PENDING", () => client.assert(response.body[0].status === "PENDING"));
+%}
+
+### Outsider reads conversation — must be 403
+GET {{base}}/messages/between/{{ca}}/{{cb}}
+Authorization: Bearer {{outT}}
+
+> {%
+client.test("403 Forbidden", () => client.assert(response.status === 403,
+    "expected 403, got " + response.status + ": " + response.body));
+%}
+
+### BR reads scenario pairs — must see 1 pair
+GET {{base}}/messages/scenario/{{sid}}/pairs
+Authorization: Bearer {{brT}}
+
+> {%
+client.test("200 OK", () => client.assert(response.status === 200));
+client.test("BR sees 1 pair", () => client.assert(response.body.length === 1));
+%}
+
+### B reads scenario pairs — B is participant, must see 1 pair
+GET {{base}}/messages/scenario/{{sid}}/pairs
+Authorization: Bearer {{bT}}
+
+> {%
+client.test("200 OK", () => client.assert(response.status === 200));
+client.test("B sees 1 pair (participant)", () => client.assert(response.body.length === 1));
+%}
+
+### Outsider reads scenario pairs — must be 403
+GET {{base}}/messages/scenario/{{sid}}/pairs
+Authorization: Bearer {{outT}}
+
+> {%
+client.test("403 Forbidden", () => client.assert(response.status === 403));
+%}
+
+# =============================================================================
+# Messages: BR approves -> all participants now see ACCEPTED
+# =============================================================================
+
+### BR approves message #1
+PUT {{base}}/messages/{{mid1}}
+Authorization: Bearer {{brT}}
+Content-Type: application/json
+
+{ "status": "ACCEPTED" }
+
+> {%
+client.test("200 OK", () => client.assert(response.status === 200));
+%}
+
+### A re-reads — must now show ACCEPTED
+GET {{base}}/messages/between/{{ca}}/{{cb}}
+Authorization: Bearer {{aT}}
+
+> {%
+client.test("200 OK", () => client.assert(response.status === 200));
+client.test("A sees ACCEPTED", () => client.assert(response.body[0].status === "ACCEPTED"));
+%}
+
+### B re-reads — message must now be visible & ACCEPTED
+GET {{base}}/messages/between/{{ca}}/{{cb}}
+Authorization: Bearer {{bT}}
+
+> {%
+client.test("200 OK", () => client.assert(response.status === 200));
+client.test("B sees 1 message post-approval", () => client.assert(response.body.length === 1));
+client.test("B sees ACCEPTED", () => client.assert(response.body[0].status === "ACCEPTED"));
+%}
+
+### BR re-reads — must show ACCEPTED
+GET {{base}}/messages/between/{{ca}}/{{cb}}
+Authorization: Bearer {{brT}}
+
+> {%
+client.test("200 OK", () => client.assert(response.status === 200));
+client.test("BR sees ACCEPTED", () => client.assert(response.body[0].status === "ACCEPTED"));
+%}
+
+# =============================================================================
+# Messages: REJECT path
+# =============================================================================
+
+### A sends message #2 (will be rejected)
+POST {{base}}/messages
+Authorization: Bearer {{aT}}
+Content-Type: application/json
+
+{
+  "title": "two",
+  "body": "will be rejected",
+  "creatorId": {{ca}},
+  "recipientId": {{cb}},
+  "scenarioId": {{sid}}
+}
+
+> {%
+client.test("201 Created", () => client.assert(response.status === 201));
+client.global.set("mid2", response.body.id);
+%}
+
+### BR rejects message #2
+PUT {{base}}/messages/{{mid2}}
+Authorization: Bearer {{brT}}
+Content-Type: application/json
+
+{ "status": "REJECTED" }
+
+> {%
+client.test("200 OK", () => client.assert(response.status === 200));
+%}
+
+### B reads — must still see only the ACCEPTED one, NOT the REJECTED one
+GET {{base}}/messages/between/{{ca}}/{{cb}}
+Authorization: Bearer {{bT}}
+
+> {%
+client.test("200 OK", () => client.assert(response.status === 200));
+client.test("B sees 1 message (REJECTED stays hidden)", () =>
+    client.assert(response.body.length === 1,
+        "expected 1, got " + response.body.length));
+client.test("B sees only the ACCEPTED one", () =>
+    client.assert(response.body[0].status === "ACCEPTED"));
+%}
+
+### A reads — must see both (own outgoing keeps all statuses with badges on FE)
+GET {{base}}/messages/between/{{ca}}/{{cb}}
+Authorization: Bearer {{aT}}
+
+> {%
+client.test("200 OK", () => client.assert(response.status === 200));
+client.test("A sees 2 messages", () =>
+    client.assert(response.body.length === 2,
+        "expected 2, got " + response.body.length));
+client.test("A sees ACCEPTED + REJECTED", () => {
+    const statuses = response.body.map(m => m.status).sort();
+    client.assert(JSON.stringify(statuses) === JSON.stringify(["ACCEPTED", "REJECTED"]),
+        "got " + JSON.stringify(statuses));
+});
+%}
+
+# =============================================================================
+# Directives: A submits, BR responds
+# =============================================================================
+
+### A submits a directive
+POST {{base}}/directives
+Authorization: Bearer {{aT}}
+Content-Type: application/json
+
+{
+  "title": "req",
+  "body": "please approve X",
+  "creatorId": {{ca}},
+  "scenarioId": {{sid}}
+}
+
+> {%
+client.test("201 Created", () => client.assert(response.status === 201));
+client.test("status PENDING", () => client.assert(response.body.status === "PENDING"));
+client.global.set("did", response.body.id);
+%}
+
+### A lists scenario directives — must see own
+GET {{base}}/directives/scenario/{{sid}}
+Authorization: Bearer {{aT}}
+
+> {%
+client.test("200 OK", () => client.assert(response.status === 200));
+client.test("A sees 1 directive (own)", () => client.assert(response.body.length === 1));
+%}
+
+### B lists scenario directives — directives are private; must see 0
+GET {{base}}/directives/scenario/{{sid}}
+Authorization: Bearer {{bT}}
+
+> {%
+client.test("200 OK", () => client.assert(response.status === 200));
+client.test("B sees 0 directives (private to creator)", () =>
+    client.assert(response.body.length === 0,
+        "expected 0, got " + response.body.length));
+%}
+
+### BR lists scenario directives — must see 1 (the queue)
+GET {{base}}/directives/scenario/{{sid}}
+Authorization: Bearer {{brT}}
+
+> {%
+client.test("200 OK", () => client.assert(response.status === 200));
+client.test("BR sees 1 directive", () => client.assert(response.body.length === 1));
+%}
+
+### Outsider lists directives — must be 403
+GET {{base}}/directives/scenario/{{sid}}
+Authorization: Bearer {{outT}}
+
+> {%
+client.test("403 Forbidden", () => client.assert(response.status === 403));
+%}
+
+### B tries to read A's directive by id — must be 403
+GET {{base}}/directives/{{did}}
+Authorization: Bearer {{bT}}
+
+> {%
+client.test("403 Forbidden", () => client.assert(response.status === 403));
+%}
+
+### A reads own directive by id — must be 200, status PENDING, response null
+GET {{base}}/directives/{{did}}
+Authorization: Bearer {{aT}}
+
+> {%
+client.test("200 OK", () => client.assert(response.status === 200));
+client.test("status PENDING", () => client.assert(response.body.status === "PENDING"));
+client.test("response null (no backroomer reply yet)", () =>
+    client.assert(response.body.response === null || response.body.response === undefined));
+%}
+
+### BR reads directive by id — must be 200
+GET {{base}}/directives/{{did}}
+Authorization: Bearer {{brT}}
+
+> {%
+client.test("200 OK", () => client.assert(response.status === 200));
+%}
+
+### BR responds to directive (ACCEPTED + response text)
+PUT {{base}}/directives/{{did}}
+Authorization: Bearer {{brT}}
+Content-Type: application/json
+
+{ "status": "ACCEPTED", "response": "OK" }
+
+> {%
+client.test("204 No Content", () => client.assert(response.status === 204));
+%}
+
+### A re-reads directive — status now ACCEPTED with response text
+GET {{base}}/directives/{{did}}
+Authorization: Bearer {{aT}}
+
+> {%
+client.test("200 OK", () => client.assert(response.status === 200));
+client.test("status ACCEPTED", () => client.assert(response.body.status === "ACCEPTED"));
+client.test("response is 'OK'", () =>
+    client.assert(response.body.response === "OK",
+        "expected 'OK', got " + JSON.stringify(response.body.response)));
+%}
+
+### B still sees 0 directives post-response (privacy holds)
+GET {{base}}/directives/scenario/{{sid}}
+Authorization: Bearer {{bT}}
+
+> {%
+client.test("200 OK", () => client.assert(response.status === 200));
+client.test("B still sees 0 directives", () =>
+    client.assert(response.body.length === 0,
+        "expected 0, got " + response.body.length));
+%}

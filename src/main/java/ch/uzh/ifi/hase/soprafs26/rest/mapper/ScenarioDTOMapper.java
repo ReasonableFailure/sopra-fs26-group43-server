@@ -2,11 +2,10 @@ package ch.uzh.ifi.hase.soprafs26.rest.mapper;
 import ch.uzh.ifi.hase.soprafs26.entity.Scenario;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioPostDTO;
-import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioPutDTO;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface ScenarioDTOMapper {
     ScenarioDTOMapper INSTANCE = Mappers.getMapper(ScenarioDTOMapper.class);
 
@@ -16,7 +15,8 @@ public interface ScenarioDTOMapper {
     @Mapping(source = "status", target = "status")
     @Mapping(source = "dayNumber", target = "dayNumber")
     @Mapping(source = "exchangeRate", target = "exchangeRate")
-    @Mapping(source = "director.token", target = "directorToken")
+    @Mapping(source = "startingMessageCount", target = "startingMessageCount")
+    @Mapping(source = "finishTime", target = "finishTime")
     ScenarioGetDTO convertEntityToScenarioGetDTO(Scenario scenario);
 
     @Mapping(target = "players", ignore = true)
@@ -26,7 +26,8 @@ public interface ScenarioDTOMapper {
     @Mapping(target = "history", ignore = true)
     @Mapping(target = "mastodonBaseUrl", ignore = true)
     @Mapping(target = "mastodonAccessToken", ignore = true)
-    @Mapping(target = "director", ignore = true)
+    @Mapping(target = "director.id", source = "director")
     @Mapping(target = "mastodonProfileUrl", ignore = true)
+    @Mapping(target = "finishTime", ignore = true)
     Scenario convertScenarioPostDTOtoEntity(ScenarioPostDTO scenarioPostDTO);
 }

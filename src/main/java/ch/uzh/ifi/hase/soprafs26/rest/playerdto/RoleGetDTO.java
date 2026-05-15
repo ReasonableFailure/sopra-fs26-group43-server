@@ -1,20 +1,32 @@
 package ch.uzh.ifi.hase.soprafs26.rest.playerdto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class RoleGetDTO {
+
     private Long id;
     private String name;
     private String title;
     private String description;
+    private String portrait;
     private String secret;
-    private boolean isAlive;
-    private int messageCount;
+    private boolean alive;
+    private String token;
     private int totalPoints;
     private int pointsBalance;
-    private byte[] portrait;
-    private int numberDirectives;
+    private int messageCount;
     private int numberMessages;
+    private int numberDirectives;
     private int numberPronouncements;
     private int totalTextLength;
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
 
     public Long getId() {
         return id;
@@ -57,11 +69,11 @@ public class RoleGetDTO {
     }
 
     public boolean isAlive() {
-        return isAlive;
+        return alive;
     }
 
     public void setAlive(boolean alive) {
-        isAlive = alive;
+        this.alive = alive;
     }
 
     public int getMessageCount() {
@@ -87,11 +99,11 @@ public class RoleGetDTO {
         this.pointsBalance = pointsBalance;
     }
 
-    public byte[] getPortrait() {
+    public String getPortrait() {
         return portrait;
     }
 
-    public void setPortrait(byte[] portrait) {
+    public void setPortrait(String portrait) {
         this.portrait = portrait;
     }
 
