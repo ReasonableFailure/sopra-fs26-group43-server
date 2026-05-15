@@ -43,6 +43,8 @@ public class UserService {
         this.playerRepository = playerRepository;
     }
 
+    private static final String USER_NOT_FOUND = "User with id %d not found";
+
     public List<User> getUsers() {
         return this.userRepository.findAll();
     }
@@ -51,7 +53,7 @@ public class UserService {
         if(idToBeFound != null){
         return userRepository.findById(idToBeFound)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        String.format("User with id %d not found", idToBeFound)));} else {
+                        String.format(USER_NOT_FOUND, idToBeFound)));} else {
             System.out.println("id for finding user is null");return new User();}
 
    }
@@ -101,7 +103,7 @@ public class UserService {
     public void logoutUser(Long id) {
         User requestsLogout = userRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        String.format("User with id %d not found", id)));
+                        String.format(USER_NOT_FOUND, id)));
         requestsLogout.setStatus(UserStatus.OFFLINE);
         requestsLogout.setToken(null);
         requestsLogout.setPlaying(false);
@@ -111,7 +113,7 @@ public class UserService {
 
     public void deleteUser(Long id, String token) {
         validateUserToken(token);
-        User requester = userRepository.findByToken(token).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,String.format("User with id %d not found", id)));
+        User requester = userRepository.findByToken(token).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,String.format(USER_NOT_FOUND, id)));
 
         if (!requester.getId().equals(id)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cannot delete another user");
@@ -131,7 +133,7 @@ public class UserService {
     public void updateProfile(Long id, UserPutDTO dto) {
         User toBeModified = userRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        String.format("User with id %d not found", id)));
+                        String.format(USER_NOT_FOUND, id)));
 
         if (dto.getUsername() != null) {
             if (dto.getUsername().isBlank()) {
@@ -233,7 +235,7 @@ public class UserService {
         validateUserToken(token);
         if (!checkIfUserExistsByID(userId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-                    String.format("User with id %d not found", userId));
+                    String.format(USER_NOT_FOUND, userId));
         }
         List<Player> players = playerRepository.findByUser_Id(userId);
         return players.stream()
