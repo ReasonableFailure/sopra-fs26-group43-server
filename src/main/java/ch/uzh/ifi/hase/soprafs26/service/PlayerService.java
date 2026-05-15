@@ -64,8 +64,10 @@ public class PlayerService {
         this.actionPointService = actionPointService;
     }
 
+    private static final String ROLE_NOT_FOUND = "Role with id %d not found";
+
     public Role getRoleById( Long roleId)  {
-        return roleRepository.findById(roleId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Role with id %d not found", roleId)));
+        return roleRepository.findById(roleId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format(ROLE_NOT_FOUND, roleId)));
     }
 
     public Director getDirectorByID(Long id){
@@ -116,7 +118,7 @@ public class PlayerService {
     }
 
     public Role updateMessagingStats(Long roleId, int initialMessageCount){
-        Role toChange = roleRepository.findById(roleId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Role with id %d not found", roleId)));
+        Role toChange = roleRepository.findById(roleId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format(ROLE_NOT_FOUND, roleId)));
         toChange.setMessageCount(initialMessageCount);
         roleRepository.save(toChange);
         roleRepository.flush();
@@ -203,7 +205,7 @@ public class PlayerService {
     public Role claimRole(Long roleId, Long userId) {
         Role role = roleRepository.findById(roleId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        String.format("Role with id %d not found", roleId)));
+                        String.format(ROLE_NOT_FOUND, roleId)));
         if (role.getUser() != null && !role.getUser().getId().equals(userId)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Character already taken");
         }
@@ -225,7 +227,7 @@ public class PlayerService {
         if (!roleRepository.existsById(roleId)) {
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND,
-                    String.format("Character with id %d not found", roleId));
+                    String.format(ROLE_NOT_FOUND, roleId));
         }
         if (!scenarioRepository.existsById(scenarioId)) {
             throw new ResponseStatusException(
@@ -254,41 +256,90 @@ public class PlayerService {
     }
 
     public String validate(String fromHeader, String intendedRole) {
+
         if (fromHeader == null || fromHeader.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token is empty");
         }
+
         String[] parts = fromHeader.split(" ", 2);
+
         if (parts.length < 2 || parts[1].isBlank()) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token format must be '<Type> <token>'");
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "Token format must be '<Type> <token>'"
+            );
         }
+
         String type = parts[0];
         String rawToken = parts[1];
 
-        boolean typeOk = type.equalsIgnoreCase(intendedRole) || intendedRole.equalsIgnoreCase("any");
+        validateRolePermission(type, intendedRole);
+        validateTokenByType(type, rawToken);
+
+        return rawToken;
+    }
+
+    private void validateRolePermission(String type, String intendedRole) {
+
+        boolean typeOk =
+                type.equalsIgnoreCase(intendedRole)
+                || intendedRole.equalsIgnoreCase("any");
+
         if (!typeOk) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
-                    "Your role is not permitted to perform this action");
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "Your role is not permitted to perform this action"
+            );
         }
+    }
+
+    private void validateTokenByType(String type, String rawToken) {
 
         if (type.equalsIgnoreCase("Director")) {
-            if (directorRepository.findByToken(rawToken).isEmpty()) {
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid director token");
-            }
+            validateDirectorToken(rawToken);
+
         } else if (type.equalsIgnoreCase("Backroomer")) {
-            // Director extends Backroomer, so a Director token is also a valid Backroomer token.
-            if (backroomerRepository.findByToken(rawToken).isEmpty()) {
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid backroomer token");
-            }
+            validateBackroomerToken(rawToken);
+
         } else if (type.equalsIgnoreCase("Role")) {
-            if (roleRepository.findByToken(rawToken).isEmpty()) {
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid role token");
-            }
+            validateRoleToken(rawToken);
+
         } else if (type.equalsIgnoreCase("Bearer")) {
             userService.validateUserToken(rawToken);
+
         } else {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unknown token type: " + type);
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "Unknown token type: " + type
+            );
         }
-        return rawToken;
+    }
+
+    private void validateDirectorToken(String rawToken) {
+        if (directorRepository.findByToken(rawToken).isEmpty()) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "Invalid director token"
+            );
+        }
+    }
+
+    private void validateBackroomerToken(String rawToken) {
+        if (backroomerRepository.findByToken(rawToken).isEmpty()) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "Invalid backroomer token"
+            );
+        }
+    }
+
+    private void validateRoleToken(String rawToken) {
+        if (roleRepository.findByToken(rawToken).isEmpty()) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "Invalid role token"
+            );
+        }
     }
 
     @Transactional

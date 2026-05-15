@@ -30,6 +30,8 @@ public class PlayerController {
         this.userService = userService;
     }
 
+    private static final String DIRECTOR = "Director";
+
     private String requireBearer(String token) {
         return playerService.validate(token, "Bearer");
     }
@@ -47,7 +49,7 @@ public class PlayerController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @ResponseBody
     public void updateRole(@RequestBody RolePutDTO rolePutDTO, @RequestHeader("Authorization") String token, @PathVariable Long characterId){
-        playerService.validate(token,"Director");
+        playerService.validate(token, DIRECTOR);
         playerService.updateRole(rolePutDTO,characterId);
     }
 
@@ -62,13 +64,13 @@ public class PlayerController {
     @PostMapping("/characters")
     @ResponseStatus(HttpStatus.OK)
     public RoleGetDTO createRole(@RequestBody RolePostDTO rolePostDTO, @RequestHeader("Authorization") String token){
-        playerService.validate(token,"Director");
+        playerService.validate(token, DIRECTOR);
         return PlayerDTOMapper.INSTANCE.convertEntitytoRoleGetDTO(playerService.createRole(rolePostDTO));
     }
 
     @DeleteMapping("/characters/{characterId}")
     public void deleteRole(@RequestHeader("Authorization")String token, @PathVariable Long characterId){
-        playerService.validate(token, "Director");
+        playerService.validate(token, DIRECTOR);
         playerService.deleteRole(characterId);
     }
 

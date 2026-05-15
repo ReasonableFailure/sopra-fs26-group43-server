@@ -36,6 +36,8 @@ public class ScenarioController {
         this.newsService = newsService;
     }
 
+    private static final String DIRECTOR = "Director";
+
     @GetMapping("/scenarios")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
@@ -54,7 +56,7 @@ public class ScenarioController {
 
     @PostMapping("/scenarios")
     public ScenarioGetDTO createScenario(@RequestBody ScenarioPostDTO scenarioPostDTO, @RequestHeader("Authorization") String token){
-        String rawToken = playerService.validate(token, "Director");
+        String rawToken = playerService.validate(token, DIRECTOR);
         Director director = playerService.getDirectorByToken(rawToken);
         if (scenarioPostDTO.getDirector() == null || !director.getId().equals(scenarioPostDTO.getDirector())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Director id does not match authenticated director");
@@ -72,14 +74,14 @@ public class ScenarioController {
 
     @PutMapping("/scenarios/{scenarioId}")
     public void updateScenario(@RequestHeader("Authorization") String token, @PathVariable Long scenarioId, @RequestBody ScenarioPutDTO scenarioPutDTO){
-        String rawToken = playerService.validate(token,"Director");
+        String rawToken = playerService.validate(token, DIRECTOR);
         requireDirectorOf(scenarioId, rawToken);
         scenarioService.updateScenario(scenarioId,scenarioPutDTO);
     }
 
     @DeleteMapping("/scenarios/{scenarioId}")
     public void deleteScenario(@RequestHeader("Authorization") String token, @PathVariable Long scenarioId){
-        String rawToken = playerService.validate(token,"Director");
+        String rawToken = playerService.validate(token, DIRECTOR);
         requireDirectorOf(scenarioId, rawToken);
         scenarioService.deleteScenario(scenarioId);
     }
@@ -121,7 +123,7 @@ public class ScenarioController {
             @RequestHeader("Authorization") String token,
             @RequestBody ScenarioMastodonDTO dto) {
 
-        String rawToken = playerService.validate(token, "Director");
+        String rawToken = playerService.validate(token, DIRECTOR);
         requireDirectorOf(scenarioId, rawToken);
 
         scenarioService.updateMastodonConfig(scenarioId, dto);

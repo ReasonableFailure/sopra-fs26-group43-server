@@ -10,6 +10,8 @@ public class NewsStory extends Communication {
 
     @Override
     public void applyStats(Role role) {
+        // Intentionally empty:
+        // NewsStory instances do not modify role statistics.
     }
 
     public String getMastodonStatusId() {
