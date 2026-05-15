@@ -48,6 +48,18 @@ public class User implements Serializable {
     @Column(nullable = true)
     private String bio;
 
+    /** Free-form display name. Empty/null by default; user can edit. */
+    @Column(nullable = true)
+    private String name;
+
+    /**
+     * Profile picture, stored as raw bytes. Mapped to/from a data URL on
+     * the API boundary (same approach as Role.portrait). Null = no pic.
+     */
+    @Lob
+    @Column(nullable = true)
+    private byte[] profilePic;
+
     @Column(nullable=false)
     private boolean isPlaying;
 
@@ -103,6 +115,22 @@ public class User implements Serializable {
 
     public void setBio(String bioText){
         this.bio = bioText;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public byte[] getProfilePic() {
+        return profilePic;
+    }
+
+    public void setProfilePic(byte[] profilePic) {
+        this.profilePic = profilePic;
     }
 
     public boolean isPlaying() {

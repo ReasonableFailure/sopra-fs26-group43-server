@@ -59,9 +59,11 @@ public class UserController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void updateUser(@PathVariable Long userid, @RequestHeader("Authorization") String token, @RequestBody UserPutDTO userPutDTO){
         String strippedToken = stripPrefix(token);
-        userService.validateUserToken(strippedToken);
-        User holdsUpdateData = UserDTOMapper.INSTANCE.convertUserPutDTOtoEntity(userPutDTO);
-        userService.updateProfile(userid, holdsUpdateData);
+        User bearer = userService.getByToken(strippedToken);
+        if (!bearer.getId().equals(userid)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cannot update another user");
+        }
+        userService.updateProfile(userid, userPutDTO);
     }
 
     @PostMapping("/login")
@@ -77,7 +79,10 @@ public class UserController {
     @ResponseStatus(HttpStatus.OK)
     public void logout(@PathVariable Long userid, @RequestHeader("Authorization") String token){
         String strippedToken = stripPrefix(token);
-        userService.validateUserToken(strippedToken);
+        User bearer = userService.getByToken(strippedToken);
+        if (!bearer.getId().equals(userid)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cannot log out another user");
+        }
         userService.logoutUser(userid);
     }
 
@@ -94,6 +99,10 @@ public class UserController {
     public List<EngagementGetDTO> getEngagements(@PathVariable Long userid,
                                                   @RequestHeader("Authorization") String token) {
         String strippedToken = stripPrefix(token);
+        User bearer = userService.getByToken(strippedToken);
+        if (!bearer.getId().equals(userid)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cannot view another user's engagements");
+        }
         return userService.getEngagements(strippedToken, userid);
     }
 

@@ -1,6 +1,7 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
 import ch.uzh.ifi.hase.soprafs26.constant.CommsStatus;
+import ch.uzh.ifi.hase.soprafs26.constant.ScenarioStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.*;
 import ch.uzh.ifi.hase.soprafs26.repository.*;
 import ch.uzh.ifi.hase.soprafs26.rest.directivedto.DirectivePostDTO;
@@ -41,6 +42,11 @@ public class DirectiveService {
 
         Scenario scenario = scenarioService.getScenarioById(postDTO.getScenarioId());
 
+        if (scenario.getStatus() == ScenarioStatus.COMPLETED) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Cannot submit directives in a completed scenario");
+        }
+
         if (postDTO.getCreatorId() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Creator ID missing");
         }
@@ -55,6 +61,7 @@ public class DirectiveService {
         Directive directive = DirectiveDTOMapper.INSTANCE.convertPostDTOToEntity(postDTO);
 
         directive.setCreatedAt(Instant.now());
+        directive.setDayNumber(scenario.getDayNumber());
         directive.setStatus(CommsStatus.PENDING);
         directive.setCreator(creator);
         directive.setResponse(null);

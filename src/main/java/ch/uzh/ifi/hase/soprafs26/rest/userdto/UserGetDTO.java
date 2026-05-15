@@ -11,6 +11,9 @@ public class UserGetDTO {
 	private UserStatus status;
     private boolean isPlaying;
     private String bio;
+    private String name;
+    /** Profile picture as a data URL, or null. */
+    private String profilePic;
     private Date creationDate;
 
     public Date getCreationDate() {
@@ -69,5 +72,21 @@ public class UserGetDTO {
 
     public void setPlaying(boolean playing) {
         isPlaying = playing;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getProfilePic() {
+        return profilePic;
+    }
+
+    public void setProfilePic(String profilePic) {
+        this.profilePic = profilePic;
     }
 }

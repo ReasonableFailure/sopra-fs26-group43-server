@@ -12,6 +12,7 @@ public class MessageGetDTO {
     private CommsStatus status;
     private Long creatorId;
     private Long recipientId;
+    private boolean seenByRecipient;
 
     public Long getId() {
         return id;
@@ -67,5 +68,13 @@ public class MessageGetDTO {
 
     public void setRecipientId(Long recipientId) {
         this.recipientId = recipientId;
+    }
+
+    public boolean isSeenByRecipient() {
+        return seenByRecipient;
+    }
+
+    public void setSeenByRecipient(boolean seenByRecipient) {
+        this.seenByRecipient = seenByRecipient;
     }
 }

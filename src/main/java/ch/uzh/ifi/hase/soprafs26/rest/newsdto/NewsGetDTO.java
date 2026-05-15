@@ -8,6 +8,7 @@ public class NewsGetDTO {
     private String title;
     private String body;
     private Instant createdAt;
+    private Integer dayNumber;
     private Long authorId;
     private Integer likes;
 
@@ -22,6 +23,9 @@ public class NewsGetDTO {
 
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
+
+    public Integer getDayNumber() { return dayNumber; }
+    public void setDayNumber(Integer dayNumber) { this.dayNumber = dayNumber; }
 
     public Long getAuthorId() { return authorId; }
     public void setAuthorId(Long authorId) { this.authorId = authorId; }

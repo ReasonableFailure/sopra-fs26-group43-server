@@ -10,6 +10,16 @@ public class Message extends Communication {
     @Column(nullable = false)
     private CommsStatus status;
 
+    /**
+     * Whether the recipient has seen this message in their conversation
+     * view. Only meaningful once status == ACCEPTED, since recipients
+     * never see PENDING/REJECTED/FAILED messages. Flipped from false to
+     * true the first time the recipient hits GET /messages/between/{a}/{b}
+     * with their Role token.
+     */
+    @Column(nullable = false)
+    private boolean seenByRecipient;
+
     @ManyToOne
     @JoinColumn(nullable = false)
     private Role creator;
@@ -31,6 +41,14 @@ public class Message extends Communication {
 
     public void setStatus(CommsStatus status) {
         this.status = status;
+    }
+
+    public boolean isSeenByRecipient() {
+        return seenByRecipient;
+    }
+
+    public void setSeenByRecipient(boolean seenByRecipient) {
+        this.seenByRecipient = seenByRecipient;
     }
 
     public Role getCreator() {

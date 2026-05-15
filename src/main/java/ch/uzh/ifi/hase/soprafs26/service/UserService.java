@@ -19,7 +19,9 @@ import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.repository.PlayerRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.EngagementGetDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.userdto.UserPutDTO;
 
+import java.util.Base64;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -81,9 +83,14 @@ public class UserService {
     }
 
     public User loginUser(User user) {
-        checkPwd(user.getUsername(), user.getPassword());
-        checkIfUserExistsByID(user.getId());
-        User fromStore = userRepository.findByUsername(user.getUsername()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,String.format("User with id %d not found", user.getId())));
+        if (user.getUsername() == null || user.getPassword() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username and password required");
+        }
+        User fromStore = userRepository.findByUsername(user.getUsername())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password"));
+        if (!fromStore.getPassword().equals(user.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password");
+        }
         fromStore.setToken(UUID.randomUUID().toString());
         fromStore.setStatus(UserStatus.ONLINE);
         fromStore = userRepository.save(fromStore);
@@ -113,20 +120,67 @@ public class UserService {
         userRepository.flush();
     }
 
-    public void updateProfile(Long id, User holdsUpdate) {
-        if (!checkIfUserExistsByID(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND,String.format("User with id %d not found", id));
+    /**
+     * Merge-update a user profile from a UserPutDTO. Only fields that
+     * are explicitly present (non-null) are applied; missing fields keep
+     * their current value. A null `name`/`bio` keeps the prior value
+     * (callers should send empty string "" to clear those text fields).
+     * For `profilePic`, an empty string clears the pic; a data URL or
+     * raw base64 sets it.
+     */
+    public void updateProfile(Long id, UserPutDTO dto) {
+        User toBeModified = userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        String.format("User with id %d not found", id)));
+
+        if (dto.getUsername() != null) {
+            if (dto.getUsername().isBlank()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username cannot be blank");
+            }
+            if (!dto.getUsername().equals(toBeModified.getUsername())) {
+                checkIfUsernameTaken(dto.getUsername());
+            }
+            toBeModified.setUsername(dto.getUsername());
         }
-        if (!isValidProfileData(holdsUpdate.getUsername(), holdsUpdate.getPassword())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid username or password");
+        if (dto.getPassword() != null) {
+            if (dto.getPassword().isBlank()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password cannot be blank");
+            }
+            toBeModified.setPassword(dto.getPassword());
         }
-        User toBeModified = userRepository.findById(id).get();
-        if(toBeModified != null){
-        toBeModified.setUsername(holdsUpdate.getUsername());
-        toBeModified.setPassword(holdsUpdate.getPassword());
-        toBeModified.setBio(holdsUpdate.getBio());}
+        if (dto.getBio() != null) {
+            toBeModified.setBio(dto.getBio());
+        }
+        if (dto.getName() != null) {
+            toBeModified.setName(dto.getName());
+        }
+        if (dto.getProfilePic() != null) {
+            toBeModified.setProfilePic(decodeProfilePic(dto.getProfilePic()));
+        }
         userRepository.save(toBeModified);
         userRepository.flush();
+    }
+
+    /**
+     * Decode a profile-pic data-URL ("data:image/jpeg;base64,XXX") or bare
+     * base64 string into the raw bytes we store in `User.profilePic`. An
+     * empty string returns null — the caller's way of clearing the pic.
+     */
+    private byte[] decodeProfilePic(String input) {
+        if (input == null) return null;
+        String trimmed = input.trim();
+        if (trimmed.isEmpty()) return null;
+        String data = trimmed;
+        int comma = trimmed.indexOf(',');
+        if (trimmed.startsWith("data:") && comma > 0) {
+            data = trimmed.substring(comma + 1);
+        }
+        try {
+            return Base64.getDecoder().decode(data);
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "profilePic is not a valid base64 image payload");
+        }
     }
 
     /*List of Failure conditions:
@@ -137,14 +191,6 @@ public class UserService {
     * userid does not exist |||| Done
     * invalid data in update Done
     * */
-    private boolean checkPwd(String username, String password) {
-        User foundByName = userRepository.findByUsername(username).orElseThrow(()->new ResponseStatusException(HttpStatus.BAD_REQUEST, "user cannot be found for password comparison!"));
-        if (!foundByName.getPassword().equals(password)) {
-            return false;
-        }
-        return true;
-    }
-
     private void checkIfUsernameTaken(String username) {
         if(userRepository.findByUsername(username).isPresent()){
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Username " + username + " taken!");
@@ -190,7 +236,6 @@ public class UserService {
                     String.format("User with id %d not found", userId));
         }
         List<Player> players = playerRepository.findByUser_Id(userId);
-        System.out.println(players.size());
         return players.stream()
                 .map(this::toEngagementDTO)
                 .filter(dto -> dto.getScenarioId() != null)
@@ -201,6 +246,7 @@ public class UserService {
     private EngagementGetDTO toEngagementDTO(Player player) {
         EngagementGetDTO dto = new EngagementGetDTO();
         dto.setPlayerId(player.getId());
+        dto.setToken(player.getToken());
         Scenario scenario = player.getScenario();
         if (scenario != null) {
             dto.setScenarioId(scenario.getId());

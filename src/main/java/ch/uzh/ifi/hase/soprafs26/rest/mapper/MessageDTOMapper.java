@@ -27,5 +27,6 @@ public interface MessageDTOMapper {
     @Mapping(source = "status", target = "status")
     @Mapping(source = "creator.id", target = "creatorId")
     @Mapping(source = "recipient.id", target = "recipientId")
+    @Mapping(source = "seenByRecipient", target = "seenByRecipient")
     MessageGetDTO convertEntityToGetDTO(Message message);
 }

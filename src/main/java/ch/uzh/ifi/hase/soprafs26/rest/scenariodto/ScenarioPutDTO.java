@@ -8,6 +8,7 @@ public class ScenarioPutDTO {
     private ScenarioStatus status;
     private Integer dayNumber;
     private Integer exchangeRate;
+    private Integer startingMessageCount;
 
     public String getTitle() {
         return title;
@@ -47,5 +48,13 @@ public class ScenarioPutDTO {
 
     public void setExchangeRate(Integer exchangeRate) {
         this.exchangeRate = exchangeRate;
+    }
+
+    public Integer getStartingMessageCount() {
+        return startingMessageCount;
+    }
+
+    public void setStartingMessageCount(Integer startingMessageCount) {
+        this.startingMessageCount = startingMessageCount;
     }
 }

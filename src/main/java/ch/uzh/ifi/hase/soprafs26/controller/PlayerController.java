@@ -6,10 +6,11 @@ import ch.uzh.ifi.hase.soprafs26.entity.Player;
 import ch.uzh.ifi.hase.soprafs26.entity.Role;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.PlayerDTOMapper;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.*;
+import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.rest.userdto.UserAssignDTO;
 import ch.uzh.ifi.hase.soprafs26.service.PlayerService;
 import ch.uzh.ifi.hase.soprafs26.service.ActionPointService;
-import org.h2.command.dml.BackupCommand;
+import ch.uzh.ifi.hase.soprafs26.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -21,10 +22,25 @@ public class PlayerController {
 
     private final PlayerService playerService;
     private final ActionPointService actionPointService;
+    private final UserService userService;
 
-    public PlayerController(PlayerService playerService, ActionPointService actionPointService){
+    public PlayerController(PlayerService playerService, ActionPointService actionPointService, UserService userService){
         this.playerService = playerService;
         this.actionPointService = actionPointService;
+        this.userService = userService;
+    }
+
+    private String requireBearer(String token) {
+        return playerService.validate(token, "Bearer");
+    }
+
+    private User requireBearerUser(String token, Long expectedUserId) {
+        String raw = requireBearer(token);
+        User bearer = userService.getByToken(raw);
+        if (expectedUserId != null && !bearer.getId().equals(expectedUserId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cannot act on behalf of another user");
+        }
+        return bearer;
     }
 
     @PutMapping("/characters/{characterId}")
@@ -59,16 +75,22 @@ public class PlayerController {
     @PostMapping("/scenario/{scenarioId}/backroomers")
     @ResponseStatus(HttpStatus.OK)
     public BackroomerGetDTO createBackroomer(@RequestHeader("Authorization")String token, @PathVariable Long scenarioId, @RequestBody UserAssignDTO userAssignDTO){
-        playerService.validate(token, "Bearer");
+        if (userAssignDTO == null || userAssignDTO.getId() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User id is required");
+        }
+        requireBearerUser(token, userAssignDTO.getId());
         return PlayerDTOMapper.INSTANCE.convertEntitytoBackroomerGetDTO(playerService.createBackroomer(userAssignDTO, scenarioId));
     }
 
     @PutMapping("/characters/{characterId}/assignment")
     @ResponseStatus(HttpStatus.OK)
     public RoleGetDTO selectCharacter(@RequestHeader("Authorization") String token,@PathVariable Long characterId, @RequestBody UserAssignDTO userAssignDTO){
-        playerService.validate(token, "Bearer");
-        Role r = (Role) playerService.updatePlayerAssociation(characterId,userAssignDTO);
-        return  PlayerDTOMapper.INSTANCE.convertEntitytoRoleGetDTO(r);
+        if (userAssignDTO == null || userAssignDTO.getId() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User id is required");
+        }
+        requireBearerUser(token, userAssignDTO.getId());
+        Role r = playerService.claimRole(characterId, userAssignDTO.getId());
+        return PlayerDTOMapper.INSTANCE.convertEntitytoRoleGetDTO(r);
     }
 
 
@@ -105,10 +127,9 @@ public class PlayerController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public DirectorGetDTO createScenarioDirector(@RequestHeader("Authorization") String token, @RequestBody UserAssignDTO userAssignDTO){
-        playerService.validate(token,"Bearer");
+        requireBearerUser(token, userAssignDTO.getId());
         Director d = playerService.createDirector(userAssignDTO.getId());
-        DirectorGetDTO dir =  PlayerDTOMapper.INSTANCE.convertEntityToDirectorGetDTO(d);
-        return dir;
+        return PlayerDTOMapper.INSTANCE.convertEntityToDirectorGetDTO(d);
     }
 
     @PostMapping("/scenarios/{scenarioId}/characters/{characterId}/messages")

@@ -1,5 +1,6 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
+import ch.uzh.ifi.hase.soprafs26.constant.ScenarioStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.*;
 import ch.uzh.ifi.hase.soprafs26.repository.*;
 import ch.uzh.ifi.hase.soprafs26.integration.MastodonClient;
@@ -43,16 +44,22 @@ public class NewsService {
 
         Scenario scenario = scenarioService.getScenarioById(dto.getScenarioId());
 
+        if (scenario.getStatus() == ScenarioStatus.COMPLETED) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Cannot post news to a completed scenario");
+        }
+
         NewsStory entity;
 
         if (dto.getAuthorId() != null) {
 
-            Role author =playerService.getRoleById(dto.getAuthorId());
+            Role author = playerService.getRoleById(dto.getAuthorId());
 
             Pronouncement p = new Pronouncement();
             p.setTitle(dto.getTitle());
             p.setBody(dto.getBody());
             p.setCreatedAt(Instant.now());
+            p.setDayNumber(scenario.getDayNumber());
             p.setLikes(0);
             p.setAuthor(author);
             p.setScenario(scenario);
@@ -64,6 +71,7 @@ public class NewsService {
         } else {
             entity = NewsDTOMapper.INSTANCE.convertPostDTOToNewsStory(dto);
             entity.setCreatedAt(Instant.now());
+            entity.setDayNumber(scenario.getDayNumber());
             entity.setScenario(scenario);
         }
 
@@ -93,6 +101,11 @@ public class NewsService {
     }
 
     public void postToMastodon (Scenario scenario, NewsStory news) {
+
+        if (news.getMastodonStatusId() != null) {
+            return;
+        }
+
         try {
             String statusId = mastodonClient.postStatus(
                     scenario.getMastodonBaseUrl(),

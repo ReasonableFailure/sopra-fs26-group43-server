@@ -1,13 +1,16 @@
 package ch.uzh.ifi.hase.soprafs26.controller;
 
 import ch.uzh.ifi.hase.soprafs26.entity.NewsStory;
+import ch.uzh.ifi.hase.soprafs26.entity.Player;
 import ch.uzh.ifi.hase.soprafs26.entity.Pronouncement;
+import ch.uzh.ifi.hase.soprafs26.entity.Role;
 import ch.uzh.ifi.hase.soprafs26.rest.newsdto.*;
 import ch.uzh.ifi.hase.soprafs26.service.NewsService;
 import ch.uzh.ifi.hase.soprafs26.service.PlayerService;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.NewsDTOMapper;
 
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
 import java.util.List;
@@ -30,7 +33,20 @@ public class NewsController {
             @RequestHeader("Authorization") String token,
             @RequestBody NewsPostDTO dto) {
 
-        playerService.validate(token, "any");
+        // Pronouncement (authorId set) must be created by the authoring Role;
+        // News story (no authorId) must be created by a Backroomer (which
+        // covers Directors too — Director extends Backroomer).
+        if (dto.getAuthorId() != null) {
+            playerService.validate(token, "Role");
+            Player requester = playerService.resolvePlayerFromHeader(token);
+            if (!(requester instanceof Role) || !requester.getId().equals(dto.getAuthorId())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                        "Pronouncement author must match the authenticated role");
+            }
+        } else {
+            playerService.validate(token, "Backroomer");
+        }
+
         NewsStory entity = newsService.createNews(dto);
 
         NewsGetDTO output =
