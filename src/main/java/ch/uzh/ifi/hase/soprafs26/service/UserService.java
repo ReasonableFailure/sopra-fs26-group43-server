@@ -19,7 +19,9 @@ import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.repository.PlayerRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.EngagementGetDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.userdto.UserPutDTO;
 
+import java.util.Base64;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -118,32 +120,67 @@ public class UserService {
         userRepository.flush();
     }
 
-    public void updateProfile(Long id, User holdsUpdate) {
+    /**
+     * Merge-update a user profile from a UserPutDTO. Only fields that
+     * are explicitly present (non-null) are applied; missing fields keep
+     * their current value. A null `name`/`bio` keeps the prior value
+     * (callers should send empty string "" to clear those text fields).
+     * For `profilePic`, an empty string clears the pic; a data URL or
+     * raw base64 sets it.
+     */
+    public void updateProfile(Long id, UserPutDTO dto) {
         User toBeModified = userRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         String.format("User with id %d not found", id)));
 
-        // Merge: only update fields that the caller actually supplied (non-null, non-blank).
-        if (holdsUpdate.getUsername() != null) {
-            if (holdsUpdate.getUsername().isBlank()) {
+        if (dto.getUsername() != null) {
+            if (dto.getUsername().isBlank()) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username cannot be blank");
             }
-            if (!holdsUpdate.getUsername().equals(toBeModified.getUsername())) {
-                checkIfUsernameTaken(holdsUpdate.getUsername());
+            if (!dto.getUsername().equals(toBeModified.getUsername())) {
+                checkIfUsernameTaken(dto.getUsername());
             }
-            toBeModified.setUsername(holdsUpdate.getUsername());
+            toBeModified.setUsername(dto.getUsername());
         }
-        if (holdsUpdate.getPassword() != null) {
-            if (holdsUpdate.getPassword().isBlank()) {
+        if (dto.getPassword() != null) {
+            if (dto.getPassword().isBlank()) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password cannot be blank");
             }
-            toBeModified.setPassword(holdsUpdate.getPassword());
+            toBeModified.setPassword(dto.getPassword());
         }
-        if (holdsUpdate.getBio() != null) {
-            toBeModified.setBio(holdsUpdate.getBio());
+        if (dto.getBio() != null) {
+            toBeModified.setBio(dto.getBio());
+        }
+        if (dto.getName() != null) {
+            toBeModified.setName(dto.getName());
+        }
+        if (dto.getProfilePic() != null) {
+            toBeModified.setProfilePic(decodeProfilePic(dto.getProfilePic()));
         }
         userRepository.save(toBeModified);
         userRepository.flush();
+    }
+
+    /**
+     * Decode a profile-pic data-URL ("data:image/jpeg;base64,XXX") or bare
+     * base64 string into the raw bytes we store in `User.profilePic`. An
+     * empty string returns null — the caller's way of clearing the pic.
+     */
+    private byte[] decodeProfilePic(String input) {
+        if (input == null) return null;
+        String trimmed = input.trim();
+        if (trimmed.isEmpty()) return null;
+        String data = trimmed;
+        int comma = trimmed.indexOf(',');
+        if (trimmed.startsWith("data:") && comma > 0) {
+            data = trimmed.substring(comma + 1);
+        }
+        try {
+            return Base64.getDecoder().decode(data);
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "profilePic is not a valid base64 image payload");
+        }
     }
 
     /*List of Failure conditions:

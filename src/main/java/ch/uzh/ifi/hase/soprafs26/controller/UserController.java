@@ -63,8 +63,7 @@ public class UserController {
         if (!bearer.getId().equals(userid)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cannot update another user");
         }
-        User holdsUpdateData = UserDTOMapper.INSTANCE.convertUserPutDTOtoEntity(userPutDTO);
-        userService.updateProfile(userid, holdsUpdateData);
+        userService.updateProfile(userid, userPutDTO);
     }
 
     @PostMapping("/login")
