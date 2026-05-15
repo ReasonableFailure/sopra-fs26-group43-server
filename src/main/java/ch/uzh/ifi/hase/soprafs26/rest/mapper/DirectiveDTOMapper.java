@@ -13,6 +13,7 @@ public interface DirectiveDTOMapper {
 
     @Mapping(source = "title", target = "title")
     @Mapping(source = "body", target = "body")
+    @Mapping(source = "category", target = "category")
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "status", ignore = true)

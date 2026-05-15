@@ -249,18 +249,11 @@ public class MessageServiceIntegrationTest {
 
 		// Caller is the creator, so they can see their own PENDING message.
 		List<Message> result = messageService.getMessagesBetween(
-				testCreator.getToken(), testCreator.getId(), testRecipient.getId());
+			testCreator.getId(), testRecipient.getId(), testCreator.getId());
 
 		assertEquals(1, result.size());
 		assertEquals(testCreator.getId(), result.get(0).getCreator().getId());
 		assertEquals(testRecipient.getId(), result.get(0).getRecipient().getId());
-	}
-
-	@Test
-	public void getMessagesBetween_charactersNotFound_throwsException() {
-		assertThrows(ResponseStatusException.class,
-				() -> messageService.getMessagesBetween(
-						testCreator.getToken(), 999L, testRecipient.getId()));
 	}
 
 	@Test
@@ -274,7 +267,7 @@ public class MessageServiceIntegrationTest {
 
 		messageService.createMessage(postDTO);
 
-		List<MessagePairDTO> result = messageService.getMessagePairsByScenario(testScenario.getId(), "tok");
+		List<MessagePairDTO> result = messageService.getMessagePairsByScenario(testScenario.getId());
 
 		assertEquals(1, result.size());
 		assertEquals(Math.min(testCreator.getId(), testRecipient.getId()), result.get(0).getRoleAId());
@@ -283,7 +276,7 @@ public class MessageServiceIntegrationTest {
 
 	@Test
 	public void getMessagePairsByScenario_scenarioNotFound_throwsException() {
-		assertThrows(ResponseStatusException.class, () -> messageService.getMessagePairsByScenario(999L, "tok"));
+		assertThrows(ResponseStatusException.class, () -> messageService.getMessagePairsByScenario(999L));
 	}
 }
 

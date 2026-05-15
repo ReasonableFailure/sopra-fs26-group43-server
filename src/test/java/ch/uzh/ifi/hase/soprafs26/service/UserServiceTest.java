@@ -14,6 +14,8 @@ import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.repository.PlayerRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
@@ -44,7 +46,7 @@ public class UserServiceTest {
 
     @Test
     public void createUser_validInputs_success() {
-        when(userRepository.findByUsername(Mockito.any())).thenReturn(null);
+        when(userRepository.findByUsername(Mockito.any())).thenReturn(Optional.empty());
 
         User createdUser = userService.createUser(testUser);
 
@@ -59,11 +61,11 @@ public class UserServiceTest {
 
     @Test
     public void createUser_duplicateUsername_throwsException() {
-        Mockito.when(userRepository.findByUsername(testUser.getUsername())).thenReturn(null);
+        Mockito.when(userRepository.findByUsername(testUser.getUsername())).thenReturn(Optional.empty());
         userService.createUser(testUser);
 
         // Second call: username now exists (duplicate)
-        Mockito.when(userRepository.findByUsername(testUser.getUsername())).thenReturn(testUser);
+        Mockito.when(userRepository.findByUsername(testUser.getUsername())).thenReturn(Optional.of(testUser));
 
         assertThrows(ResponseStatusException.class, () -> userService.createUser(testUser));
     }
@@ -71,7 +73,7 @@ public class UserServiceTest {
     @Test
     public void createUser_duplicateInputs_throwsException() {
         // Mock: username already exists
-        Mockito.when(userRepository.findByUsername(testUser.getUsername())).thenReturn(testUser);
+        Mockito.when(userRepository.findByUsername(testUser.getUsername())).thenReturn(Optional.of(testUser));
 
         assertThrows(ResponseStatusException.class, () -> userService.createUser(testUser));
     }
@@ -82,7 +84,7 @@ public class UserServiceTest {
         User mockUser = new User();
         mockUser.setToken(validToken);
 
-        when(userRepository.findByToken(validToken)).thenReturn(mockUser);
+        when(userRepository.findByToken(validToken)).thenReturn(Optional.of(mockUser));
 
         assertDoesNotThrow(() -> userService.validateUserToken(validToken));
     }
@@ -98,7 +100,7 @@ public class UserServiceTest {
     @Test
     void testValidateUserToken_NotFoundInDb() {
         String unknownToken = "ghost-token";
-        when(userRepository.findByToken(unknownToken)).thenReturn(null);
+        when(userRepository.findByToken(unknownToken)).thenReturn(Optional.empty());
 
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
                 () -> userService.validateUserToken(unknownToken));
@@ -112,7 +114,7 @@ public class UserServiceTest {
         User mockUser = new User();
         mockUser.setToken(null);
 
-        when(userRepository.findByToken(token)).thenReturn(mockUser);
+        when(userRepository.findByToken(token)).thenReturn(Optional.of(mockUser));
 
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
                 () -> userService.validateUserToken(token));

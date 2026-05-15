@@ -85,7 +85,7 @@ public class DirectiveServiceTest {
 		testDirective.setCreatedAt(Instant.now());
 
 		Mockito.when(scenarioService.getScenarioById(1L)).thenReturn(testScenario);
-		Mockito.when(playerService.getRole(1L)).thenReturn(testRole);
+		Mockito.when(playerService.getRoleById(1L)).thenReturn(testRole);
 		Mockito.when(directiveRepository.save(Mockito.any())).thenReturn(testDirective);
 		Mockito.doNothing().when(scenarioService).addCommunicationToHistory(Mockito.anyLong(), Mockito.any());
 	}
@@ -120,7 +120,7 @@ public class DirectiveServiceTest {
 
 	@Test
 	public void createDirective_roleNotFound_throwsException() {
-		Mockito.when(playerService.getRole(1L)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Role not found"));
+		Mockito.when(playerService.getRoleById(1L)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Role not found"));
 
 		assertThrows(ResponseStatusException.class, () -> directiveService.createDirective(testDirectivePostDTO));
 	}
@@ -203,19 +203,19 @@ public class DirectiveServiceTest {
 	@Test
 	public void getDirectivesByCreator_validCharacterId_success() {
 		List<Directive> expectedDirectives = Arrays.asList(testDirective);
-		Mockito.when(playerService.getRole(1L)).thenReturn(testRole);
+		Mockito.when(playerService.getRoleById(1L)).thenReturn(testRole);
 		Mockito.when(directiveRepository.findByCreatorId(1L)).thenReturn(expectedDirectives);
 
 		List<Directive> result = directiveService.getDirectivesByCreator(1L);
 
 		assertEquals(expectedDirectives, result);
-		Mockito.verify(playerService, Mockito.times(1)).getRole(1L);
+		Mockito.verify(playerService, Mockito.times(1)).getRoleById(1L);
 		Mockito.verify(directiveRepository, Mockito.times(1)).findByCreatorId(1L);
 	}
 
 	@Test
 	public void getDirectivesByCreator_characterNotFound_throwsException() {
-		Mockito.when(playerService.getRole(1L)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Character not found"));
+		Mockito.when(playerService.getRoleById(1L)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Character not found"));
 
 		assertThrows(ResponseStatusException.class, () -> directiveService.getDirectivesByCreator(1L));
 	}

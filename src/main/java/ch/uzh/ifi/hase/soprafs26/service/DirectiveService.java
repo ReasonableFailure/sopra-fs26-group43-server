@@ -53,7 +53,11 @@ public class DirectiveService {
 
         Role creator = playerService.getRoleById(postDTO.getCreatorId());
 
-        if (!scenario.getPlayers().contains(creator)) {
+        boolean roleInScenario = scenario.getPlayers().stream()
+                .map(Player::getId)
+                .anyMatch(id -> id.equals(creator.getId()));
+
+        if (!roleInScenario) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST, "Role not part of scenario");
         }

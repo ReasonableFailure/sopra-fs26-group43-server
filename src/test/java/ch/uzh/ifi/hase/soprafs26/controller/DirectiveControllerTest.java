@@ -7,7 +7,7 @@ import ch.uzh.ifi.hase.soprafs26.entity.Directive;
 import ch.uzh.ifi.hase.soprafs26.entity.Role;
 import ch.uzh.ifi.hase.soprafs26.entity.Scenario;
 import ch.uzh.ifi.hase.soprafs26.service.DirectiveService;
-import ch.uzh.ifi.hase.soprafs26.service.UserService;
+import ch.uzh.ifi.hase.soprafs26.service.PlayerService;
 import ch.uzh.ifi.hase.soprafs26.rest.directivedto.DirectiveGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.directivedto.DirectivePostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.directivedto.DirectivePutDTO;
@@ -48,7 +48,7 @@ public class DirectiveControllerTest {
     private DirectiveService directiveService;
 
     @MockitoBean
-    private UserService userService;
+    private PlayerService playerService;
 
     private ObjectMapper objectMapper;
     private Directive testDirective;
@@ -61,7 +61,7 @@ public class DirectiveControllerTest {
     public void setupTest() {
         objectMapper = new ObjectMapper();
 
-        Mockito.lenient().doNothing().when(userService).validateUserToken(anyString());
+        Mockito.lenient().when(playerService.validate(anyString(), anyString())).thenReturn("token123");
 
         testRole = new Role();
         testRole.setId(1L);
@@ -180,7 +180,7 @@ public class DirectiveControllerTest {
 
     @Test
     public void getDirective_validId_directiveReturned() throws Exception {
-        given(directiveService.getDirectiveById(Mockito.eq(1L), anyString()))
+        given(directiveService.getDirectiveById(Mockito.eq(1L)))
                 .willReturn(testDirective);
 
         MockHttpServletRequestBuilder getRequest = get("/directives/1")
@@ -194,12 +194,12 @@ public class DirectiveControllerTest {
                 .andExpect(jsonPath("$.status", is("PENDING")))
                 .andExpect(jsonPath("$.creatorId", is(1)));
 
-        verify(directiveService, times(1)).getDirectiveById(Mockito.eq(1L), anyString());
+        verify(directiveService, times(1)).getDirectiveById(Mockito.eq(1L));
     }
 
     @Test
     public void getDirective_directiveNotFound_throwsException() throws Exception {
-        given(directiveService.getDirectiveById(Mockito.eq(999L), anyString()))
+        given(directiveService.getDirectiveById(Mockito.eq(999L)))
                 .willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Directive not found"));
 
         MockHttpServletRequestBuilder getRequest = get("/directives/999")
@@ -208,7 +208,7 @@ public class DirectiveControllerTest {
         mockMvc.perform(getRequest)
                 .andExpect(status().isNotFound());
 
-        verify(directiveService, times(1)).getDirectiveById(Mockito.eq(999L), anyString());
+        verify(directiveService, times(1)).getDirectiveById(Mockito.eq(999L));
     }
 
 
@@ -284,7 +284,7 @@ public class DirectiveControllerTest {
         secondDirective.setScenario(testScenario);
         directives.add(secondDirective);
 
-        given(directiveService.getDirectivesByScenario(Mockito.eq(1L), anyString()))
+        given(directiveService.getDirectivesByScenario(Mockito.eq(1L)))
                 .willReturn(directives);
 
         MockHttpServletRequestBuilder getRequest = get("/directives/scenario/1")
@@ -298,12 +298,12 @@ public class DirectiveControllerTest {
                 .andExpect(jsonPath("$[1].id", is(2)))
                 .andExpect(jsonPath("$[1].title", is("Second Directive")));
 
-        verify(directiveService, times(1)).getDirectivesByScenario(Mockito.eq(1L), anyString());
+        verify(directiveService, times(1)).getDirectivesByScenario(Mockito.eq(1L));
     }
 
     @Test
     public void getDirectivesByScenario_scenarioNotFound_throwsException() throws Exception {
-        given(directiveService.getDirectivesByScenario(Mockito.eq(999L), anyString()))
+        given(directiveService.getDirectivesByScenario(Mockito.eq(999L)))
                 .willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario not found"));
 
         MockHttpServletRequestBuilder getRequest = get("/directives/scenario/999")
@@ -312,7 +312,7 @@ public class DirectiveControllerTest {
         mockMvc.perform(getRequest)
                 .andExpect(status().isNotFound());
 
-        verify(directiveService, times(1)).getDirectivesByScenario(Mockito.eq(999L), anyString());
+        verify(directiveService, times(1)).getDirectivesByScenario(Mockito.eq(999L));
     }
 
 
@@ -321,7 +321,7 @@ public class DirectiveControllerTest {
         List<Directive> directives = new ArrayList<>();
         directives.add(testDirective);
 
-        given(directiveService.getDirectivesByCreator(Mockito.eq(1L), anyString()))
+        given(directiveService.getDirectivesByCreator(Mockito.eq(1L)))
                 .willReturn(directives);
 
         MockHttpServletRequestBuilder getRequest = get("/directives/character/1")
@@ -334,12 +334,12 @@ public class DirectiveControllerTest {
                 .andExpect(jsonPath("$[0].title", is("Test Directive")))
                 .andExpect(jsonPath("$[0].creatorId", is(1)));
 
-        verify(directiveService, times(1)).getDirectivesByCreator(Mockito.eq(1L), anyString());
+        verify(directiveService, times(1)).getDirectivesByCreator(Mockito.eq(1L));
     }
 
     @Test
     public void getDirectivesByCharacter_characterNotFound_throwsException() throws Exception {
-        given(directiveService.getDirectivesByCreator(Mockito.eq(999L), anyString()))
+        given(directiveService.getDirectivesByCreator(Mockito.eq(999L)))
                 .willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Character not found"));
 
         MockHttpServletRequestBuilder getRequest = get("/directives/character/999")
@@ -348,7 +348,7 @@ public class DirectiveControllerTest {
         mockMvc.perform(getRequest)
                 .andExpect(status().isNotFound());
 
-        verify(directiveService, times(1)).getDirectivesByCreator(Mockito.eq(999L), anyString());
+        verify(directiveService, times(1)).getDirectivesByCreator(Mockito.eq(999L));
     }
 
 

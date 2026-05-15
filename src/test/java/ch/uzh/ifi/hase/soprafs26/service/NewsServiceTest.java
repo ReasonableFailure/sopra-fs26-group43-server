@@ -89,7 +89,7 @@ public class NewsServiceTest {
 		testPronouncement.setScenario(testScenario);
 
 		Mockito.when(scenarioService.getScenarioById(1L)).thenReturn(testScenario);
-		Mockito.when(playerService.getRole(1L)).thenReturn(testRole);
+		Mockito.when(playerService.getRoleById(1L)).thenReturn(testRole);
 		Mockito.when(newsRepository.save(Mockito.any())).thenAnswer(invocation -> invocation.getArgument(0));
 		Mockito.doNothing().when(communicationStatsService).registerCommunication(Mockito.any(), Mockito.any());
 	}
@@ -136,7 +136,7 @@ public class NewsServiceTest {
 
 	@Test
 	public void createNews_authorNotFound_throwsException() {
-		Mockito.when(playerService.getRole(1L)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND));;
+		Mockito.when(playerService.getRoleById(1L)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND));
 
 		assertThrows(ResponseStatusException.class, () -> newsService.createNews(testNewsPostDTO));
 	}

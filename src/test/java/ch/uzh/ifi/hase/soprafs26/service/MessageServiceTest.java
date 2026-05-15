@@ -60,6 +60,8 @@ public class MessageServiceTest {
 		testScenario.setId(1L);
 		testScenario.setHistory(new ArrayList<>());
 
+		Mockito.when(scenarioService.getScenarioById(1L)).thenReturn(testScenario);
+
 		testMessage = new Message();
 		testMessage.setId(1L);
 		testMessage.setTitle("Test Message");
@@ -89,10 +91,10 @@ public class MessageServiceTest {
 		Mockito.when(scenarioService.getScenarioById(1L))
 			.thenReturn(testScenario);
 
-		Mockito.when(playerService.getRole(1L))
+		Mockito.when(playerService.getRoleById(1L))
 			.thenReturn(testCreator);
 
-		Mockito.when(playerService.getRole(2L))
+		Mockito.when(playerService.getRoleById(2L))
 			.thenReturn(testRecipient);
 
 		Message createdMessage = messageService.createMessage(testPostDTO);
@@ -169,8 +171,8 @@ public class MessageServiceTest {
 		List<Message> messages = new ArrayList<>();
 		messages.add(testMessage);
 
-		Mockito.when(playerService.getRole(1L)).thenReturn(testCreator);
-		Mockito.when(playerService.getRole(2L)).thenReturn(testRecipient);
+		Mockito.when(playerService.getRoleById(1L)).thenReturn(testCreator);
+		Mockito.when(playerService.getRoleById(2L)).thenReturn(testRecipient);
 		Mockito.when(messageRepository.findConversation(1L, 2L)).thenReturn(messages);
 
 		List<Message> result = messageService.getMessagesBetween(1L, 2L);
@@ -180,7 +182,7 @@ public class MessageServiceTest {
 
 	@Test
 	public void getMessagesBetween_charactersNotFound_throwsException() {
-		Mockito.when(playerService.getRole(1L)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND));
+		Mockito.when(playerService.getRoleById(1L)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND));
 
 		assertThrows(ResponseStatusException.class, () -> messageService.getMessagesBetween(1L, 2L));
 	}

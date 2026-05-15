@@ -7,7 +7,7 @@ import ch.uzh.ifi.hase.soprafs26.entity.Pronouncement;
 import ch.uzh.ifi.hase.soprafs26.entity.Role;
 import ch.uzh.ifi.hase.soprafs26.entity.Scenario;
 import ch.uzh.ifi.hase.soprafs26.service.NewsService;
-import ch.uzh.ifi.hase.soprafs26.service.UserService;
+import ch.uzh.ifi.hase.soprafs26.service.PlayerService;
 import ch.uzh.ifi.hase.soprafs26.rest.newsdto.NewsGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.newsdto.NewsPostDTO;
 
@@ -47,7 +47,7 @@ public class NewsControllerTest {
     private NewsService newsService;
 
     @MockitoBean
-    private UserService userService;
+    private PlayerService playerService;
 
     private ObjectMapper objectMapper;
     private NewsStory testNewsStory;
@@ -60,11 +60,13 @@ public class NewsControllerTest {
     public void setupTest() {
         objectMapper = new ObjectMapper();
 
-        Mockito.lenient().doNothing().when(userService).validateUserToken(anyString());
+        Mockito.lenient().when(playerService.validate(anyString(), anyString())).thenReturn("token123");
 
         testRole = new Role();
         testRole.setId(1L);
         testRole.setName("Test Role");
+
+        Mockito.lenient().when(playerService.resolvePlayerFromHeader(anyString())).thenReturn(testRole);
 
         testScenario = new Scenario();
         testScenario.setId(1L);

@@ -9,8 +9,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import ch.uzh.ifi.hase.soprafs26.constant.CommsStatus;
+import ch.uzh.ifi.hase.soprafs26.constant.DirectiveCategory;
 import ch.uzh.ifi.hase.soprafs26.constant.ScenarioStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.Backroomer;
 import ch.uzh.ifi.hase.soprafs26.entity.Directive;
@@ -85,9 +87,12 @@ public class DirectiveServiceIntegrationTest {
 
 		// Backroomer requesters see everything — matches the read-path branch
 		// that returns all directives regardless of creator.
-		Mockito.when(playerService.resolveRequesterInScenario(
-				Mockito.anyString(), Mockito.anyLong()))
+		Mockito.when(playerService.resolvePlayerFromHeader(Mockito.anyString()))
 				.thenReturn(new Backroomer());
+		Mockito.when(playerService.getRoleById(testRole.getId()))
+				.thenReturn(testRole);
+		Mockito.when(playerService.getRoleById(999L))
+				.thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND));
 	}
 
 	@Test
@@ -98,12 +103,14 @@ public class DirectiveServiceIntegrationTest {
 		postDTO.setBody("Test directive body");
 		postDTO.setCreatorId(testRole.getId());
 		postDTO.setScenarioId(testScenario.getId());
+		postDTO.setCategory(DirectiveCategory.OTHER);
 
 		Directive createdDirective = directiveService.createDirective(postDTO);
 
 		assertNotNull(createdDirective.getId());
 		assertEquals(postDTO.getTitle(), createdDirective.getTitle());
 		assertEquals(postDTO.getBody(), createdDirective.getBody());
+		assertEquals(DirectiveCategory.OTHER, createdDirective.getCategory());
 		assertEquals(CommsStatus.PENDING, createdDirective.getStatus());
 		assertEquals(testRole.getId(), createdDirective.getCreator().getId());
 		assertEquals(testScenario.getId(), createdDirective.getScenario().getId());
@@ -117,6 +124,7 @@ public class DirectiveServiceIntegrationTest {
 		postDTO.setBody("Test directive body");
 		postDTO.setCreatorId(null);
 		postDTO.setScenarioId(testScenario.getId());
+		postDTO.setCategory(DirectiveCategory.OTHER);
 
 		assertThrows(ResponseStatusException.class, () -> directiveService.createDirective(postDTO));
 	}
@@ -128,6 +136,7 @@ public class DirectiveServiceIntegrationTest {
 		postDTO.setBody("Test directive body");
 		postDTO.setCreatorId(testRole.getId());
 		postDTO.setScenarioId(999L);
+		postDTO.setCategory(DirectiveCategory.OTHER);
 
 		assertThrows(ResponseStatusException.class, () -> directiveService.createDirective(postDTO));
 	}
@@ -139,6 +148,7 @@ public class DirectiveServiceIntegrationTest {
 		postDTO.setBody("Test directive body");
 		postDTO.setCreatorId(999L);
 		postDTO.setScenarioId(testScenario.getId());
+		postDTO.setCategory(DirectiveCategory.OTHER);
 
 		assertThrows(ResponseStatusException.class, () -> directiveService.createDirective(postDTO));
 	}
@@ -158,11 +168,15 @@ public class DirectiveServiceIntegrationTest {
 		otherRole.setAssignedCabinet(99L);
 		otherRole = roleRepository.save(otherRole);
 
+		Mockito.when(playerService.getRoleById(otherRole.getId()))
+				.thenReturn(otherRole);
+
 		DirectivePostDTO postDTO = new DirectivePostDTO();
 		postDTO.setTitle("Test Directive");
 		postDTO.setBody("Test directive body");
 		postDTO.setCreatorId(otherRole.getId());
 		postDTO.setScenarioId(testScenario.getId());
+		postDTO.setCategory(DirectiveCategory.OTHER);
 
 		assertThrows(ResponseStatusException.class, () -> directiveService.createDirective(postDTO));
 	}
@@ -174,14 +188,16 @@ public class DirectiveServiceIntegrationTest {
 		postDTO.setBody("Test directive body");
 		postDTO.setCreatorId(testRole.getId());
 		postDTO.setScenarioId(testScenario.getId());
+		postDTO.setCategory(DirectiveCategory.OTHER);
 
 		Directive createdDirective = directiveService.createDirective(postDTO);
 
-		Directive retrievedDirective = directiveService.getDirectiveById(createdDirective.getId(), "tok");
+		Directive retrievedDirective = directiveService.getDirectiveById(createdDirective.getId());
 
 		assertEquals(createdDirective.getId(), retrievedDirective.getId());
 		assertEquals(createdDirective.getTitle(), retrievedDirective.getTitle());
 		assertEquals(createdDirective.getBody(), retrievedDirective.getBody());
+		assertEquals(DirectiveCategory.OTHER, retrievedDirective.getCategory());
 		assertEquals(createdDirective.getStatus(), retrievedDirective.getStatus());
 		assertEquals(createdDirective.getCreator().getId(), retrievedDirective.getCreator().getId());
 		assertEquals(createdDirective.getScenario().getId(), retrievedDirective.getScenario().getId());
@@ -189,7 +205,7 @@ public class DirectiveServiceIntegrationTest {
 
 	@Test
 	public void getDirectiveById_directiveNotFound_throwsException() {
-		assertThrows(ResponseStatusException.class, () -> directiveService.getDirectiveById(999L, "tok"));
+		assertThrows(ResponseStatusException.class, () -> directiveService.getDirectiveById(999L));
 	}
 
 	@Test
@@ -199,6 +215,7 @@ public class DirectiveServiceIntegrationTest {
 		postDTO.setBody("Test directive body");
 		postDTO.setCreatorId(testRole.getId());
 		postDTO.setScenarioId(testScenario.getId());
+		postDTO.setCategory(DirectiveCategory.OTHER);
 
 		Directive createdDirective = directiveService.createDirective(postDTO);
 
@@ -220,6 +237,7 @@ public class DirectiveServiceIntegrationTest {
 		postDTO.setBody("Test directive body");
 		postDTO.setCreatorId(testRole.getId());
 		postDTO.setScenarioId(testScenario.getId());
+		postDTO.setCategory(DirectiveCategory.OTHER);
 
 		Directive createdDirective = directiveService.createDirective(postDTO);
 
@@ -247,10 +265,11 @@ public class DirectiveServiceIntegrationTest {
 		postDTO.setBody("Test directive body");
 		postDTO.setCreatorId(testRole.getId());
 		postDTO.setScenarioId(testScenario.getId());
+		postDTO.setCategory(DirectiveCategory.OTHER);
 
 		directiveService.createDirective(postDTO);
 
-		List<Directive> directives = directiveService.getDirectivesByScenario(testScenario.getId(), "tok");
+		List<Directive> directives = directiveService.getDirectivesByScenario(testScenario.getId());
 
 		assertEquals(1, directives.size());
 		assertEquals("Test Directive", directives.get(0).getTitle());
@@ -258,7 +277,7 @@ public class DirectiveServiceIntegrationTest {
 
 	@Test
 	public void getDirectivesByScenario_scenarioNotFound_throwsException() {
-		assertThrows(ResponseStatusException.class, () -> directiveService.getDirectivesByScenario(999L, "tok"));
+		assertThrows(ResponseStatusException.class, () -> directiveService.getDirectivesByScenario(999L));
 	}
 
 	@Test
@@ -268,10 +287,11 @@ public class DirectiveServiceIntegrationTest {
 		postDTO.setBody("Test directive body");
 		postDTO.setCreatorId(testRole.getId());
 		postDTO.setScenarioId(testScenario.getId());
+		postDTO.setCategory(DirectiveCategory.OTHER);
 
 		directiveService.createDirective(postDTO);
 
-		List<Directive> directives = directiveService.getDirectivesByCreator(testRole.getId(), "tok");
+		List<Directive> directives = directiveService.getDirectivesByCreator(testRole.getId());
 
 		assertEquals(1, directives.size());
 		assertEquals("Test Directive", directives.get(0).getTitle());
@@ -279,6 +299,6 @@ public class DirectiveServiceIntegrationTest {
 
 	@Test
 	public void getDirectivesByCreator_characterNotFound_throwsException() {
-		assertThrows(ResponseStatusException.class, () -> directiveService.getDirectivesByCreator(999L, "tok"));
+		assertThrows(ResponseStatusException.class, () -> directiveService.getDirectivesByCreator(999L));
 	}
 }
