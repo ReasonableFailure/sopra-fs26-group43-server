@@ -3,7 +3,7 @@ name: Deploy Project to App Engine
 on:
   push:
     branches:
-      - master
+      - main
   workflow_dispatch:
 
 jobs:
