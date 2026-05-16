@@ -36,8 +36,8 @@ public class PlayerControllerTest {
         playerService.updateRole(rolePutDTO,characterId);
     }*/
 
-    public void updateRole_whenUpdate_notEmpty_andRoleExists() {
-        when(playerService.updateRole(any(RolePutDTO.class), 1L));
-    }
+//    public void updateRole_whenUpdate_notEmpty_andRoleExists() {
+//        when(playerService.updateRole(any(RolePutDTO.class), 1L));
+//    }
 
 }
