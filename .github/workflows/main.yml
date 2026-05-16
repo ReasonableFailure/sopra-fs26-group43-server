@@ -44,7 +44,7 @@ jobs:
         with:
           deliverables: app.yaml
           version: v1
-          credentials: ${{ secrets.GCP_SERVICE_CREDENTIALS }}
+          #credentials: ${{ secrets.GCP_SERVICE_CREDENTIALS }}
           env_vars: |-
             POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
 
