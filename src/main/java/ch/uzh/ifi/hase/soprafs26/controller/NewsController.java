@@ -33,8 +33,8 @@ public class NewsController {
             @RequestHeader("Authorization") String token,
             @RequestBody NewsPostDTO dto) {
 
-        // Pronouncement (authorId set) must be created by the authoring Role;
-        // News story (no authorId) must be created by a Backroomer (which
+        // Pronouncement with authorId set must be created by the authoring Role;
+        // News story no authorId must be created by a Backroomer (which
         // covers Directors too — Director extends Backroomer).
         if (dto.getAuthorId() != null) {
             playerService.validate(token, "Role");
