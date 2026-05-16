@@ -3,3 +3,6 @@
 
 runtime: java17
 instance_class: F2
+
+beta_settings:
+  cloud_sql_instances: sopra-fs26-group-43-server:europe-west6:sopraf-group43-postgre
