@@ -171,9 +171,10 @@ public class PlayerService {
         newRole.setNumberPronouncements(0);
         newRole.setTotalTextLength(0);
         scenario.addPlayer(newRole);
+        Role savedRole = roleRepository.save(newRole);
         scenarioRepository.save(scenario);
 
-        return newRole;
+        return savedRole;
     }
 
     public void deleteRole(Long roleId){

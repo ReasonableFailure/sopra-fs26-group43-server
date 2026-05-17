@@ -261,7 +261,18 @@ public class NewsControllerTest {
 
         verify(newsService, times(1)).getNewsByScenario(999L);
     }
+    @Test
+    public void deleteNews_validInput_success() throws Exception {
+        doNothing().when(newsService).deleteNews(Mockito.eq(1L));
 
+        MockHttpServletRequestBuilder deleteRequest = delete("/news/1")
+                .header("Authorization", "Bearer token123");
+
+        mockMvc.perform(deleteRequest)
+                .andExpect(status().isNoContent());
+
+        verify(newsService, times(1)).deleteNews(Mockito.eq(1L));
+    }
     private String asJsonString(Object object) throws Exception {
         return objectMapper.writeValueAsString(object);
     }

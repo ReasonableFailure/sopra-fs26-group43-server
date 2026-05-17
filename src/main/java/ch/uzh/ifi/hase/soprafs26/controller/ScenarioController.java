@@ -104,18 +104,6 @@ public class ScenarioController {
         return  toReturn;
     }
 
-    @GetMapping("/characters/{scenarioId}/cabinet/{cabinetId}")
-    public List<RoleGetDTO> retrieveAllRolesInCabinet(@PathVariable Long scenarioId, @PathVariable Long cabinetId, @RequestHeader("Authorization") String token){
-        playerService.validate(token, "any");
-        List<Role> list = scenarioService.getRolesPerCabinet(scenarioId,cabinetId);
-        ArrayList<RoleGetDTO> toReturn = new ArrayList<RoleGetDTO>();
-        for (Role role : list){
-            toReturn.add(PlayerDTOMapper.INSTANCE.convertEntitytoRoleGetDTO(role));
-        }
-        return toReturn;
-    }
-
-
     @PutMapping("/scenarios/{scenarioId}/mastodon")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void updateMastodonConfig(
