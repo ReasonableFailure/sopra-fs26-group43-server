@@ -228,6 +228,19 @@ public class DirectiveControllerTest {
     }
 
     @Test
+    public void deleteDirective_validInput_success() throws Exception {
+        doNothing().when(directiveService).deleteDirective(Mockito.eq(1L));
+
+        MockHttpServletRequestBuilder deleteRequest = delete("/directives/1")
+                .header("Authorization", "Bearer token123");
+
+        mockMvc.perform(deleteRequest)
+                .andExpect(status().isNoContent());
+
+        verify(directiveService, times(1)).deleteDirective(Mockito.eq(1L));
+    }
+
+    @Test
     public void updateDirective_statusNull_throwsException() throws Exception {
         DirectivePutDTO putDTOWithNullStatus = new DirectivePutDTO();
         putDTOWithNullStatus.setStatus(null);

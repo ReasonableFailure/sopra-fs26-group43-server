@@ -72,7 +72,6 @@ public class DirectiveServiceIntegrationTest {
 		testRole.setMessageCount(5);
 		testRole.setTotalPoints(10);
 		testRole.setPointsBalance(10);
-		testRole.setAssignedCabinet(0L);
 
 		testScenario = new Scenario();
 		testScenario.setTitle("Test Scenario");
@@ -142,6 +141,21 @@ public class DirectiveServiceIntegrationTest {
 	}
 
 	@Test
+	public void createDirective_completedScenario_throwsException() {
+		testScenario.setStatus(ScenarioStatus.COMPLETED);
+		scenarioRepository.save(testScenario);
+
+		DirectivePostDTO postDTO = new DirectivePostDTO();
+		postDTO.setTitle("Test Directive");
+		postDTO.setBody("Test directive body");
+		postDTO.setCreatorId(testRole.getId());
+		postDTO.setScenarioId(testScenario.getId());
+		postDTO.setCategory(DirectiveCategory.OTHER);
+
+		assertThrows(ResponseStatusException.class, () -> directiveService.createDirective(postDTO));
+	}
+
+	@Test
 	public void createDirective_roleNotFound_throwsException() {
 		DirectivePostDTO postDTO = new DirectivePostDTO();
 		postDTO.setTitle("Test Directive");
@@ -165,7 +179,6 @@ public class DirectiveServiceIntegrationTest {
 		otherRole.setMessageCount(5);
 		otherRole.setTotalPoints(10);
 		otherRole.setPointsBalance(10);
-		otherRole.setAssignedCabinet(99L);
 		otherRole = roleRepository.save(otherRole);
 
 		Mockito.when(playerService.getRoleById(otherRole.getId()))
@@ -256,6 +269,27 @@ public class DirectiveServiceIntegrationTest {
 		putDTO.setResponse("Accepted response");
 
 		assertThrows(ResponseStatusException.class, () -> directiveService.updateDirectiveStatus(999L, putDTO));
+	}
+
+	@Test
+	public void deleteDirective_validId_success() {
+		DirectivePostDTO postDTO = new DirectivePostDTO();
+		postDTO.setTitle("Test Directive");
+		postDTO.setBody("Test directive body");
+		postDTO.setCreatorId(testRole.getId());
+		postDTO.setScenarioId(testScenario.getId());
+		postDTO.setCategory(DirectiveCategory.OTHER);
+
+		Directive createdDirective = directiveService.createDirective(postDTO);
+
+		directiveService.deleteDirective(createdDirective.getId());
+
+		assertFalse(directiveRepository.findById(createdDirective.getId()).isPresent());
+	}
+
+	@Test
+	public void deleteDirective_directiveNotFound_throwsException() {
+		assertThrows(ResponseStatusException.class, () -> directiveService.deleteDirective(999L));
 	}
 
 	@Test

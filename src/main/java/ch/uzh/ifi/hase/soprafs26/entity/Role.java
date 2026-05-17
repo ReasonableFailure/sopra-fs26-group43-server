@@ -24,8 +24,6 @@ public class Role extends Player{
     @Column(unique=false,nullable=true)
     private byte[] portrait;
     @Column(unique = false, nullable = true)
-    private Long assignedCabinet;
-    @Column(unique=false,nullable=false)
     private int numberDirectives;
     @Column(unique=false,nullable=false)
     private int numberMessages;
@@ -121,14 +119,6 @@ public class Role extends Player{
 
     public void setPortrait(byte[] portrait) {
         this.portrait = portrait;
-    }
-
-    public Long getAssignedCabinet() {
-        return this.assignedCabinet;
-    }
-
-    public void setAssignedCabinet(Long assignedCabinet) {
-        this.assignedCabinet = assignedCabinet;
     }
 
     public int getNumberDirectives() {

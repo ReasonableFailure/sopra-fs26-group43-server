@@ -19,6 +19,8 @@ import ch.uzh.ifi.hase.soprafs26.entity.Scenario;
 import ch.uzh.ifi.hase.soprafs26.repository.NewsRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.RoleRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.ScenarioRepository;
+import ch.uzh.ifi.hase.soprafs26.integration.MastodonClient;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import ch.uzh.ifi.hase.soprafs26.rest.newsdto.NewsPostDTO;
 
 import java.util.ArrayList;
@@ -28,6 +30,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import org.mockito.Mockito;
 
 @WebAppConfiguration
 @SpringBootTest
@@ -48,6 +52,9 @@ public class NewsServiceIntegrationTest {
 	@Autowired
 	private NewsService newsService;
 
+	@MockitoBean
+	private MastodonClient mastodonClient;
+
 	private Scenario testScenario;
 	private Role testRole;
 
@@ -67,7 +74,6 @@ public class NewsServiceIntegrationTest {
 		testRole.setMessageCount(5);
 		testRole.setTotalPoints(10);
 		testRole.setPointsBalance(10);
-		testRole.setAssignedCabinet(0L);
 
 		testScenario = new Scenario();
 		testScenario.setTitle("Test Scenario");
@@ -140,6 +146,76 @@ public class NewsServiceIntegrationTest {
 		postDTO.setAuthorId(999L);
 
 		assertThrows(ResponseStatusException.class, () -> newsService.createNews(postDTO));
+	}
+
+	@Test
+	public void deleteNews_validInput_success() {
+		NewsPostDTO postDTO = new NewsPostDTO();
+		postDTO.setTitle("Test News");
+		postDTO.setBody("Test news body");
+		postDTO.setScenarioId(testScenario.getId());
+		postDTO.setAuthorId(testRole.getId());
+
+		NewsStory createdNews = newsService.createNews(postDTO);
+
+		assertDoesNotThrow(() -> newsService.deleteNews(createdNews.getId()));
+		assertFalse(newsRepository.findById(createdNews.getId()).isPresent());
+	}
+
+	@Test
+	public void deleteNews_NewsNotFound_ThrowsException() {
+		assertThrows(ResponseStatusException.class, () -> newsService.deleteNews(999L));
+	}
+
+	@Test
+	public void postToMastodon_success() {
+		testScenario.setMastodonBaseUrl("https://mastodon.example");
+		testScenario.setMastodonAccessToken("token");
+		testScenario = scenarioRepository.save(testScenario);
+		Mockito.doReturn("mastodon-123")
+			.when(mastodonClient).postStatus(
+			Mockito.anyString(),
+			Mockito.anyString(),
+			Mockito.anyString()
+		);
+
+		NewsPostDTO postDTO = new NewsPostDTO();
+		postDTO.setTitle("Test News");
+		postDTO.setBody("Test news body");
+		postDTO.setScenarioId(testScenario.getId());
+		postDTO.setAuthorId(null);
+
+		NewsStory createdNews = newsService.createNews(postDTO);
+
+		Mockito.verify(mastodonClient, Mockito.times(1))
+			.postStatus(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+		assertEquals("mastodon-123",
+			newsRepository.findById(createdNews.getId())
+				.orElseThrow()
+				.getMastodonStatusId());
+	}
+
+	@Test
+	public void postToMastodon_throwsException() {
+		testScenario.setMastodonBaseUrl("https://mastodon.example");
+		testScenario.setMastodonAccessToken("token");
+		testScenario = scenarioRepository.save(testScenario);
+		Mockito.doThrow(new RuntimeException("boom"))
+			.when(mastodonClient).postStatus(
+			Mockito.anyString(),
+			Mockito.anyString(),
+			Mockito.anyString()
+		);
+
+		NewsPostDTO postDTO = new NewsPostDTO();
+		postDTO.setTitle("Test News");
+		postDTO.setBody("Test news body");
+		postDTO.setScenarioId(testScenario.getId());
+		postDTO.setAuthorId(null);
+
+		NewsStory createdNews = newsService.createNews(postDTO);
+
+		assertNull(createdNews.getMastodonStatusId());
 	}
 
 	@Test

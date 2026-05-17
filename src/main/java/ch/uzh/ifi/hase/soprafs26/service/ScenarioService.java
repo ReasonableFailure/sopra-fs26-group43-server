@@ -34,19 +34,22 @@ public class ScenarioService {
     private final NewsRepository newsRepository;
     private final MessageRepository messageRepository;
     private final DirectiveRepository directiveRepository;
+    private final MastodonClient mastodonClient;
 
     public ScenarioService(@Qualifier("scenarioRepository") ScenarioRepository scenarioRepository,
                            @Qualifier("userService") UserService userService,
                            @Qualifier("playerService") PlayerService playerService,
                            @Qualifier("newsRepository") NewsRepository newsRepository,
                            @Qualifier("messageRepository") MessageRepository messageRepository,
-                           @Qualifier("directiveRepository") DirectiveRepository directiveRepository) {
+                           @Qualifier("directiveRepository") DirectiveRepository directiveRepository,
+                           @Qualifier("mastodonClient") MastodonClient mastodonClient) {
         this.scenarioRepository = scenarioRepository;
         this.userService = userService;
         this.playerService = playerService;
         this.newsRepository = newsRepository;
         this.messageRepository = messageRepository;
         this.directiveRepository = directiveRepository;
+        this.mastodonClient = mastodonClient;
     }
 
     public List<Scenario> getScenarios() {
@@ -146,15 +149,6 @@ public class ScenarioService {
         scenarioRepository.flush();
     }
 
-    public void addPlayerToScenario(Long scenarioId, Long playerId){
-        Role toAdd = playerService.getRoleById(playerId);
-        Scenario scenario = getScenarioById(scenarioId);
-        toAdd = playerService.updateMessagingStats(playerId, scenario.getStartingMessageCount());
-        scenario.addPlayer(toAdd);
-        scenarioRepository.save(scenario);
-        scenarioRepository.flush();
-    }
-
     public void addCommunicationToHistory(Long scenarioId, Communication communication) {
         Scenario scenario = getScenarioById(scenarioId);
 
@@ -174,18 +168,6 @@ public class ScenarioService {
         return toReturn;
     }
 
-    public List<Role> getRolesPerCabinet(Long scenarioId, Long cabinetId){
-
-        Scenario scenario = getScenarioById(scenarioId);
-        List<Role> toReturn = new ArrayList<Role>();
-        for(Player player : scenario.getPlayers()){
-            if(player instanceof Role && (((Role) player).getAssignedCabinet() == cabinetId)){
-                toReturn.add((Role) player);
-            }
-        }
-        return toReturn;
-    }
-
     public void updateMastodonConfig(Long scenarioId, ScenarioMastodonDTO dto) {
         Scenario scenario = scenarioRepository.findById(scenarioId)
                 .orElseThrow(() -> new ResponseStatusException(
@@ -194,7 +176,7 @@ public class ScenarioService {
         scenario.setMastodonBaseUrl(dto.getMastodonBaseUrl());
         scenario.setMastodonAccessToken(dto.getMastodonAccessToken());
 
-        String profileUrl = MastodonClient.fetchMastodonProfileUrl(
+        String profileUrl = mastodonClient.fetchMastodonProfileUrl(
                 dto.getMastodonBaseUrl(),
                 dto.getMastodonAccessToken()
         );
@@ -207,7 +189,7 @@ public class ScenarioService {
             try {
                 String content = news.formatSelf();
 
-                MastodonClient.postStatus(
+                mastodonClient.postStatus(
                         dto.getMastodonBaseUrl(),
                         dto.getMastodonAccessToken(),
                         content

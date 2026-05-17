@@ -10,6 +10,7 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
 import ch.uzh.ifi.hase.soprafs26.constant.CommsStatus;
+import ch.uzh.ifi.hase.soprafs26.constant.ScenarioStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.Directive;
 import ch.uzh.ifi.hase.soprafs26.entity.Role;
 import ch.uzh.ifi.hase.soprafs26.entity.Scenario;
@@ -126,6 +127,13 @@ public class DirectiveServiceTest {
 	}
 
 	@Test
+	public void createDirective_completedScenario_throwsException() {
+		testScenario.setStatus(ScenarioStatus.COMPLETED);
+
+		assertThrows(ResponseStatusException.class, () -> directiveService.createDirective(testDirectivePostDTO));
+	}
+
+	@Test
 	public void createDirective_roleNotPartOfScenario_throwsException() {
 		Scenario scenarioWithoutRole = new Scenario();
 		scenarioWithoutRole.setId(1L);
@@ -135,6 +143,22 @@ public class DirectiveServiceTest {
 		Mockito.when(scenarioService.getScenarioById(1L)).thenReturn((scenarioWithoutRole));
 
 		assertThrows(ResponseStatusException.class, () -> directiveService.createDirective(testDirectivePostDTO));
+	}
+
+	@Test
+	public void deleteDirective_validId_success() {
+		Mockito.when(directiveRepository.findById(1L)).thenReturn(Optional.of(testDirective));
+
+		directiveService.deleteDirective(1L);
+
+		Mockito.verify(directiveRepository, Mockito.times(1)).deleteById(1L);
+	}
+
+	@Test
+	public void deleteDirective_directiveNotFound_throwsException() {
+		Mockito.when(directiveRepository.findById(1L)).thenReturn(Optional.empty());
+
+		assertThrows(ResponseStatusException.class, () -> directiveService.deleteDirective(1L));
 	}
 
 	@Test

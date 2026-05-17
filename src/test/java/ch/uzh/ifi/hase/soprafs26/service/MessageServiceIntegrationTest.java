@@ -74,7 +74,6 @@ public class MessageServiceIntegrationTest {
 		testCreator.setMessageCount(5);
 		testCreator.setTotalPoints(10);
 		testCreator.setPointsBalance(10);
-		testCreator.setAssignedCabinet(0L);
 
 		testRecipient = new Role();
 		testRecipient.setToken("test-recipient-token");
@@ -86,7 +85,6 @@ public class MessageServiceIntegrationTest {
 		testRecipient.setMessageCount(5);
 		testRecipient.setTotalPoints(10);
 		testRecipient.setPointsBalance(10);
-		testRecipient.setAssignedCabinet(1L);
 
 		testScenario = new Scenario();
 		testScenario.setTitle("Test Scenario");
@@ -155,6 +153,70 @@ public class MessageServiceIntegrationTest {
 		postDTO.setScenarioId(999L);
 
 		assertThrows(ResponseStatusException.class, () -> messageService.createMessage(postDTO));
+	}
+
+	@Test
+	public void createMessage_scenarioCompleted_throwsException() {
+		testScenario.setStatus(ScenarioStatus.COMPLETED);
+		scenarioRepository.save(testScenario);
+
+		MessagePostDTO postDTO = new MessagePostDTO();
+		postDTO.setTitle("Test Message");
+		postDTO.setBody("Test Body");
+		postDTO.setCreatorId(testCreator.getId());
+		postDTO.setRecipientId(testRecipient.getId());
+		postDTO.setScenarioId(testScenario.getId());
+
+		assertThrows(ResponseStatusException.class, () -> messageService.createMessage(postDTO));
+	}
+
+	@Test
+	public void createMessage_sentToSelf_throwsException() {
+		MessagePostDTO postDTO = new MessagePostDTO();
+		postDTO.setTitle("Test Message");
+		postDTO.setBody("Test Body");
+		postDTO.setCreatorId(testCreator.getId());
+		postDTO.setRecipientId(testCreator.getId());
+		postDTO.setScenarioId(testScenario.getId());
+
+		assertThrows(ResponseStatusException.class, () -> messageService.createMessage(postDTO));
+	}
+
+	@Test
+	public void getMessagesBetween_AAndBAreTheSame_throwsException() {
+		assertThrows(ResponseStatusException.class, () -> messageService.getMessagesBetween(testCreator.getId(), testCreator.getId()));
+	}
+
+	@Test
+	public void getCharacterInbox_validInput_Success() {
+		MessagePostDTO postDTO = new MessagePostDTO();
+		postDTO.setTitle("Test Message");
+		postDTO.setBody("Test Body");
+		postDTO.setCreatorId(testCreator.getId());
+		postDTO.setRecipientId(testRecipient.getId());
+		postDTO.setScenarioId(testScenario.getId());
+
+		Message createdMessage = messageService.createMessage(postDTO);
+
+		List<Message> inbox = messageService.getInbox(testRecipient.getId(), testScenario.getId());
+
+		assertEquals(1, inbox.size());
+		assertEquals(createdMessage.getId(), inbox.get(0).getId());
+	}
+
+	@Test
+	public void getCharacterInbox_roleNotFound_throwsException() {
+		assertThrows(ResponseStatusException.class, () -> messageService.getInbox(999L, testScenario.getId()));
+	}
+
+	@Test
+	public void getCharacterInbox_ScenarioNotFound_throwsException() {
+		assertThrows(ResponseStatusException.class, () -> messageService.getInbox(testRecipient.getId(), 999L));
+	}
+
+	@Test
+	public void deleteMessage_messageNotFound_throwsException() {
+		assertThrows(ResponseStatusException.class, () -> messageService.deleteMessage(999L));
 	}
 
 	@Test

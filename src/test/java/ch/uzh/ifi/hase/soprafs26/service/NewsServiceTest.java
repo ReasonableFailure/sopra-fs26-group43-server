@@ -142,6 +142,67 @@ public class NewsServiceTest {
 	}
 
 	@Test
+	public void deleteNews_validInput_success() {
+		Mockito.when(newsRepository.existsById(2L)).thenReturn(true);
+
+		assertDoesNotThrow(() -> newsService.deleteNews(2L));
+	}
+
+	@Test
+	public void deleteNews_NewsNotFound_ThrowsException() {
+		Mockito.when(newsRepository.existsById(2L)).thenReturn(false);
+
+		assertThrows(ResponseStatusException.class, () -> newsService.deleteNews(2L));
+	}
+
+	@Test
+	public void postToMastodon_success() {
+		NewsStory news = new NewsStory();
+		news.setId(3L);
+		news.setTitle("Mastodon News");
+		news.setBody("Body");
+		news.setScenario(testScenario);
+		news.setMastodonStatusId(null);
+
+		Mockito.doReturn("mastodon-123")
+			.when(mastodonClient).postStatus(
+			Mockito.anyString(),
+			Mockito.anyString(),
+			Mockito.anyString()
+		);
+
+		testScenario.setMastodonBaseUrl("https://mastodon.example");
+		testScenario.setMastodonAccessToken("token");
+
+		newsService.postToMastodon(testScenario, news);
+
+		assertEquals("mastodon-123", news.getMastodonStatusId());
+	}
+
+	@Test
+	public void postToMastodon_throwsException() {
+		NewsStory news = new NewsStory();
+		news.setId(4L);
+		news.setTitle("Mastodon News");
+		news.setBody("Body");
+		news.setScenario(testScenario);
+		news.setMastodonStatusId(null);
+
+		Mockito.doThrow(new RuntimeException("boom"))
+			.when(mastodonClient).postStatus(
+			Mockito.anyString(),
+			Mockito.anyString(),
+			Mockito.anyString()
+		);
+
+		testScenario.setMastodonBaseUrl("https://mastodon.example");
+		testScenario.setMastodonAccessToken("token");
+
+		assertDoesNotThrow(() -> newsService.postToMastodon(testScenario, news));
+		assertNull(news.getMastodonStatusId());
+	}
+
+	@Test
 	public void getNewsById_validId_pronouncement_success() {
 		Mockito.when(newsRepository.findById(2L)).thenReturn(Optional.of(testPronouncement));
 

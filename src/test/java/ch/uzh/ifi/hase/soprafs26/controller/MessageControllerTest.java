@@ -238,6 +238,52 @@ public class MessageControllerTest {
     }
 
     @Test
+    public void deleteMessage_validInput_success() throws Exception {
+        doNothing().when(messageService).deleteMessage(Mockito.eq(1L));
+
+        MockHttpServletRequestBuilder deleteRequest = delete("/messages/1")
+                .header("Authorization", "Bearer token123");
+
+        mockMvc.perform(deleteRequest)
+                .andExpect(status().isNoContent());
+
+        verify(messageService, times(1)).deleteMessage(Mockito.eq(1L));
+    }
+
+    @Test
+    public void getCharacterInbox_validInput_success() throws Exception {
+        given(playerService.resolvePlayerFromHeader(anyString())).willReturn(testRecipient);
+        given(messageService.getInbox(Mockito.eq(2L), Mockito.eq(1L)))
+                .willReturn(List.of(testMessage));
+
+        MockHttpServletRequestBuilder getRequest = get("/messages/character/2/inbox?scenarioId=1")
+                .header("Authorization", "Bearer token123");
+
+        mockMvc.perform(getRequest)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].id", is(1)))
+                .andExpect(jsonPath("$[0].recipientId", is(2)));
+
+        verify(messageService, times(1)).getInbox(Mockito.eq(2L), Mockito.eq(1L));
+    }
+
+    @Test
+    public void getCharacterInbox_wrongRequester_throwsException() throws Exception {
+        Role wrongRequester = new Role();
+        wrongRequester.setId(3L);
+        wrongRequester.setName("Wrong");
+
+        given(playerService.resolvePlayerFromHeader(anyString())).willReturn(wrongRequester);
+
+        MockHttpServletRequestBuilder getRequest = get("/messages/character/2/inbox?scenarioId=1")
+                .header("Authorization", "Bearer token123");
+
+        mockMvc.perform(getRequest)
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     public void getMessagesBetween_validIds_messagesReturned() throws Exception {
         given(messageService.getMessagesBetween(Mockito.eq(1L), Mockito.eq(2L), Mockito.any()))
                 .willReturn(List.of(testMessage));

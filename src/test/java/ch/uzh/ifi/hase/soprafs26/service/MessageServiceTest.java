@@ -10,6 +10,7 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
 import ch.uzh.ifi.hase.soprafs26.constant.CommsStatus;
+import ch.uzh.ifi.hase.soprafs26.constant.ScenarioStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.Message;
 import ch.uzh.ifi.hase.soprafs26.entity.Role;
 import ch.uzh.ifi.hase.soprafs26.entity.Scenario;
@@ -124,6 +125,64 @@ public class MessageServiceTest {
 		Mockito.when(scenarioService.getScenarioById(1L)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND));
 
 		assertThrows(ResponseStatusException.class, () -> messageService.createMessage(testPostDTO));
+	}
+
+	@Test
+	public void createMessage_scenarioCompleted_throwsException() {
+		testScenario.setStatus(ScenarioStatus.COMPLETED);
+		Mockito.when(scenarioService.getScenarioById(1L)).thenReturn(testScenario);
+
+		assertThrows(ResponseStatusException.class, () -> messageService.createMessage(testPostDTO));
+	}
+
+	@Test
+	public void createMessage_sentToSelf_throwsException() {
+		testPostDTO.setRecipientId(1L);
+		Mockito.when(playerService.getRoleById(1L)).thenReturn(testCreator);
+
+		assertThrows(ResponseStatusException.class, () -> messageService.createMessage(testPostDTO));
+	}
+
+	@Test
+	public void getMessagesBetween_AAndBAreTheSame_throwsException() {
+		Mockito.when(playerService.getRoleById(1L)).thenReturn(testCreator);
+
+		assertThrows(ResponseStatusException.class, () -> messageService.getMessagesBetween(1L, 1L));
+	}
+
+	@Test
+	public void getCharacterInbox_validInput_Success() {
+		Mockito.when(playerService.getRoleById(2L)).thenReturn(testRecipient);
+		Mockito.when(scenarioService.getScenarioById(1L)).thenReturn(testScenario);
+		Mockito.when(messageRepository.findByRecipientIdAndScenarioId(2L, 1L))
+				.thenReturn(List.of(testMessage));
+
+		List<Message> inbox = messageService.getInbox(2L, 1L);
+
+		assertEquals(1, inbox.size());
+		assertEquals(testMessage, inbox.get(0));
+	}
+
+	@Test
+	public void getCharacterInbox_roleNotFound_throwsException() {
+		Mockito.when(playerService.getRoleById(2L)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+		assertThrows(ResponseStatusException.class, () -> messageService.getInbox(2L, 1L));
+	}
+
+	@Test
+	public void getCharacterInbox_ScenarioNotFound_throwsException() {
+		Mockito.when(playerService.getRoleById(2L)).thenReturn(testRecipient);
+		Mockito.when(scenarioService.getScenarioById(1L)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+		assertThrows(ResponseStatusException.class, () -> messageService.getInbox(2L, 1L));
+	}
+
+	@Test
+	public void deleteMessage_messageNotFound_throwsException() {
+		Mockito.when(messageRepository.existsById(1L)).thenReturn(false);
+
+		assertThrows(ResponseStatusException.class, () -> messageService.deleteMessage(1L));
 	}
 
 	@Test

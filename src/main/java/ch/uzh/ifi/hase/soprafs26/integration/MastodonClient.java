@@ -14,7 +14,7 @@ import java.util.Map;
 @Service
 public class MastodonClient {
 
-    public static String postStatus(String baseUrl, String token, String content) {
+    public String postStatus(String baseUrl, String token, String content) {
 
         if (baseUrl == null || baseUrl.isBlank()
                 || token == null || token.isBlank()) {
@@ -65,7 +65,7 @@ public class MastodonClient {
         return ((Number) response.get("favourites_count")).intValue();
     }
 
-    public static String fetchMastodonProfileUrl(String baseUrl, String token) {
+    public String fetchMastodonProfileUrl(String baseUrl, String token) {
         RestTemplate restTemplate = new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
