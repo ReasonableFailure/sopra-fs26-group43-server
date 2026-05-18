@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @WebAppConfiguration
 @SpringBootTest
-public class DirectiveServiceIntegrationTest {
+class DirectiveServiceIntegrationTest {
 
 	@Qualifier("directiveRepository")
 	@Autowired
@@ -57,7 +57,7 @@ public class DirectiveServiceIntegrationTest {
 	private Directive testDirective;
 
 	@BeforeEach
-	public void setup() {
+	void setup() {
 		directiveRepository.deleteAll();
 		scenarioRepository.deleteAll();
 		roleRepository.deleteAll();
@@ -95,7 +95,7 @@ public class DirectiveServiceIntegrationTest {
 	}
 
 	@Test
-	public void createDirective_validInputs_success() {
+	void createDirective_validInputs_success() {
 
 		DirectivePostDTO postDTO = new DirectivePostDTO();
 		postDTO.setTitle("Test Directive");
@@ -117,7 +117,7 @@ public class DirectiveServiceIntegrationTest {
 	}
 
 	@Test
-	public void createDirective_invalidInput_creatorIdNull_throwsException() {
+	void createDirective_invalidInput_creatorIdNull_throwsException() {
 		DirectivePostDTO postDTO = new DirectivePostDTO();
 		postDTO.setTitle("Test Directive");
 		postDTO.setBody("Test directive body");
@@ -129,7 +129,7 @@ public class DirectiveServiceIntegrationTest {
 	}
 
 	@Test
-	public void createDirective_scenarioNotFound_throwsException() {
+	void createDirective_scenarioNotFound_throwsException() {
 		DirectivePostDTO postDTO = new DirectivePostDTO();
 		postDTO.setTitle("Test Directive");
 		postDTO.setBody("Test directive body");
@@ -141,7 +141,7 @@ public class DirectiveServiceIntegrationTest {
 	}
 
 	@Test
-	public void createDirective_completedScenario_throwsException() {
+	void createDirective_completedScenario_throwsException() {
 		testScenario.setStatus(ScenarioStatus.COMPLETED);
 		scenarioRepository.save(testScenario);
 
@@ -156,7 +156,7 @@ public class DirectiveServiceIntegrationTest {
 	}
 
 	@Test
-	public void createDirective_roleNotFound_throwsException() {
+	void createDirective_roleNotFound_throwsException() {
 		DirectivePostDTO postDTO = new DirectivePostDTO();
 		postDTO.setTitle("Test Directive");
 		postDTO.setBody("Test directive body");
@@ -168,7 +168,7 @@ public class DirectiveServiceIntegrationTest {
 	}
 
 	@Test
-	public void createDirective_roleNotPartOfScenario_throwsException() {
+	void createDirective_roleNotPartOfScenario_throwsException() {
 		Role otherRole = new Role();
 		otherRole.setToken("other-token");
 		otherRole.setName("Other Role");
@@ -195,7 +195,7 @@ public class DirectiveServiceIntegrationTest {
 	}
 
 	@Test
-	public void getDirectiveById_validId_success() {
+	void getDirectiveById_validId_success() {
 		DirectivePostDTO postDTO = new DirectivePostDTO();
 		postDTO.setTitle("Test Directive");
 		postDTO.setBody("Test directive body");
@@ -217,12 +217,12 @@ public class DirectiveServiceIntegrationTest {
 	}
 
 	@Test
-	public void getDirectiveById_directiveNotFound_throwsException() {
+	void getDirectiveById_directiveNotFound_throwsException() {
 		assertThrows(ResponseStatusException.class, () -> directiveService.getDirectiveById(999L));
 	}
 
 	@Test
-	public void updateDirectiveStatus_validInputs_success() {
+	void updateDirectiveStatus_validInputs_success() {
 		DirectivePostDTO postDTO = new DirectivePostDTO();
 		postDTO.setTitle("Test Directive");
 		postDTO.setBody("Test directive body");
@@ -244,7 +244,7 @@ public class DirectiveServiceIntegrationTest {
 	}
 
 	@Test
-	public void updateDirectiveStatus_invalidInput_statusNull_throwsException() {
+	void updateDirectiveStatus_invalidInput_statusNull_throwsException() {
 		DirectivePostDTO postDTO = new DirectivePostDTO();
 		postDTO.setTitle("Test Directive");
 		postDTO.setBody("Test directive body");
@@ -263,7 +263,7 @@ public class DirectiveServiceIntegrationTest {
 	}
 
 	@Test
-	public void updateDirectiveStatus_directiveNotFound_throwsException() {
+	void updateDirectiveStatus_directiveNotFound_throwsException() {
 		DirectivePutDTO putDTO = new DirectivePutDTO();
 		putDTO.setStatus(CommsStatus.ACCEPTED);
 		putDTO.setResponse("Accepted response");
@@ -272,7 +272,7 @@ public class DirectiveServiceIntegrationTest {
 	}
 
 	@Test
-	public void deleteDirective_validId_success() {
+	void deleteDirective_validId_success() {
 		DirectivePostDTO postDTO = new DirectivePostDTO();
 		postDTO.setTitle("Test Directive");
 		postDTO.setBody("Test directive body");
@@ -288,12 +288,12 @@ public class DirectiveServiceIntegrationTest {
 	}
 
 	@Test
-	public void deleteDirective_directiveNotFound_throwsException() {
+	void deleteDirective_directiveNotFound_throwsException() {
 		assertThrows(ResponseStatusException.class, () -> directiveService.deleteDirective(999L));
 	}
 
 	@Test
-	public void getDirectivesByScenario_validScenarioId_success() {
+	void getDirectivesByScenario_validScenarioId_success() {
 		DirectivePostDTO postDTO = new DirectivePostDTO();
 		postDTO.setTitle("Test Directive");
 		postDTO.setBody("Test directive body");
@@ -310,12 +310,12 @@ public class DirectiveServiceIntegrationTest {
 	}
 
 	@Test
-	public void getDirectivesByScenario_scenarioNotFound_throwsException() {
+	void getDirectivesByScenario_scenarioNotFound_throwsException() {
 		assertThrows(ResponseStatusException.class, () -> directiveService.getDirectivesByScenario(999L));
 	}
 
 	@Test
-	public void getDirectivesByCreator_validCharacterId_success() {
+	void getDirectivesByCreator_validCharacterId_success() {
 		DirectivePostDTO postDTO = new DirectivePostDTO();
 		postDTO.setTitle("Test Directive");
 		postDTO.setBody("Test directive body");
@@ -332,7 +332,7 @@ public class DirectiveServiceIntegrationTest {
 	}
 
 	@Test
-	public void getDirectivesByCreator_characterNotFound_throwsException() {
+	void getDirectivesByCreator_characterNotFound_throwsException() {
 		assertThrows(ResponseStatusException.class, () -> directiveService.getDirectivesByCreator(999L));
 	}
 }

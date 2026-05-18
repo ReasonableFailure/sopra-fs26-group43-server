@@ -15,10 +15,10 @@ import java.time.Instant;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-public class NewsDTOMapperTest {
+class NewsDTOMapperTest {
 
 	@Test
-	public void testConvertPostDTOToNewsStory_success() {
+	void testConvertPostDTOToNewsStory_success() {
 		NewsPostDTO newsPostDTO = new NewsPostDTO();
 		newsPostDTO.setTitle("Test News");
 		newsPostDTO.setBody("Test Body");
@@ -35,7 +35,7 @@ public class NewsDTOMapperTest {
 	}
 
 	@Test
-	public void testConvertEntityToGetDTO_fromNewsStory_success() {
+	void testConvertEntityToGetDTO_fromNewsStory_success() {
 		Role author = new Role();
 		author.setId(1L);
 		author.setName("Test Role");
@@ -62,7 +62,7 @@ public class NewsDTOMapperTest {
 	}
 
 	@Test
-	public void testConvertEntityToGetDTO_fromPronouncement_success() {
+	void testConvertEntityToGetDTO_fromPronouncement_success() {
 		Role author = new Role();
 		author.setId(1L);
 		author.setName("Test Role");

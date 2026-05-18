@@ -35,7 +35,7 @@ import org.mockito.Mockito;
 
 @WebAppConfiguration
 @SpringBootTest
-public class NewsServiceIntegrationTest {
+class NewsServiceIntegrationTest {
 
 	@Qualifier("newsRepository")
 	@Autowired
@@ -59,7 +59,7 @@ public class NewsServiceIntegrationTest {
 	private Role testRole;
 
 	@BeforeEach
-	public void setup() {
+	void setup() {
 		newsRepository.deleteAll();
 		scenarioRepository.deleteAll();
 		roleRepository.deleteAll();
@@ -87,7 +87,7 @@ public class NewsServiceIntegrationTest {
 	}
 
 	@Test
-	public void createNews_validInputs_pronouncement_success() {
+	void createNews_validInputs_pronouncement_success() {
 		NewsPostDTO postDTO = new NewsPostDTO();
 		postDTO.setTitle("Test News");
 		postDTO.setBody("Test news body");
@@ -108,7 +108,7 @@ public class NewsServiceIntegrationTest {
 	}
 
 	@Test
-	public void createNews_validInputs_newsStory_success() {
+	void createNews_validInputs_newsStory_success() {
 		NewsPostDTO postDTO = new NewsPostDTO();
 		postDTO.setTitle("Test News");
 		postDTO.setBody("Test news body");
@@ -127,7 +127,7 @@ public class NewsServiceIntegrationTest {
 	}
 
 	@Test
-	public void createNews_scenarioNotFound_throwsException() {
+	void createNews_scenarioNotFound_throwsException() {
 		NewsPostDTO postDTO = new NewsPostDTO();
 		postDTO.setTitle("Test News");
 		postDTO.setBody("Test news body");
@@ -138,7 +138,7 @@ public class NewsServiceIntegrationTest {
 	}
 
 	@Test
-	public void createNews_authorNotFound_throwsException() {
+	void createNews_authorNotFound_throwsException() {
 		NewsPostDTO postDTO = new NewsPostDTO();
 		postDTO.setTitle("Test News");
 		postDTO.setBody("Test news body");
@@ -149,7 +149,7 @@ public class NewsServiceIntegrationTest {
 	}
 
 	@Test
-	public void deleteNews_validInput_success() {
+	void deleteNews_validInput_success() {
 		NewsPostDTO postDTO = new NewsPostDTO();
 		postDTO.setTitle("Test News");
 		postDTO.setBody("Test news body");
@@ -163,12 +163,12 @@ public class NewsServiceIntegrationTest {
 	}
 
 	@Test
-	public void deleteNews_NewsNotFound_ThrowsException() {
+	void deleteNews_NewsNotFound_ThrowsException() {
 		assertThrows(ResponseStatusException.class, () -> newsService.deleteNews(999L));
 	}
 
 	@Test
-	public void postToMastodon_success() {
+	void postToMastodon_success() {
 		testScenario.setMastodonBaseUrl("https://mastodon.example");
 		testScenario.setMastodonAccessToken("token");
 		testScenario = scenarioRepository.save(testScenario);
@@ -196,7 +196,7 @@ public class NewsServiceIntegrationTest {
 	}
 
 	@Test
-	public void postToMastodon_throwsException() {
+	void postToMastodon_throwsException() {
 		testScenario.setMastodonBaseUrl("https://mastodon.example");
 		testScenario.setMastodonAccessToken("token");
 		testScenario = scenarioRepository.save(testScenario);
@@ -219,7 +219,7 @@ public class NewsServiceIntegrationTest {
 	}
 
 	@Test
-	public void getNewsById_validId_pronouncement_success() {
+	void getNewsById_validId_pronouncement_success() {
 		NewsPostDTO postDTO = new NewsPostDTO();
 		postDTO.setTitle("Test News");
 		postDTO.setBody("Test news body");
@@ -240,7 +240,7 @@ public class NewsServiceIntegrationTest {
 	}
 
 	@Test
-	public void getNewsById_validId_newsStory_success() {
+	void getNewsById_validId_newsStory_success() {
 		NewsPostDTO postDTO = new NewsPostDTO();
 		postDTO.setTitle("Test News");
 		postDTO.setBody("Test news body");
@@ -260,12 +260,12 @@ public class NewsServiceIntegrationTest {
 	}
 
 	@Test
-	public void getNewsById_newsNotFound_throwsException() {
+	void getNewsById_newsNotFound_throwsException() {
 		assertThrows(ResponseStatusException.class, () -> newsService.getNewsById(999L));
 	}
 
 	@Test
-	public void getNewsByScenario_validScenarioId_success() {
+	void getNewsByScenario_validScenarioId_success() {
 		NewsPostDTO postDTO1 = new NewsPostDTO();
 		postDTO1.setTitle("Test News 1");
 		postDTO1.setBody("Test news body 1");
@@ -290,7 +290,7 @@ public class NewsServiceIntegrationTest {
 	}
 
 	@Test
-	public void getNewsByScenario_scenarioNotFound_throwsException() {
+	void getNewsByScenario_scenarioNotFound_throwsException() {
 		assertThrows(ResponseStatusException.class, () -> newsService.getNewsByScenario(999L));
 	}
 }

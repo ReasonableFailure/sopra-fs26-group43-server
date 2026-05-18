@@ -39,7 +39,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(DirectiveController.class)
-public class DirectiveControllerTest {
+class DirectiveControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -58,7 +58,7 @@ public class DirectiveControllerTest {
     private Scenario testScenario;
 
     @BeforeEach
-    public void setupTest() {
+    void setupTest() {
         objectMapper = new ObjectMapper();
 
         Mockito.lenient().when(playerService.validate(anyString(), anyString())).thenReturn("token123");
@@ -93,7 +93,7 @@ public class DirectiveControllerTest {
     }
 
     @Test
-    public void createDirective_validInput_directiveCreated() throws Exception {
+    void createDirective_validInput_directiveCreated() throws Exception {
         given(directiveService.createDirective(any(DirectivePostDTO.class)))
                 .willReturn(testDirective);
 
@@ -114,7 +114,7 @@ public class DirectiveControllerTest {
     }
 
     @Test
-    public void createDirective_creatorIdNull_throwsException() throws Exception {
+    void createDirective_creatorIdNull_throwsException() throws Exception {
         directivePostDTO.setCreatorId(null);
         given(directiveService.createDirective(any(DirectivePostDTO.class)))
                 .willThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Creator ID missing"));
@@ -131,7 +131,7 @@ public class DirectiveControllerTest {
     }
 
     @Test
-    public void createDirective_scenarioNotFound_throwsException() throws Exception {
+    void createDirective_scenarioNotFound_throwsException() throws Exception {
         given(directiveService.createDirective(any(DirectivePostDTO.class)))
                 .willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario not found"));
 
@@ -147,7 +147,7 @@ public class DirectiveControllerTest {
     }
 
     @Test
-    public void createDirective_roleNotFound_throwsException() throws Exception {
+    void createDirective_roleNotFound_throwsException() throws Exception {
         given(directiveService.createDirective(any(DirectivePostDTO.class)))
                 .willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Role not found"));
 
@@ -163,7 +163,7 @@ public class DirectiveControllerTest {
     }
 
     @Test
-    public void createDirective_roleNotInScenario_throwsException() throws Exception {
+    void createDirective_roleNotInScenario_throwsException() throws Exception {
         given(directiveService.createDirective(any(DirectivePostDTO.class)))
                 .willThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Role not part of scenario"));
 
@@ -179,7 +179,7 @@ public class DirectiveControllerTest {
     }
 
     @Test
-    public void getDirective_validId_directiveReturned() throws Exception {
+    void getDirective_validId_directiveReturned() throws Exception {
         given(directiveService.getDirectiveById(Mockito.eq(1L)))
                 .willReturn(testDirective);
 
@@ -198,7 +198,7 @@ public class DirectiveControllerTest {
     }
 
     @Test
-    public void getDirective_directiveNotFound_throwsException() throws Exception {
+    void getDirective_directiveNotFound_throwsException() throws Exception {
         given(directiveService.getDirectiveById(Mockito.eq(999L)))
                 .willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Directive not found"));
 
@@ -213,7 +213,7 @@ public class DirectiveControllerTest {
 
 
     @Test
-    public void updateDirective_validInput_success() throws Exception {
+    void updateDirective_validInput_success() throws Exception {
         doNothing().when(directiveService).updateDirectiveStatus(anyLong(), any(DirectivePutDTO.class));
 
         MockHttpServletRequestBuilder putRequest = put("/directives/1")
@@ -228,7 +228,7 @@ public class DirectiveControllerTest {
     }
 
     @Test
-    public void deleteDirective_validInput_success() throws Exception {
+    void deleteDirective_validInput_success() throws Exception {
         doNothing().when(directiveService).deleteDirective(Mockito.eq(1L));
 
         MockHttpServletRequestBuilder deleteRequest = delete("/directives/1")
@@ -241,7 +241,7 @@ public class DirectiveControllerTest {
     }
 
     @Test
-    public void updateDirective_statusNull_throwsException() throws Exception {
+    void updateDirective_statusNull_throwsException() throws Exception {
         DirectivePutDTO putDTOWithNullStatus = new DirectivePutDTO();
         putDTOWithNullStatus.setStatus(null);
         putDTOWithNullStatus.setResponse("Test Response");
@@ -261,7 +261,7 @@ public class DirectiveControllerTest {
     }
 
     @Test
-    public void updateDirective_directiveNotFound_throwsException() throws Exception {
+    void updateDirective_directiveNotFound_throwsException() throws Exception {
         doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Directive not found"))
                 .when(directiveService).updateDirectiveStatus(anyLong(), any(DirectivePutDTO.class));
 
@@ -278,7 +278,7 @@ public class DirectiveControllerTest {
 
 
     @Test
-    public void getDirectivesByScenario_validId_directivesReturned() throws Exception {
+    void getDirectivesByScenario_validId_directivesReturned() throws Exception {
         List<Directive> directives = new ArrayList<>();
         directives.add(testDirective);
 
@@ -315,7 +315,7 @@ public class DirectiveControllerTest {
     }
 
     @Test
-    public void getDirectivesByScenario_scenarioNotFound_throwsException() throws Exception {
+    void getDirectivesByScenario_scenarioNotFound_throwsException() throws Exception {
         given(directiveService.getDirectivesByScenario(Mockito.eq(999L)))
                 .willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario not found"));
 
@@ -330,7 +330,7 @@ public class DirectiveControllerTest {
 
 
     @Test
-    public void getDirectivesByCharacter_validId_directivesReturned() throws Exception {
+    void getDirectivesByCharacter_validId_directivesReturned() throws Exception {
         List<Directive> directives = new ArrayList<>();
         directives.add(testDirective);
 
@@ -351,7 +351,7 @@ public class DirectiveControllerTest {
     }
 
     @Test
-    public void getDirectivesByCharacter_characterNotFound_throwsException() throws Exception {
+    void getDirectivesByCharacter_characterNotFound_throwsException() throws Exception {
         given(directiveService.getDirectivesByCreator(Mockito.eq(999L)))
                 .willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Character not found"));
 

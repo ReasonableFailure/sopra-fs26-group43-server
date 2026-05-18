@@ -25,7 +25,6 @@ import ch.uzh.ifi.hase.soprafs26.repository.ScenarioRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioMastodonDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioPutDTO;
-import ch.uzh.ifi.hase.soprafs26.service.PlayerService;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioPutDTO;
 
@@ -34,13 +33,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 
 @WebAppConfiguration
 @SpringBootTest
 @Transactional
-public class ScenarioServiceIntegrationTest {
+class ScenarioServiceIntegrationTest {
 
     @Qualifier("scenarioRepository")
     @Autowired
@@ -75,7 +73,7 @@ public class ScenarioServiceIntegrationTest {
     private Director testDirector;
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         newsRepository.deleteAll();
         messageRepository.deleteAll();
         directiveRepository.deleteAll();
@@ -102,7 +100,7 @@ public class ScenarioServiceIntegrationTest {
     }
 
     @Test
-    public void getAllScenarios_validInput_success() {
+    void getAllScenarios_validInput_success() {
         List<Scenario> scenarios = scenarioService.getScenarios();
 
         assertEquals(1, scenarios.size());
@@ -111,7 +109,7 @@ public class ScenarioServiceIntegrationTest {
     }
 
     @Test
-    public void createScenario_validInput_success() {
+    void createScenario_validInput_success() {
         ScenarioPostDTO postDTO = new ScenarioPostDTO();
         postDTO.setTitle("Created Scenario");
         postDTO.setDescription("Created description");
@@ -133,7 +131,7 @@ public class ScenarioServiceIntegrationTest {
     }
 
     @Test
-    public void getScenarioById_validInput_success() {
+    void getScenarioById_validInput_success() {
         Scenario scenario = scenarioService.getScenarioById(testScenario.getId());
 
         assertEquals(testScenario.getTitle(), scenario.getTitle());
@@ -141,12 +139,12 @@ public class ScenarioServiceIntegrationTest {
     }
 
     @Test
-    public void getScenarioById_scenarioNotFound_throwsException() {
+    void getScenarioById_scenarioNotFound_throwsException() {
         assertThrows(ResponseStatusException.class, () -> scenarioService.getScenarioById(999L));
     }
 
     @Test
-    public void updateScenario_validInput_success() {
+    void updateScenario_validInput_success() {
         ScenarioPutDTO putDTO = new ScenarioPutDTO();
         putDTO.setTitle("Updated Title");
         putDTO.setDescription("Updated description");
@@ -167,7 +165,7 @@ public class ScenarioServiceIntegrationTest {
     }
 
     @Test
-    public void addCommunicationToHistory_validInput_success() {
+    void addCommunicationToHistory_validInput_success() {
         NewsStory newsStory = new NewsStory();
         newsStory.setTitle("History News");
         newsStory.setBody("History Body");
@@ -184,7 +182,7 @@ public class ScenarioServiceIntegrationTest {
     }
 
     @Test
-    public void addCommunicationToHistory_scenarioNotFound_throwsException() {
+    void addCommunicationToHistory_scenarioNotFound_throwsException() {
         NewsStory newsStory = new NewsStory();
         newsStory.setTitle("History News");
         newsStory.setBody("History Body");
@@ -195,18 +193,18 @@ public class ScenarioServiceIntegrationTest {
     }
 
     @Test
-    public void deleteScenario_validInput_success() {
+    void deleteScenario_validInput_success() {
         assertDoesNotThrow(() -> scenarioService.deleteScenario(testScenario.getId()));
         assertFalse(scenarioRepository.findById(testScenario.getId()).isPresent());
     }
 
     @Test
-    public void deleteScenario_scenarioNotFound_throwsException() {
+    void deleteScenario_scenarioNotFound_throwsException() {
         assertThrows(ResponseStatusException.class, () -> scenarioService.deleteScenario(999L));
     }
 
     @Test
-    public void getRoles_validInput_success() {
+    void getRoles_validInput_success() {
         Role role = new Role();
         role.setToken("role-token");
         role.setName("Test Role");
@@ -232,12 +230,12 @@ public class ScenarioServiceIntegrationTest {
     }
 
     @Test
-    public void getRoles_scenarioNotFound_throwsException() {
+    void getRoles_scenarioNotFound_throwsException() {
         assertThrows(ResponseStatusException.class, () -> scenarioService.getRoles(999L));
     }
 
     @Test
-    public void updateMastodonConfig_validInput_success() {
+    void updateMastodonConfig_validInput_success() {
         ScenarioMastodonDTO mastodonDTO = new ScenarioMastodonDTO();
         mastodonDTO.setMastodonBaseUrl("https://mastodon.example");
         mastodonDTO.setMastodonAccessToken("token-abc");
@@ -254,7 +252,7 @@ public class ScenarioServiceIntegrationTest {
     }
 
     @Test
-    public void updateMastodonConfig_scenarioNotFound_throwsException() {
+    void updateMastodonConfig_scenarioNotFound_throwsException() {
         ScenarioMastodonDTO mastodonDTO = new ScenarioMastodonDTO();
         mastodonDTO.setMastodonBaseUrl("https://mastodon.example");
         mastodonDTO.setMastodonAccessToken("token-abc");

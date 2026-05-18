@@ -7,12 +7,26 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpMethod;
+import org.springframework.beans.factory.annotation.Autowired;
 
 
 import java.util.Map;
 
 @Service
 public class MastodonClient {
+
+    private final WebClient.Builder webClientBuilder;
+    private final RestTemplate restTemplate;
+
+    @Autowired
+    public MastodonClient() {
+        this(WebClient.builder(), new RestTemplate());
+    }
+
+    public MastodonClient(WebClient.Builder webClientBuilder, RestTemplate restTemplate) {
+        this.webClientBuilder = webClientBuilder;
+        this.restTemplate = restTemplate;
+    }
 
     public String postStatus(String baseUrl, String token, String content) {
 
@@ -21,7 +35,7 @@ public class MastodonClient {
             return null;
         }
 
-        WebClient client = WebClient.builder()
+        WebClient client = webClientBuilder
                 .baseUrl(baseUrl)
                 .build();
 
@@ -47,7 +61,7 @@ public class MastodonClient {
             return 0;
         }
 
-        WebClient client = WebClient.builder()
+        WebClient client = webClientBuilder
                 .baseUrl(baseUrl)
                 .build();
 
@@ -66,8 +80,6 @@ public class MastodonClient {
     }
 
     public String fetchMastodonProfileUrl(String baseUrl, String token) {
-        RestTemplate restTemplate = new RestTemplate();
-
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(token);
 

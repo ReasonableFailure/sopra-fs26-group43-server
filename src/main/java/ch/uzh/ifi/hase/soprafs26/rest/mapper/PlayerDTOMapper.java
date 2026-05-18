@@ -12,6 +12,7 @@ import java.util.Base64;
 
 
     PlayerDTOMapper INSTANCE = Mappers.getMapper(PlayerDTOMapper.class);
+    
     //since they are named the same, automatic mapping
     @Mapping(target = "portrait", source = "portrait", qualifiedByName = "bytesToBase64")
     RoleGetDTO convertEntitytoRoleGetDTO(Role role);

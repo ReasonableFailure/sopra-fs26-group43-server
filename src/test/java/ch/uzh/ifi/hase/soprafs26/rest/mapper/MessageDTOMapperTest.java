@@ -12,10 +12,10 @@ import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class MessageDTOMapperTest {
+class MessageDTOMapperTest {
 
     @Test
-    public void testCreateMessage_fromMessagePostDTO_toMessage_success() {
+    void testCreateMessage_fromMessagePostDTO_toMessage_success() {
         MessagePostDTO messagePostDTO = new MessagePostDTO();
         messagePostDTO.setTitle("Test Message");
         messagePostDTO.setBody("Test Body");
@@ -30,7 +30,7 @@ public class MessageDTOMapperTest {
     }
 
     @Test
-    public void testGetMessage_fromMessage_toMessageGetDTO_success() {
+    void testGetMessage_fromMessage_toMessageGetDTO_success() {
         Role creator = new Role();
         creator.setId(1L);
         creator.setName("Test Creator");

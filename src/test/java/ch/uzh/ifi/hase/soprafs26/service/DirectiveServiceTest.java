@@ -28,7 +28,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class DirectiveServiceTest {
+class DirectiveServiceTest {
 
 	@Mock
 	private DirectiveRepository directiveRepository;
@@ -52,7 +52,7 @@ public class DirectiveServiceTest {
 	private Directive testDirective;
 
 	@BeforeEach
-	public void setup() {
+	void setup() {
 		MockitoAnnotations.openMocks(this);
 
 		testDirectivePostDTO = new DirectivePostDTO();
@@ -92,7 +92,7 @@ public class DirectiveServiceTest {
 	}
 
 	@Test
-	public void createDirective_validInputs_success() {
+	void createDirective_validInputs_success() {
 		Directive createdDirective = directiveService.createDirective(testDirectivePostDTO);
 
 		Mockito.verify(directiveRepository, Mockito.times(1)).save(Mockito.any());
@@ -106,35 +106,35 @@ public class DirectiveServiceTest {
 	}
 
 	@Test
-	public void createDirective_invalidInput_creatorIdNull_throwsException() {
+	void createDirective_invalidInput_creatorIdNull_throwsException() {
 		testDirectivePostDTO.setCreatorId(null);
 
 		assertThrows(ResponseStatusException.class, () -> directiveService.createDirective(testDirectivePostDTO));
 	}
 
 	@Test
-	public void createDirective_scenarioNotFound_throwsException() {
+	void createDirective_scenarioNotFound_throwsException() {
 		Mockito.when(scenarioService.getScenarioById(1L)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario not found"));
 
 		assertThrows(ResponseStatusException.class, () -> directiveService.createDirective(testDirectivePostDTO));
 	}
 
 	@Test
-	public void createDirective_roleNotFound_throwsException() {
+	void createDirective_roleNotFound_throwsException() {
 		Mockito.when(playerService.getRoleById(1L)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Role not found"));
 
 		assertThrows(ResponseStatusException.class, () -> directiveService.createDirective(testDirectivePostDTO));
 	}
 
 	@Test
-	public void createDirective_completedScenario_throwsException() {
+	void createDirective_completedScenario_throwsException() {
 		testScenario.setStatus(ScenarioStatus.COMPLETED);
 
 		assertThrows(ResponseStatusException.class, () -> directiveService.createDirective(testDirectivePostDTO));
 	}
 
 	@Test
-	public void createDirective_roleNotPartOfScenario_throwsException() {
+	void createDirective_roleNotPartOfScenario_throwsException() {
 		Scenario scenarioWithoutRole = new Scenario();
 		scenarioWithoutRole.setId(1L);
 		scenarioWithoutRole.setPlayers(new ArrayList<>());
@@ -146,7 +146,7 @@ public class DirectiveServiceTest {
 	}
 
 	@Test
-	public void deleteDirective_validId_success() {
+	void deleteDirective_validId_success() {
 		Mockito.when(directiveRepository.findById(1L)).thenReturn(Optional.of(testDirective));
 
 		directiveService.deleteDirective(1L);
@@ -155,14 +155,14 @@ public class DirectiveServiceTest {
 	}
 
 	@Test
-	public void deleteDirective_directiveNotFound_throwsException() {
+	void deleteDirective_directiveNotFound_throwsException() {
 		Mockito.when(directiveRepository.findById(1L)).thenReturn(Optional.empty());
 
 		assertThrows(ResponseStatusException.class, () -> directiveService.deleteDirective(1L));
 	}
 
 	@Test
-	public void getDirectiveById_validId_success() {
+	void getDirectiveById_validId_success() {
 		Mockito.when(directiveRepository.findById(1L)).thenReturn(Optional.of(testDirective));
 
 		Directive result = directiveService.getDirectiveById(1L);
@@ -172,14 +172,14 @@ public class DirectiveServiceTest {
 	}
 
 	@Test
-	public void getDirectiveById_directiveNotFound_throwsException() {
+	void getDirectiveById_directiveNotFound_throwsException() {
 		Mockito.when(directiveRepository.findById(1L)).thenReturn(Optional.empty());
 
 		assertThrows(ResponseStatusException.class, () -> directiveService.getDirectiveById(1L));
 	}
 
 	@Test
-	public void updateDirectiveStatus_validInputs_success() {
+	void updateDirectiveStatus_validInputs_success() {
 		Mockito.when(directiveRepository.findById(1L)).thenReturn(Optional.of(testDirective));
 
 		directiveService.updateDirectiveStatus(1L, testDirectivePutDTO);
@@ -191,21 +191,21 @@ public class DirectiveServiceTest {
 	}
 
 	@Test
-	public void updateDirectiveStatus_invalidInput_statusNull_throwsException() {
+	void updateDirectiveStatus_invalidInput_statusNull_throwsException() {
 		testDirectivePutDTO.setStatus(null);
 
 		assertThrows(ResponseStatusException.class, () -> directiveService.updateDirectiveStatus(1L, testDirectivePutDTO));
 	}
 
 	@Test
-	public void updateDirectiveStatus_directiveNotFound_throwsException() {
+	void updateDirectiveStatus_directiveNotFound_throwsException() {
 		Mockito.when(directiveRepository.findById(1L)).thenReturn(Optional.empty());
 
 		assertThrows(ResponseStatusException.class, () -> directiveService.updateDirectiveStatus(1L, testDirectivePutDTO));
 	}
 
 	@Test
-	public void getDirectivesByScenario_validScenarioId_success() {
+	void getDirectivesByScenario_validScenarioId_success() {
 		List<Directive> expectedDirectives = Arrays.asList(testDirective);
 		Mockito.when(scenarioService.getScenarioById(1L)).thenReturn(testScenario);
 		Mockito.when(directiveRepository.findByScenarioId(1L)).thenReturn(expectedDirectives);
@@ -218,14 +218,14 @@ public class DirectiveServiceTest {
 	}
 
 	@Test
-	public void getDirectivesByScenario_scenarioNotFound_throwsException() {
+	void getDirectivesByScenario_scenarioNotFound_throwsException() {
 		Mockito.when(scenarioService.getScenarioById(1L)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario not found"));
 
 		assertThrows(ResponseStatusException.class, () -> directiveService.getDirectivesByScenario(1L));
 	}
 
 	@Test
-	public void getDirectivesByCreator_validCharacterId_success() {
+	void getDirectivesByCreator_validCharacterId_success() {
 		List<Directive> expectedDirectives = Arrays.asList(testDirective);
 		Mockito.when(playerService.getRoleById(1L)).thenReturn(testRole);
 		Mockito.when(directiveRepository.findByCreatorId(1L)).thenReturn(expectedDirectives);
@@ -238,7 +238,7 @@ public class DirectiveServiceTest {
 	}
 
 	@Test
-	public void getDirectivesByCreator_characterNotFound_throwsException() {
+	void getDirectivesByCreator_characterNotFound_throwsException() {
 		Mockito.when(playerService.getRoleById(1L)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Character not found"));
 
 		assertThrows(ResponseStatusException.class, () -> directiveService.getDirectivesByCreator(1L));

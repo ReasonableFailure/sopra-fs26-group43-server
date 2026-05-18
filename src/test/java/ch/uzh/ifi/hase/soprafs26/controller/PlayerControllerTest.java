@@ -31,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(PlayerController.class)
-public class PlayerControllerTest {
+class PlayerControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -78,7 +78,7 @@ public class PlayerControllerTest {
     }
 
     @Test
-    public void updateRole_whenValidDirectorToken_returnsNoContent() throws Exception {
+    void updateRole_whenValidDirectorToken_returnsNoContent() throws Exception {
         RolePutDTO putDTO = new RolePutDTO();
         putDTO.setDescription("Updated description");
         putDTO.setAlive(false);
@@ -97,7 +97,7 @@ public class PlayerControllerTest {
     }
 
     @Test
-    public void getRole_whenAuthorized_returnsRoleDetail() throws Exception {
+    void getRole_whenAuthorized_returnsRoleDetail() throws Exception {
         when(playerService.validate("Bearer user-token", "any")).thenReturn("user-token");
         when(playerService.getRoleById(1L)).thenReturn(testRole);
 
@@ -113,7 +113,7 @@ public class PlayerControllerTest {
     }
 
     @Test
-    public void createRole_whenDirectorToken_returnsCreatedRole() throws Exception {
+    void createRole_whenDirectorToken_returnsCreatedRole() throws Exception {
         RolePostDTO postDTO = new RolePostDTO();
         postDTO.setName("New Role");
         postDTO.setTitle("New Title");
@@ -147,7 +147,7 @@ public class PlayerControllerTest {
     }
 
     @Test
-    public void deleteRole_whenDirectorToken_returnsOk() throws Exception {
+    void deleteRole_whenDirectorToken_returnsOk() throws Exception {
         when(playerService.validate("Director director-token", "Director")).thenReturn("director-token");
         doNothing().when(playerService).deleteRole(1L);
 
@@ -160,7 +160,7 @@ public class PlayerControllerTest {
     }
 
     @Test
-    public void createBackroomer_whenUserOwnsToken_returnsBackroomer() throws Exception {
+    void createBackroomer_whenUserOwnsToken_returnsBackroomer() throws Exception {
         UserAssignDTO userAssignDTO = new UserAssignDTO();
         userAssignDTO.setId(4L);
 
@@ -187,7 +187,7 @@ public class PlayerControllerTest {
     }
 
     @Test
-    public void selectCharacter_whenUserOwnsToken_returnsAssignedRole() throws Exception {
+    void selectCharacter_whenUserOwnsToken_returnsAssignedRole() throws Exception {
         UserAssignDTO userAssignDTO = new UserAssignDTO();
         userAssignDTO.setId(4L);
 
@@ -215,7 +215,7 @@ public class PlayerControllerTest {
     }
 
     @Test
-    public void getInterlocutors_whenAuthorized_returnsRoleList() throws Exception {
+    void getInterlocutors_whenAuthorized_returnsRoleList() throws Exception {
         Role otherRole = new Role();
         otherRole.setId(8L);
         otherRole.setName("Other Role");
@@ -233,7 +233,7 @@ public class PlayerControllerTest {
     }
 
     @Test
-    public void syncAndGetPoints_whenRoleToken_returnsUpdatedRole() throws Exception {
+    void syncAndGetPoints_whenRoleToken_returnsUpdatedRole() throws Exception {
         when(playerService.validate("Role role-token", "Role")).thenReturn("role-token");
         when(playerService.syncPointsAndGetRole(1L, 1L)).thenReturn(testRole);
 
@@ -248,7 +248,7 @@ public class PlayerControllerTest {
     }
 
     @Test
-    public void createScenarioDirector_whenUserOwnsToken_returnsDirector() throws Exception {
+    void createScenarioDirector_whenUserOwnsToken_returnsDirector() throws Exception {
         UserAssignDTO userAssignDTO = new UserAssignDTO();
         userAssignDTO.setId(4L);
 
@@ -275,7 +275,7 @@ public class PlayerControllerTest {
     }
 
     @Test
-    public void buyMessage_whenRoleToken_returnsRole() throws Exception {
+    void buyMessage_whenRoleToken_returnsRole() throws Exception {
         when(playerService.validate("Role role-token", "Role")).thenReturn("role-token");
         when(actionPointService.buyMessage(1L, 1L)).thenReturn(testRole);
 

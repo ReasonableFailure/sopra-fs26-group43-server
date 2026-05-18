@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @WebAppConfiguration
 @SpringBootTest
-public class MessageServiceIntegrationTest {
+class MessageServiceIntegrationTest {
 
 	@Qualifier("messageRepository")
 	@Autowired
@@ -59,7 +59,7 @@ public class MessageServiceIntegrationTest {
 	private Role testRecipient;
 
 	@BeforeEach
-	public void setup() {
+	void setup() {
 		messageRepository.deleteAll();
 		scenarioRepository.deleteAll();
 		roleRepository.deleteAll();
@@ -111,7 +111,7 @@ public class MessageServiceIntegrationTest {
 	}
 
 	@Test
-	public void createMessage_validInputs_success() {
+	void createMessage_validInputs_success() {
 		MessagePostDTO postDTO = new MessagePostDTO();
 		postDTO.setTitle("Test Message");
 		postDTO.setBody("Test Body");
@@ -132,7 +132,7 @@ public class MessageServiceIntegrationTest {
 	}
 
 	@Test
-	public void createMessage_invalidInput_throwsException() {
+	void createMessage_invalidInput_throwsException() {
 		MessagePostDTO postDTO = new MessagePostDTO();
 		postDTO.setTitle("Test Message");
 		postDTO.setBody("Test Body");
@@ -144,7 +144,7 @@ public class MessageServiceIntegrationTest {
 	}
 
 	@Test
-	public void createMessage_scenarioNotFound_throwsException() {
+	void createMessage_scenarioNotFound_throwsException() {
 		MessagePostDTO postDTO = new MessagePostDTO();
 		postDTO.setTitle("Test Message");
 		postDTO.setBody("Test Body");
@@ -156,7 +156,7 @@ public class MessageServiceIntegrationTest {
 	}
 
 	@Test
-	public void createMessage_scenarioCompleted_throwsException() {
+	void createMessage_scenarioCompleted_throwsException() {
 		testScenario.setStatus(ScenarioStatus.COMPLETED);
 		scenarioRepository.save(testScenario);
 
@@ -171,7 +171,7 @@ public class MessageServiceIntegrationTest {
 	}
 
 	@Test
-	public void createMessage_sentToSelf_throwsException() {
+	void createMessage_sentToSelf_throwsException() {
 		MessagePostDTO postDTO = new MessagePostDTO();
 		postDTO.setTitle("Test Message");
 		postDTO.setBody("Test Body");
@@ -183,12 +183,12 @@ public class MessageServiceIntegrationTest {
 	}
 
 	@Test
-	public void getMessagesBetween_AAndBAreTheSame_throwsException() {
+	void getMessagesBetween_AAndBAreTheSame_throwsException() {
 		assertThrows(ResponseStatusException.class, () -> messageService.getMessagesBetween(testCreator.getId(), testCreator.getId()));
 	}
 
 	@Test
-	public void getCharacterInbox_validInput_Success() {
+	void getCharacterInbox_validInput_Success() {
 		MessagePostDTO postDTO = new MessagePostDTO();
 		postDTO.setTitle("Test Message");
 		postDTO.setBody("Test Body");
@@ -205,22 +205,27 @@ public class MessageServiceIntegrationTest {
 	}
 
 	@Test
-	public void getCharacterInbox_roleNotFound_throwsException() {
+	void getCharacterInbox_roleNotFound_throwsException() {
 		assertThrows(ResponseStatusException.class, () -> messageService.getInbox(999L, testScenario.getId()));
 	}
 
 	@Test
-	public void getCharacterInbox_ScenarioNotFound_throwsException() {
-		assertThrows(ResponseStatusException.class, () -> messageService.getInbox(testRecipient.getId(), 999L));
+	void getCharacterInbox_ScenarioNotFound_throwsException() {
+		Long recipientId = testRecipient.getId();
+
+		assertThrows(
+			ResponseStatusException.class,
+			() -> messageService.getInbox(recipientId, 999L)
+		);
 	}
 
 	@Test
-	public void deleteMessage_messageNotFound_throwsException() {
+	void deleteMessage_messageNotFound_throwsException() {
 		assertThrows(ResponseStatusException.class, () -> messageService.deleteMessage(999L));
 	}
 
 	@Test
-	public void createMessage_creatorNotFound_throwsException() {
+	void createMessage_creatorNotFound_throwsException() {
 		MessagePostDTO postDTO = new MessagePostDTO();
 		postDTO.setTitle("Test Message");
 		postDTO.setBody("Test Body");
@@ -232,7 +237,7 @@ public class MessageServiceIntegrationTest {
 	}
 
 	@Test
-	public void getMessageById_validId_success() {
+	void getMessageById_validId_success() {
 		MessagePostDTO postDTO = new MessagePostDTO();
 		postDTO.setTitle("Test Message");
 		postDTO.setBody("Test Body");
@@ -249,12 +254,12 @@ public class MessageServiceIntegrationTest {
 	}
 
 	@Test
-	public void getMessageById_messageNotFound_throwsException() {
+	void getMessageById_messageNotFound_throwsException() {
 		assertThrows(ResponseStatusException.class, () -> messageService.getMessageById(999L));
 	}
 
 	@Test
-	public void updateMessageStatus_validInputs_success() {
+	void updateMessageStatus_validInputs_success() {
 		MessagePostDTO postDTO = new MessagePostDTO();
 		postDTO.setTitle("Test Message");
 		postDTO.setBody("Test Body");
@@ -274,7 +279,7 @@ public class MessageServiceIntegrationTest {
 	}
 
 	@Test
-	public void updateMessageStatus_invalidInput_throwsException() {
+	void updateMessageStatus_invalidInput_throwsException() {
 		MessagePostDTO postDTO = new MessagePostDTO();
 		postDTO.setTitle("Test Message");
 		postDTO.setBody("Test Body");
@@ -291,7 +296,7 @@ public class MessageServiceIntegrationTest {
 	}
 
 	@Test
-	public void updateMessageStatus_messageNotFound_throwsException() {
+	void updateMessageStatus_messageNotFound_throwsException() {
 		MessagePutDTO putDTO = new MessagePutDTO();
 		putDTO.setStatus(CommsStatus.ACCEPTED);
 
@@ -299,7 +304,7 @@ public class MessageServiceIntegrationTest {
 	}
 
 	@Test
-	public void getMessagesBetween_validIds_success() {
+	void getMessagesBetween_validIds_success() {
 		MessagePostDTO postDTO = new MessagePostDTO();
 		postDTO.setTitle("Test Message");
 		postDTO.setBody("Test Body");
@@ -319,7 +324,7 @@ public class MessageServiceIntegrationTest {
 	}
 
 	@Test
-	public void getMessagePairsByScenario_validId_success() {
+	void getMessagePairsByScenario_validId_success() {
 		MessagePostDTO postDTO = new MessagePostDTO();
 		postDTO.setTitle("Test Message");
 		postDTO.setBody("Test Body");
@@ -337,7 +342,7 @@ public class MessageServiceIntegrationTest {
 	}
 
 	@Test
-	public void getMessagePairsByScenario_scenarioNotFound_throwsException() {
+	void getMessagePairsByScenario_scenarioNotFound_throwsException() {
 		assertThrows(ResponseStatusException.class, () -> messageService.getMessagePairsByScenario(999L));
 	}
 }

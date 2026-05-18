@@ -28,7 +28,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class PlayerServiceTest {
+class PlayerServiceTest {
 
     @Mock
     private NewsRepository newsRepository;
@@ -68,7 +68,7 @@ public class PlayerServiceTest {
     private User user;
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         scenario = new Scenario();
         scenario.setId(1L);
         scenario.setTitle("Scenario");
@@ -95,7 +95,7 @@ public class PlayerServiceTest {
     }
 
     @Test
-    public void getRoleById_withExistingRole_returnsRole() {
+    void getRoleById_withExistingRole_returnsRole() {
         when(roleRepository.findById(1L)).thenReturn(Optional.of(role));
 
         Role result = playerService.getRoleById(1L);
@@ -104,14 +104,14 @@ public class PlayerServiceTest {
     }
 
     @Test
-    public void getRoleById_withUnknownRole_throwsException() {
+    void getRoleById_withUnknownRole_throwsException() {
         when(roleRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         assertThrows(ResponseStatusException.class, () -> playerService.getRoleById(99L));
     }
 
     @Test
-    public void updateRole_withPatchValues_savesUpdatedRole() {
+    void updateRole_withPatchValues_savesUpdatedRole() {
         when(roleRepository.findById(1L)).thenReturn(Optional.of(role));
         doNothing().when(roleRepository).flush();
 
@@ -127,7 +127,7 @@ public class PlayerServiceTest {
     }
 
     @Test
-    public void createRole_withValidScenario_returnsRole() {
+    void createRole_withValidScenario_returnsRole() {
         when(scenarioRepository.findById(1L)).thenReturn(Optional.of(scenario));
         when(scenarioRepository.save(any(Scenario.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(roleRepository.save(any(Role.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -149,7 +149,7 @@ public class PlayerServiceTest {
     }
 
     @Test
-    public void deleteRole_callsRepositoryDelete() {
+    void deleteRole_callsRepositoryDelete() {
         doNothing().when(roleRepository).deleteById(1L);
 
         playerService.deleteRole(1L);
@@ -158,7 +158,7 @@ public class PlayerServiceTest {
     }
 
     @Test
-    public void createBackroomer_withValidUser_returnsBackroomer() {
+    void createBackroomer_withValidUser_returnsBackroomer() {
         when(scenarioRepository.findById(1L)).thenReturn(Optional.of(scenario));
         when(userService.getProfileById(2L)).thenReturn(user);
         when(backroomerRepository.save(any(Backroomer.class))).thenAnswer(invocation -> {
@@ -178,7 +178,7 @@ public class PlayerServiceTest {
     }
 
     @Test
-    public void claimRole_withUnclaimedRole_assignsUser() {
+    void claimRole_withUnclaimedRole_assignsUser() {
         role.setUser(null);
         role.setScenario(scenario);
 
@@ -194,7 +194,7 @@ public class PlayerServiceTest {
     }
 
     @Test
-    public void getInterlocutors_withMessages_returnsUniqueRoleList() {
+    void getInterlocutors_withMessages_returnsUniqueRoleList() {
         Role otherRole = new Role();
         otherRole.setId(3L);
         otherRole.setName("Other Role");
@@ -222,7 +222,7 @@ public class PlayerServiceTest {
     }
 
     @Test
-    public void createDirector_withValidUser_createsDirector() {
+    void createDirector_withValidUser_createsDirector() {
         when(userService.getProfileById(2L)).thenReturn(user);
         when(directorRepository.save(any(Director.class))).thenAnswer(invocation -> {
             Director director = invocation.getArgument(0);
@@ -238,7 +238,7 @@ public class PlayerServiceTest {
     }
 
     @Test
-    public void syncPointsAndGetRole_callsActionPointService() {
+    void syncPointsAndGetRole_callsActionPointService() {
         when(roleRepository.findById(1L)).thenReturn(Optional.of(role));
         when(scenarioRepository.findById(1L)).thenReturn(Optional.of(scenario));
         doNothing().when(actionPointService).syncActionPoints(role, scenario);
