@@ -79,7 +79,7 @@ class UserServiceTest {
     }
 
     @Test
-    void testValidateUserToken_Success() {
+    void validateUserToken_validInput_success() {
         String validToken = "correct-token";
         User mockUser = new User();
         mockUser.setToken(validToken);
@@ -90,26 +90,7 @@ class UserServiceTest {
     }
 
     @Test
-    void testValidateUserToken_NullOrEmpty() {
-        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
-                () -> userService.validateUserToken(null));
-
-        assertEquals(HttpStatus.UNAUTHORIZED, ex.getStatusCode());
-    }
-
-    @Test
-    void testValidateUserToken_NotFoundInDb() {
-        String unknownToken = "ghost-token";
-        when(userRepository.findByToken(unknownToken)).thenReturn(Optional.empty());
-
-        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
-                () -> userService.validateUserToken(unknownToken));
-
-        assertEquals(HttpStatus.UNAUTHORIZED, ex.getStatusCode());
-    }
-
-    @Test
-    void testValidateUserToken_UserHasNullToken() {
+    void validateUserToken_userHasNullToken_throwsException() {
         String token = "some-token";
         User mockUser = new User();
         mockUser.setToken(null);
@@ -118,6 +99,17 @@ class UserServiceTest {
 
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
                 () -> userService.validateUserToken(token));
+
+        assertEquals(HttpStatus.UNAUTHORIZED, ex.getStatusCode());
+    }
+
+    @Test
+    void validateUserToken_NotFoundInDb_throwsException() {
+        String unknownToken = "ghost-token";
+        when(userRepository.findByToken(unknownToken)).thenReturn(Optional.empty());
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> userService.validateUserToken(unknownToken));
 
         assertEquals(HttpStatus.UNAUTHORIZED, ex.getStatusCode());
     }
@@ -371,36 +363,5 @@ class UserServiceTest {
         assertThrows(ResponseStatusException.class, () -> userService.getByToken(token));
     }
 
-    @Test
-    void validateUserToken_validInput_success() {
-        String token = "token";
-        User stored = new User();
-        stored.setToken(token);
 
-        when(userRepository.findByToken(token)).thenReturn(Optional.of(stored));
-
-        assertDoesNotThrow(() -> userService.validateUserToken(token));
-    }
-
-    @Test
-    void validateUserToken_NotFoundInDb_throwsException() {
-        String token = "token";
-        when(userRepository.findByToken(token)).thenReturn(Optional.empty());
-
-        assertThrows(ResponseStatusException.class, () -> userService.validateUserToken(token));
-    }
-
-    @Test
-    void validateUserToken_userHasNullToken_throwsException() {
-        String token = "some-token";
-        User mockUser = new User();
-        mockUser.setToken(null);
-
-        when(userRepository.findByToken(token)).thenReturn(Optional.of(mockUser));
-
-        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
-                () -> userService.validateUserToken(token));
-
-        assertEquals(HttpStatus.UNAUTHORIZED, ex.getStatusCode());
-    }
 }

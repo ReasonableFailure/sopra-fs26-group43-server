@@ -154,7 +154,12 @@ class UserServiceIntegrationTest {
 		UserPutDTO putDTO = new UserPutDTO();
 		putDTO.setUsername("");
 
-		assertThrows(ResponseStatusException.class, () -> userService.updateProfile(created.getId(), putDTO));
+		Long userId = created.getId();
+
+		assertThrows(
+			ResponseStatusException.class,
+			() -> userService.updateProfile(userId, putDTO)
+		);
 	}
 
 	@Test
