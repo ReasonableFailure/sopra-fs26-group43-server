@@ -5,7 +5,9 @@ import org.junit.jupiter.api.Test;
 import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.rest.userdto.UserGetDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.userdto.UserLoginDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.userdto.UserPostDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.userdto.UserPutDTO;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -28,6 +30,36 @@ public class UserDTOMapperTest {
 		// check content
 		assertEquals(userPostDTO.getPassword(), user.getPassword());
 		assertEquals(userPostDTO.getUsername(), user.getUsername());
+	}
+
+	@Test
+	public void testCreateUser_fromUserLoginDTO_toUser_success() {
+		UserLoginDTO userLoginDTO = new UserLoginDTO();
+		userLoginDTO.setPassword("password123");
+		userLoginDTO.setUsername("loginuser");
+
+		User user = UserDTOMapper.INSTANCE.convertUserLoginDTOtoEntity(userLoginDTO);
+
+		assertEquals(userLoginDTO.getPassword(), user.getPassword());
+		assertEquals(userLoginDTO.getUsername(), user.getUsername());
+	}
+
+	@Test
+	public void testUpdateUser_fromUserPutDTO_toUser_success() {
+		UserPutDTO userPutDTO = new UserPutDTO();
+		userPutDTO.setPassword("newPassword");
+		userPutDTO.setUsername("newUsername");
+		userPutDTO.setBio("newBio");
+		userPutDTO.setName("newName");
+		userPutDTO.setProfilePic("data:image/jpeg;base64,Zm9vYmFy");
+
+		User user = UserDTOMapper.INSTANCE.convertUserPutDTOtoEntity(userPutDTO);
+
+		assertEquals(userPutDTO.getPassword(), user.getPassword());
+		assertEquals(userPutDTO.getUsername(), user.getUsername());
+		assertEquals(userPutDTO.getBio(), user.getBio());
+		assertEquals(userPutDTO.getName(), user.getName());
+		assertEquals(null, user.getProfilePic());
 	}
 
 	@Test

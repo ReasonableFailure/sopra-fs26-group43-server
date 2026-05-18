@@ -76,14 +76,6 @@ public class UserService {
 
     }
 
-    public User setUserPlaying(Long id) {
-        User u = getProfileById(id);
-        u.setPlaying(true);
-        userRepository.save(u);
-        userRepository.flush();
-        return u;
-    }
-
     public User loginUser(User user) {
         if (user.getUsername() == null || user.getPassword() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username and password required");
@@ -117,6 +109,9 @@ public class UserService {
 
         if (!requester.getId().equals(id)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cannot delete another user");
+        }
+        if (!userRepository.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format(USER_NOT_FOUND, id));
         }
         userRepository.deleteById(id);
         userRepository.flush();

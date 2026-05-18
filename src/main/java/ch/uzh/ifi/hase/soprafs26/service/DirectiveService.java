@@ -121,7 +121,7 @@ public class DirectiveService {
 
     public void deleteDirective(Long Id){
 
-         Directive directive = directiveRepository.findById(Id)
+        directiveRepository.findById(Id)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Directive not found"));
         directiveRepository.deleteById(Id);
