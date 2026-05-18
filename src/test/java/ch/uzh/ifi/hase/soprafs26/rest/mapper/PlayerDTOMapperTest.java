@@ -14,10 +14,10 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class PlayerDTOMapperTest {
+class PlayerDTOMapperTest {
 
     @Test
-    public void testConvertRolePostDTOToEntity_withBase64Portrait_success() {
+    void testConvertRolePostDTOToEntity_withBase64Portrait_success() {
         byte[] portraitBytes = "test-portrait".getBytes();
         String base64 = Base64.getEncoder().encodeToString(portraitBytes);
         String dataUrl = "data:image/jpeg;base64," + base64;
@@ -39,7 +39,7 @@ public class PlayerDTOMapperTest {
     }
 
     @Test
-    public void testConvertEntityToRoleGetDTO_mapsPortraitAndFields_success() {
+    void testConvertEntityToRoleGetDTO_mapsPortraitAndFields_success() {
         byte[] portraitBytes = "test-portrait".getBytes();
 
         Role role = new Role();
@@ -65,7 +65,7 @@ public class PlayerDTOMapperTest {
     }
 
     @Test
-    public void testConvertEntityToDirectorGetDTO_success() {
+    void testConvertEntityToDirectorGetDTO_success() {
         Director director = new Director();
         director.setId(42L);
         director.setToken("director-token");
@@ -77,7 +77,7 @@ public class PlayerDTOMapperTest {
     }
 
     @Test
-    public void testConvertEntityToBackroomerGetDTO_success() {
+    void testConvertEntityToBackroomerGetDTO_success() {
         Backroomer backroomer = new Backroomer();
         backroomer.setId(7L);
         backroomer.setToken("backroomer-token");

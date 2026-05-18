@@ -13,9 +13,9 @@ import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class DirectiveDTOMapperTest {
+class DirectiveDTOMapperTest {
 	@Test
-	public void testCreateDirective_fromDirectivePostDTO_toDirective_success() {
+	void testCreateDirective_fromDirectivePostDTO_toDirective_success() {
 		DirectivePostDTO directivePostDTO = new DirectivePostDTO();
 		directivePostDTO.setTitle("Test Directive");
 		directivePostDTO.setBody("Test Body");
@@ -29,7 +29,7 @@ public class DirectiveDTOMapperTest {
 	}
 
 	@Test
-	public void testGetDirective_fromDirective_toDirectiveGetDTO_success() {
+	void testGetDirective_fromDirective_toDirectiveGetDTO_success() {
 		Role creator = new Role();
 		creator.setId(1L);
 		creator.setName("Test Role");

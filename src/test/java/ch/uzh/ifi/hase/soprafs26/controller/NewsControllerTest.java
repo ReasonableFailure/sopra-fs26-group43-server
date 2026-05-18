@@ -38,7 +38,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(NewsController.class)
-public class NewsControllerTest {
+class NewsControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -99,7 +99,7 @@ public class NewsControllerTest {
     }
 
     @Test
-    public void createNews_validInputs_pronouncement_success() throws Exception {
+    void createNews_validInputs_pronouncement_success() throws Exception {
         when(newsService.createNews(any(NewsPostDTO.class)))
                 .thenReturn(testPronouncement);
 
@@ -120,7 +120,7 @@ public class NewsControllerTest {
     }
 
     @Test
-    public void createNews_validInputs_newsStory_success() throws Exception {
+    void createNews_validInputs_newsStory_success() throws Exception {
         newsPostDTO.setAuthorId(null);
         when(newsService.createNews(any(NewsPostDTO.class)))
                 .thenReturn(testNewsStory);
@@ -142,7 +142,7 @@ public class NewsControllerTest {
     }
 
     @Test
-    public void createNews_scenarioNotFound_throwsException() throws Exception {
+    void createNews_scenarioNotFound_throwsException() throws Exception {
         when(newsService.createNews(any(NewsPostDTO.class)))
                 .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario not found"));
 
@@ -158,7 +158,7 @@ public class NewsControllerTest {
     }
 
     @Test
-    public void createNews_authorNotFound_throwsException() throws Exception {
+    void createNews_authorNotFound_throwsException() throws Exception {
         when(newsService.createNews(any(NewsPostDTO.class)))
                 .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Author role not found"));
 
@@ -174,7 +174,7 @@ public class NewsControllerTest {
     }
 
     @Test
-    public void getNews_validId_pronouncement_success() throws Exception {
+    void getNews_validId_pronouncement_success() throws Exception {
         when(newsService.getNewsById(2L))
                 .thenReturn(testPronouncement);
 
@@ -193,7 +193,7 @@ public class NewsControllerTest {
     }
 
     @Test
-    public void getNews_validId_newsStory_success() throws Exception {
+    void getNews_validId_newsStory_success() throws Exception {
         when(newsService.getNewsById(1L))
                 .thenReturn(testNewsStory);
 
@@ -212,7 +212,7 @@ public class NewsControllerTest {
     }
 
     @Test
-    public void getNews_newsNotFound_throwsException() throws Exception {
+    void getNews_newsNotFound_throwsException() throws Exception {
         when(newsService.getNewsById(999L))
                 .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "News item not found"));
 
@@ -226,7 +226,7 @@ public class NewsControllerTest {
     }
 
     @Test
-    public void getNewsByScenario_validScenarioId_success() throws Exception {
+    void getNewsByScenario_validScenarioId_success() throws Exception {
         List<NewsStory> newsList = Arrays.asList(testNewsStory, testPronouncement);
         when(newsService.getNewsByScenario(1L))
                 .thenReturn(newsList);
@@ -249,7 +249,7 @@ public class NewsControllerTest {
     }
 
     @Test
-    public void getNewsByScenario_scenarioNotFound_throwsException() throws Exception {
+    void getNewsByScenario_scenarioNotFound_throwsException() throws Exception {
         when(newsService.getNewsByScenario(999L))
                 .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario not found"));
 
@@ -262,8 +262,8 @@ public class NewsControllerTest {
         verify(newsService, times(1)).getNewsByScenario(999L);
     }
     @Test
-    public void deleteNews_validInput_success() throws Exception {
-        doNothing().when(newsService).deleteNews(Mockito.eq(1L));
+    void deleteNews_validInput_success() throws Exception {
+        doNothing().when(newsService).deleteNews(1L);
 
         MockHttpServletRequestBuilder deleteRequest = delete("/news/1")
                 .header("Authorization", "Bearer token123");
@@ -271,7 +271,7 @@ public class NewsControllerTest {
         mockMvc.perform(deleteRequest)
                 .andExpect(status().isNoContent());
 
-        verify(newsService, times(1)).deleteNews(Mockito.eq(1L));
+        verify(newsService, times(1)).deleteNews(1L);
     }
     private String asJsonString(Object object) throws Exception {
         return objectMapper.writeValueAsString(object);

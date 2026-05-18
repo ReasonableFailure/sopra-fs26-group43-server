@@ -15,7 +15,6 @@ import ch.uzh.ifi.hase.soprafs26.repository.ScenarioRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.PlayerRepository;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.RolePostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.userdto.UserAssignDTO;
-import ch.uzh.ifi.hase.soprafs26.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +32,7 @@ import static org.mockito.Mockito.when;
 @WebAppConfiguration
 @SpringBootTest
 @Transactional
-public class PlayerServiceIntegrationTest {
+class PlayerServiceIntegrationTest {
 
     @Autowired
     private ScenarioRepository scenarioRepository;
@@ -74,7 +73,7 @@ public class PlayerServiceIntegrationTest {
     private Scenario testScenario;
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         messageRepository.deleteAll();
         newsRepository.deleteAll();
         backroomerRepository.deleteAll();
@@ -93,7 +92,7 @@ public class PlayerServiceIntegrationTest {
     }
 
     @Test
-    public void createRole_persistsNewRoleWithScenario() {
+    void createRole_persistsNewRoleWithScenario() {
         RolePostDTO postDTO = new RolePostDTO();
         postDTO.setName("New Role");
         postDTO.setTitle("New Title");
@@ -110,7 +109,7 @@ public class PlayerServiceIntegrationTest {
     }
 
     @Test
-    public void createBackroomer_withValidUser_savesBackroomer() {
+    void createBackroomer_withValidUser_savesBackroomer() {
         UserAssignDTO userAssignDTO = new UserAssignDTO();
         userAssignDTO.setId(42L);
 
@@ -133,7 +132,7 @@ public class PlayerServiceIntegrationTest {
     }
 
     @Test
-    public void claimRole_withExistingRole_assignsUserToRole() {
+    void claimRole_withExistingRole_assignsUserToRole() {
         Role role = new Role();
         role.setToken("role-token-43");
         role.setName("Candidate");
@@ -168,7 +167,7 @@ public class PlayerServiceIntegrationTest {
     }
 
     @Test
-    public void syncPointsAndGetRole_invokesActionPointService() {
+    void syncPointsAndGetRole_invokesActionPointService() {
         Role role = new Role();
         role.setToken("sync-role-token");
         role.setName("SyncRole");

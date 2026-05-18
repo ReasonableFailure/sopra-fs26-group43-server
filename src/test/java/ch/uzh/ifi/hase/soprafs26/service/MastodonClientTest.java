@@ -20,7 +20,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class MastodonClientTest {
+class MastodonClientTest {
 
     @Mock
     private WebClient.Builder webClientBuilder;
@@ -44,7 +44,7 @@ public class MastodonClientTest {
     private RestTemplate restTemplate;
 
     @Test
-    public void postStatus_validInput_success() {
+    void postStatus_validInput_success() {
         MastodonClient mastodonClient = new MastodonClient(webClientBuilder, restTemplate);
         Map<String, Object> responseMap = Map.of("id", "status-id-123");
 
@@ -63,7 +63,7 @@ public class MastodonClientTest {
     }
 
     @Test
-    public void getLikes_validInput_success() {
+    void getLikes_validInput_success() {
         MastodonClient mastodonClient = new MastodonClient(webClientBuilder, restTemplate);
         Map<String, Object> responseMap = Map.of("favourites_count", 42);
 
@@ -81,7 +81,7 @@ public class MastodonClientTest {
     }
 
     @Test
-    public void fetchMastodonProfileUrl_validInput_success() {
+    void fetchMastodonProfileUrl_validInput_success() {
         MastodonClient mastodonClient = new MastodonClient(webClientBuilder, restTemplate);
         Map<String, Object> responseBody = Map.of("url", "https://mastodon.example.com/@user");
         ResponseEntity<Map> responseEntity = ResponseEntity.ok(responseBody);

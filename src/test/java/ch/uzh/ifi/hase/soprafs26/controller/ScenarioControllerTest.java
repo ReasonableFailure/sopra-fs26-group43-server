@@ -43,7 +43,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ScenarioController.class)
-public class ScenarioControllerTest {
+class ScenarioControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -63,7 +63,7 @@ public class ScenarioControllerTest {
     private Role testRole;
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         objectMapper = new ObjectMapper();
 
         when(playerService.validate(anyString(), anyString())).thenReturn("token123");
@@ -89,7 +89,7 @@ public class ScenarioControllerTest {
     }
 
     @Test
-    public void getAllScenarios_validInput_success() throws Exception {
+    void getAllScenarios_validInput_success() throws Exception {
         when(scenarioService.getScenarios()).thenReturn(Collections.singletonList(testScenario));
 
         mockMvc.perform(get("/scenarios")
@@ -105,7 +105,7 @@ public class ScenarioControllerTest {
     }
 
     @Test
-    public void createScenario_validInput_success() throws Exception {
+    void createScenario_validInput_success() throws Exception {
         ScenarioPostDTO postDTO = new ScenarioPostDTO();
         postDTO.setTitle("Test Scenario");
         postDTO.setDescription("Test description");
@@ -129,7 +129,7 @@ public class ScenarioControllerTest {
     }
 
     @Test
-    public void getScenarioById_validInput_success() throws Exception {
+    void getScenarioById_validInput_success() throws Exception {
         when(scenarioService.getScenarioById(1L)).thenReturn(testScenario);
 
         mockMvc.perform(get("/scenarios/1")
@@ -142,7 +142,7 @@ public class ScenarioControllerTest {
     }
 
     @Test
-    public void updateScenario_validInput_success() throws Exception {
+    void updateScenario_validInput_success() throws Exception {
         ScenarioPutDTO putDTO = new ScenarioPutDTO();
         putDTO.setTitle("Updated Scenario");
         putDTO.setDescription("Updated description");
@@ -160,7 +160,7 @@ public class ScenarioControllerTest {
     }
 
     @Test
-    public void deleteScenario_validInput_success() throws Exception {
+    void deleteScenario_validInput_success() throws Exception {
         when(scenarioService.getScenarioById(1L)).thenReturn(testScenario);
         doNothing().when(scenarioService).deleteScenario(1L);
 
@@ -172,7 +172,7 @@ public class ScenarioControllerTest {
     }
 
     @Test
-    public void retrieveAllRoles_validInput_success() throws Exception {
+    void retrieveAllRoles_validInput_success() throws Exception {
         testRole = new Role();
         testRole.setId(2L);
         testRole.setName("Test Role");
@@ -190,7 +190,7 @@ public class ScenarioControllerTest {
     }
 
     @Test
-    public void updateMastodonConfig_validInput_success() throws Exception {
+    void updateMastodonConfig_validInput_success() throws Exception {
         ScenarioMastodonDTO mastodonDTO = new ScenarioMastodonDTO();
         mastodonDTO.setMastodonBaseUrl("https://mastodon.example");
         mastodonDTO.setMastodonAccessToken("token123");

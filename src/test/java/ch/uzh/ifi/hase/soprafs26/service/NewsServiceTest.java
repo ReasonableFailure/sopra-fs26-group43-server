@@ -25,7 +25,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class NewsServiceTest {
+class NewsServiceTest {
 
 	@Mock
 	private NewsRepository newsRepository;
@@ -50,7 +50,7 @@ public class NewsServiceTest {
 	private Pronouncement testPronouncement;
 
 	@BeforeEach
-	public void setup() {
+	void setup() {
 		MockitoAnnotations.openMocks(this);
 
 		testNewsPostDTO = new NewsPostDTO();
@@ -95,7 +95,7 @@ public class NewsServiceTest {
 	}
 
 	@Test
-	public void createNews_validInputs_pronouncement_success() {
+	void createNews_validInputs_pronouncement_success() {
 		NewsStory createdNews = newsService.createNews(testNewsPostDTO);
 
 		Mockito.verify(newsRepository, Mockito.atLeastOnce()).save(Mockito.any());
@@ -111,7 +111,7 @@ public class NewsServiceTest {
 	}
 
 	@Test
-	public void createNews_validInputs_newsStory_success() {
+	void createNews_validInputs_newsStory_success() {
 		testNewsPostDTO.setAuthorId(null);
 		Mockito.when(newsRepository.save(Mockito.any())).thenReturn(testNewsStory);
 
@@ -128,35 +128,35 @@ public class NewsServiceTest {
 	}
 
 	@Test
-	public void createNews_scenarioNotFound_throwsException() {
+	void createNews_scenarioNotFound_throwsException() {
 		Mockito.when(scenarioService.getScenarioById(1L)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND));
 
 		assertThrows(ResponseStatusException.class, () -> newsService.createNews(testNewsPostDTO));
 	}
 
 	@Test
-	public void createNews_authorNotFound_throwsException() {
+	void createNews_authorNotFound_throwsException() {
 		Mockito.when(playerService.getRoleById(1L)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND));
 
 		assertThrows(ResponseStatusException.class, () -> newsService.createNews(testNewsPostDTO));
 	}
 
 	@Test
-	public void deleteNews_validInput_success() {
+	void deleteNews_validInput_success() {
 		Mockito.when(newsRepository.existsById(2L)).thenReturn(true);
 
 		assertDoesNotThrow(() -> newsService.deleteNews(2L));
 	}
 
 	@Test
-	public void deleteNews_NewsNotFound_ThrowsException() {
+	void deleteNews_NewsNotFound_ThrowsException() {
 		Mockito.when(newsRepository.existsById(2L)).thenReturn(false);
 
 		assertThrows(ResponseStatusException.class, () -> newsService.deleteNews(2L));
 	}
 
 	@Test
-	public void postToMastodon_success() {
+	void postToMastodon_success() {
 		NewsStory news = new NewsStory();
 		news.setId(3L);
 		news.setTitle("Mastodon News");
@@ -180,7 +180,7 @@ public class NewsServiceTest {
 	}
 
 	@Test
-	public void postToMastodon_throwsException() {
+	void postToMastodon_throwsException() {
 		NewsStory news = new NewsStory();
 		news.setId(4L);
 		news.setTitle("Mastodon News");
@@ -203,7 +203,7 @@ public class NewsServiceTest {
 	}
 
 	@Test
-	public void getNewsById_validId_pronouncement_success() {
+	void getNewsById_validId_pronouncement_success() {
 		Mockito.when(newsRepository.findById(2L)).thenReturn(Optional.of(testPronouncement));
 
 		NewsStory result = newsService.getNewsById(2L);
@@ -213,7 +213,7 @@ public class NewsServiceTest {
 	}
 
 	@Test
-	public void getNewsById_validId_newsStory_success() {
+	void getNewsById_validId_newsStory_success() {
 		Mockito.when(newsRepository.findById(1L)).thenReturn(Optional.of(testNewsStory));
 
 		NewsStory result = newsService.getNewsById(1L);
@@ -223,14 +223,14 @@ public class NewsServiceTest {
 	}
 
 	@Test
-	public void getNewsById_newsNotFound_throwsException() {
+	void getNewsById_newsNotFound_throwsException() {
 		Mockito.when(newsRepository.findById(1L)).thenReturn(Optional.empty());
 
 		assertThrows(ResponseStatusException.class, () -> newsService.getNewsById(1L));
 	}
 
 	@Test
-	public void getNewsByScenario_validScenarioId_success() {
+	void getNewsByScenario_validScenarioId_success() {
 		List<NewsStory> expectedNews = Arrays.asList(testNewsStory, testPronouncement);
 		Mockito.when(scenarioService.getScenarioById(1L)).thenReturn(testScenario);
 		Mockito.when(newsRepository.findByScenarioIdOrderByCreatedAtAsc(1L)).thenReturn(expectedNews);
@@ -242,7 +242,7 @@ public class NewsServiceTest {
 	}
 
 	@Test
-	public void getNewsByScenario_scenarioNotFound_throwsException() {
+	void getNewsByScenario_scenarioNotFound_throwsException() {
 		Mockito.when(scenarioService.getScenarioById(1L)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND));
 
 		assertThrows(ResponseStatusException.class, () -> newsService.getNewsByScenario(1L));

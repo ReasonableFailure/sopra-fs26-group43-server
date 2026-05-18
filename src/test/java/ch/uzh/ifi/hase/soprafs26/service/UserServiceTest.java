@@ -27,7 +27,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class UserServiceTest {
+class UserServiceTest {
 
     @Mock
     private UserRepository userRepository;
@@ -41,7 +41,7 @@ public class UserServiceTest {
     private User testUser;
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         MockitoAnnotations.openMocks(this);
 
         testUser = new User();
@@ -53,7 +53,7 @@ public class UserServiceTest {
     }
 
     @Test
-    public void createUser_validInputs_success() {
+    void createUser_validInputs_success() {
         when(userRepository.findByUsername(Mockito.any())).thenReturn(Optional.empty());
 
         User createdUser = userService.createUser(testUser);
@@ -68,7 +68,7 @@ public class UserServiceTest {
     }
 
     @Test
-    public void createUser_duplicateUsername_throwsException() {
+    void createUser_duplicateUsername_throwsException() {
         Mockito.when(userRepository.findByUsername(testUser.getUsername())).thenReturn(Optional.empty());
         userService.createUser(testUser);
 
@@ -123,7 +123,7 @@ public class UserServiceTest {
     }
 
     @Test
-    public void createUser_invalidInput_throwsException() {
+    void createUser_invalidInput_throwsException() {
         User invalid = new User();
         invalid.setUsername("");
         invalid.setPassword("password");
@@ -132,14 +132,14 @@ public class UserServiceTest {
     }
 
     @Test
-    public void createUser_usernameTaken_throwsException() {
+    void createUser_usernameTaken_throwsException() {
         when(userRepository.findByUsername(testUser.getUsername())).thenReturn(Optional.of(testUser));
 
         assertThrows(ResponseStatusException.class, () -> userService.createUser(testUser));
     }
 
     @Test
-    public void getProfileById_validInput_success() {
+    void getProfileById_validInput_success() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
 
         User result = userService.getProfileById(1L);
@@ -148,14 +148,14 @@ public class UserServiceTest {
     }
 
     @Test
-    public void getProfileById_userNotFound_throwsException() {
+    void getProfileById_userNotFound_throwsException() {
         when(userRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThrows(ResponseStatusException.class, () -> userService.getProfileById(99L));
     }
 
     @Test
-    public void updateProfile_validInput_success() {
+    void updateProfile_validInput_success() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(userRepository.save(testUser)).thenReturn(testUser);
 
@@ -171,7 +171,7 @@ public class UserServiceTest {
     }
 
     @Test
-    public void updateProfile_userNotFound_throwsException() {
+    void updateProfile_userNotFound_throwsException() {
         when(userRepository.findById(99L)).thenReturn(Optional.empty());
 
         UserPutDTO putDTO = new UserPutDTO();
@@ -181,7 +181,7 @@ public class UserServiceTest {
     }
 
     @Test
-    public void updateProfile_invalidInput_throwsException() {
+    void updateProfile_invalidInput_throwsException() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
 
         UserPutDTO putDTO = new UserPutDTO();
@@ -191,7 +191,7 @@ public class UserServiceTest {
     }
 
     @Test
-    public void loginUser_validInput_success() {
+    void loginUser_validInput_success() {
         User stored = new User();
         stored.setUsername("testUsername");
         stored.setPassword("testPassword");
@@ -212,7 +212,7 @@ public class UserServiceTest {
     }
 
     @Test
-    public void loginUser_userNotFound_throwsException() {
+    void loginUser_userNotFound_throwsException() {
         when(userRepository.findByUsername("missing")).thenReturn(Optional.empty());
 
         User login = new User();
@@ -223,7 +223,7 @@ public class UserServiceTest {
     }
 
     @Test
-    public void loginUser_passwordIncorrect_throwsException() {
+    void loginUser_passwordIncorrect_throwsException() {
         User stored = new User();
         stored.setUsername("testUsername");
         stored.setPassword("correctPassword");
@@ -238,7 +238,7 @@ public class UserServiceTest {
     }
 
     @Test
-    public void logoutUser_validInput_success() {
+    void logoutUser_validInput_success() {
         User stored = new User();
         stored.setId(1L);
         stored.setStatus(UserStatus.ONLINE);
@@ -256,14 +256,14 @@ public class UserServiceTest {
     }
 
     @Test
-    public void logoutUser_userNotFound_throwsException() {
+    void logoutUser_userNotFound_throwsException() {
         when(userRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThrows(ResponseStatusException.class, () -> userService.logoutUser(99L));
     }
 
     @Test
-    public void deleteUser_validInput_success() {
+    void deleteUser_validInput_success() {
         String token = "token";
         User stored = new User();
         stored.setId(1L);
@@ -279,7 +279,7 @@ public class UserServiceTest {
     }
 
     @Test
-    public void deleteUser_userNotFound_throwsException() {
+    void deleteUser_userNotFound_throwsException() {
         String token = "token";
         User stored = new User();
         stored.setId(1L);
@@ -292,7 +292,7 @@ public class UserServiceTest {
     }
 
     @Test
-    public void getEngagements_validInput_success() {
+    void getEngagements_validInput_success() {
         String token = "token";
         User stored = new User();
         stored.setId(1L);
@@ -320,7 +320,7 @@ public class UserServiceTest {
     }
 
     @Test
-    public void getEngagements_userNotFound_throwsException() {
+    void getEngagements_userNotFound_throwsException() {
         String token = "token";
         User stored = new User();
         stored.setId(1L);
@@ -333,7 +333,7 @@ public class UserServiceTest {
     }
 
     @Test
-    public void getUsers_validInput_success() {
+    void getUsers_validInput_success() {
         User user2 = new User();
         user2.setId(2L);
         user2.setUsername("other");
@@ -346,7 +346,7 @@ public class UserServiceTest {
     }
 
     @Test
-    public void getByToken_validInput_success() {
+    void getByToken_validInput_success() {
         String token = "token";
         User stored = new User();
         stored.setId(1L);
@@ -360,7 +360,7 @@ public class UserServiceTest {
     }
 
     @Test
-    public void getByToken_userNotFound_throwsException() {
+    void getByToken_userNotFound_throwsException() {
         String token = "token";
         User stored = new User();
         stored.setId(1L);
@@ -372,7 +372,7 @@ public class UserServiceTest {
     }
 
     @Test
-    public void validateUserToken_validInput_success() {
+    void validateUserToken_validInput_success() {
         String token = "token";
         User stored = new User();
         stored.setToken(token);
@@ -383,7 +383,7 @@ public class UserServiceTest {
     }
 
     @Test
-    public void validateUserToken_NotFoundInDb_throwsException() {
+    void validateUserToken_NotFoundInDb_throwsException() {
         String token = "token";
         when(userRepository.findByToken(token)).thenReturn(Optional.empty());
 
@@ -391,7 +391,7 @@ public class UserServiceTest {
     }
 
     @Test
-    public void validateUserToken_userHasNullToken_throwsException() {
+    void validateUserToken_userHasNullToken_throwsException() {
         String token = "some-token";
         User mockUser = new User();
         mockUser.setToken(null);

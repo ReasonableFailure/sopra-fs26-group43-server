@@ -9,7 +9,6 @@ import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.rest.playerdto.EngagementGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.userdto.UserPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.userdto.UserPutDTO;
-import ch.uzh.ifi.hase.soprafs26.rest.userdto.UserLoginDTO;
 import ch.uzh.ifi.hase.soprafs26.service.UserService;
 
 import org.junit.jupiter.api.Test;
@@ -56,7 +55,7 @@ public class UserControllerTest {
 	private UserService userService;
 
 	@Test
-	public void createUser_validInput_success() throws Exception {
+	void createUser_validInput_success() throws Exception {
 		User user = new User();
 		user.setId(1L);
 		user.setPassword("Test User");
@@ -82,7 +81,7 @@ public class UserControllerTest {
 	}
 
 	@Test
-	public void retrieveUser_validInput_success() throws Exception {
+	void retrieveUser_validInput_success() throws Exception {
 		User user = new User();
 		user.setId(1L);
 		user.setUsername("testUsername");
@@ -103,7 +102,7 @@ public class UserControllerTest {
 	}
 
 	@Test
-	public void updateUser_validInput_success() throws Exception {
+	void updateUser_validInput_success() throws Exception {
 		User bearer = new User();
 		bearer.setId(1L);
 		bearer.setToken("token");
@@ -124,7 +123,7 @@ public class UserControllerTest {
 	}
 
 	@Test
-	public void loginUser_validInput_success() throws Exception {
+	void loginUser_validInput_success() throws Exception {
 		User user = new User();
 		user.setId(1L);
 		user.setUsername("testUsername");
@@ -148,7 +147,7 @@ public class UserControllerTest {
 	}
 
 	@Test
-	public void logout_validInput_success() throws Exception {
+	void logout_validInput_success() throws Exception {
 		User bearer = new User();
 		bearer.setId(1L);
 		bearer.setToken("token");
@@ -165,7 +164,7 @@ public class UserControllerTest {
 	}
 
 	@Test
-	public void deleteUser_validInput_success() throws Exception {
+	void deleteUser_validInput_success() throws Exception {
 		doNothing().when(userService).deleteUser(1L, "token");
 
 		mockMvc.perform(delete("/users/1")
@@ -177,7 +176,7 @@ public class UserControllerTest {
 	}
 
 	@Test
-	public void getEngagements_validInput_success() throws Exception {
+	void getEngagements_validInput_success() throws Exception {
 		User bearer = new User();
 		bearer.setId(1L);
 		bearer.setToken("token");
@@ -201,7 +200,7 @@ public class UserControllerTest {
 	}
 
 	@Test
-	public void getAllUsers_validInput_success() throws Exception {
+	void getAllUsers_validInput_success() throws Exception {
 		User user1 = new User();
 		user1.setId(1L);
 		user1.setUsername("user1");

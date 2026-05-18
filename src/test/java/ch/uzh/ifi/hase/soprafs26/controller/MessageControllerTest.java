@@ -41,7 +41,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(MessageController.class)
-public class MessageControllerTest {
+class MessageControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -99,7 +99,7 @@ public class MessageControllerTest {
     }
 
     @Test
-    public void createMessage_validInput_messageCreated() throws Exception {
+    void createMessage_validInput_messageCreated() throws Exception {
         given(messageService.createMessage(any(MessagePostDTO.class)))
                 .willReturn(testMessage);
 
@@ -121,7 +121,7 @@ public class MessageControllerTest {
     }
 
     @Test
-    public void createMessage_invalidInput_throwsException() throws Exception {
+    void createMessage_invalidInput_throwsException() throws Exception {
         messagePostDTO.setCreatorId(null);
         given(messageService.createMessage(any(MessagePostDTO.class)))
                 .willThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Sender or recipient missing"));
@@ -138,7 +138,7 @@ public class MessageControllerTest {
     }
 
     @Test
-    public void createMessage_scenarioNotFound_throwsException() throws Exception {
+    void createMessage_scenarioNotFound_throwsException() throws Exception {
         given(messageService.createMessage(any(MessagePostDTO.class)))
                 .willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario not found"));
 
@@ -154,7 +154,7 @@ public class MessageControllerTest {
     }
 
     @Test
-    public void getMessageById_validId_messageReturned() throws Exception {
+    void getMessageById_validId_messageReturned() throws Exception {
         given(messageService.getMessageById(1L))
                 .willReturn(testMessage);
 
@@ -174,7 +174,7 @@ public class MessageControllerTest {
     }
 
     @Test
-    public void getMessageById_messageNotFound_throwsException() throws Exception {
+    void getMessageById_messageNotFound_throwsException() throws Exception {
         given(messageService.getMessageById(999L))
                 .willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Message not found"));
 
@@ -188,7 +188,7 @@ public class MessageControllerTest {
     }
 
     @Test
-    public void updateMessage_validInput_success() throws Exception {
+    void updateMessage_validInput_success() throws Exception {
         doNothing().when(messageService).updateMessageStatus(anyLong(), any(MessagePutDTO.class));
 
         MockHttpServletRequestBuilder putRequest = put("/messages/1")
@@ -203,7 +203,7 @@ public class MessageControllerTest {
     }
 
     @Test
-    public void updateMessage_statusNull_throwsException() throws Exception {
+    void updateMessage_statusNull_throwsException() throws Exception {
         MessagePutDTO invalidPutDTO = new MessagePutDTO();
         invalidPutDTO.setStatus(null);
 
@@ -222,7 +222,7 @@ public class MessageControllerTest {
     }
 
     @Test
-    public void updateMessage_messageNotFound_throwsException() throws Exception {
+    void updateMessage_messageNotFound_throwsException() throws Exception {
         doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Message not found"))
                 .when(messageService).updateMessageStatus(anyLong(), any(MessagePutDTO.class));
 
@@ -238,8 +238,8 @@ public class MessageControllerTest {
     }
 
     @Test
-    public void deleteMessage_validInput_success() throws Exception {
-        doNothing().when(messageService).deleteMessage(Mockito.eq(1L));
+    void deleteMessage_validInput_success() throws Exception {
+        doNothing().when(messageService).deleteMessage(1L);
 
         MockHttpServletRequestBuilder deleteRequest = delete("/messages/1")
                 .header("Authorization", "Bearer token123");
@@ -247,13 +247,13 @@ public class MessageControllerTest {
         mockMvc.perform(deleteRequest)
                 .andExpect(status().isNoContent());
 
-        verify(messageService, times(1)).deleteMessage(Mockito.eq(1L));
+        verify(messageService, times(1)).deleteMessage(1L);
     }
 
     @Test
-    public void getCharacterInbox_validInput_success() throws Exception {
+    void getCharacterInbox_validInput_success() throws Exception {
         given(playerService.resolvePlayerFromHeader(anyString())).willReturn(testRecipient);
-        given(messageService.getInbox(Mockito.eq(2L), Mockito.eq(1L)))
+        given(messageService.getInbox(2L, 1L))
                 .willReturn(List.of(testMessage));
 
         MockHttpServletRequestBuilder getRequest = get("/messages/character/2/inbox?scenarioId=1")
@@ -265,11 +265,11 @@ public class MessageControllerTest {
                 .andExpect(jsonPath("$[0].id", is(1)))
                 .andExpect(jsonPath("$[0].recipientId", is(2)));
 
-        verify(messageService, times(1)).getInbox(Mockito.eq(2L), Mockito.eq(1L));
+        verify(messageService, times(1)).getInbox(2L, 1L);
     }
 
     @Test
-    public void getCharacterInbox_wrongRequester_throwsException() throws Exception {
+    void getCharacterInbox_wrongRequester_throwsException() throws Exception {
         Role wrongRequester = new Role();
         wrongRequester.setId(3L);
         wrongRequester.setName("Wrong");
@@ -284,7 +284,7 @@ public class MessageControllerTest {
     }
 
     @Test
-    public void getMessagesBetween_validIds_messagesReturned() throws Exception {
+    void getMessagesBetween_validIds_messagesReturned() throws Exception {
         given(messageService.getMessagesBetween(Mockito.eq(1L), Mockito.eq(2L), Mockito.any()))
                 .willReturn(List.of(testMessage));
 
@@ -302,7 +302,7 @@ public class MessageControllerTest {
     }
 
     @Test
-    public void getMessagesBetween_charactersNotFound_throwsException() throws Exception {
+    void getMessagesBetween_charactersNotFound_throwsException() throws Exception {
         given(messageService.getMessagesBetween(Mockito.eq(999L), Mockito.eq(2L), Mockito.any()))
                 .willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "One or both characters not found"));
 
@@ -316,12 +316,12 @@ public class MessageControllerTest {
     }
 
     @Test
-    public void getMessagePairsByScenario_validId_pairsReturned() throws Exception {
+    void getMessagePairsByScenario_validId_pairsReturned() throws Exception {
         MessagePairDTO pairDTO = new MessagePairDTO();
         pairDTO.setRoleAId(1L);
         pairDTO.setRoleBId(2L);
 
-        given(messageService.getMessagePairsByScenario(Mockito.eq(1L)))
+        given(messageService.getMessagePairsByScenario(1L))
                 .willReturn(List.of(pairDTO));
 
         MockHttpServletRequestBuilder getRequest = get("/messages/scenario/1/pairs")
@@ -333,12 +333,12 @@ public class MessageControllerTest {
                 .andExpect(jsonPath("$[0].roleAId", is(1)))
                 .andExpect(jsonPath("$[0].roleBId", is(2)));
 
-        verify(messageService, times(1)).getMessagePairsByScenario(Mockito.eq(1L));
+        verify(messageService, times(1)).getMessagePairsByScenario(1L);
     }
 
     @Test
-    public void getMessagePairsByScenario_scenarioNotFound_throwsException() throws Exception {
-        given(messageService.getMessagePairsByScenario(Mockito.eq(999L)))
+    void getMessagePairsByScenario_scenarioNotFound_throwsException() throws Exception {
+        given(messageService.getMessagePairsByScenario(999L))
                 .willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Scenario not found"));
 
         MockHttpServletRequestBuilder getRequest = get("/messages/scenario/999/pairs")
@@ -347,7 +347,7 @@ public class MessageControllerTest {
         mockMvc.perform(getRequest)
                 .andExpect(status().isNotFound());
 
-        verify(messageService, times(1)).getMessagePairsByScenario(Mockito.eq(999L));
+        verify(messageService, times(1)).getMessagePairsByScenario(999L);
     }
 
     private String asJsonString(Object object) throws Exception {

@@ -30,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @WebAppConfiguration
 @SpringBootTest
-public class UserServiceIntegrationTest {
+class UserServiceIntegrationTest {
 
 	@Qualifier("userRepository")
 	@Autowired
@@ -53,7 +53,7 @@ public class UserServiceIntegrationTest {
 	}
 
 	@Test
-	public void createUser_validInputs_success() {
+	void createUser_validInputs_success() {
 		// given
 		assertTrue(userRepository.findByUsername("testUsername").isEmpty());
 
@@ -73,7 +73,7 @@ public class UserServiceIntegrationTest {
 	}
 
 	@Test
-	public void createUser_duplicateUsername_throwsException() {
+	void createUser_duplicateUsername_throwsException() {
 		assertTrue(userRepository.findByUsername("testUsername").isEmpty());
 
 		User testUser = new User();
@@ -93,7 +93,7 @@ public class UserServiceIntegrationTest {
 	}
 
 	@Test
-	public void createUser_invalidInput_throwsException() {
+	void createUser_invalidInput_throwsException() {
 		User invalidUser = new User();
 		invalidUser.setPassword("");
 		invalidUser.setUsername("testUsername");
@@ -102,7 +102,7 @@ public class UserServiceIntegrationTest {
 	}
 
 	@Test
-	public void getProfileById_validInput_success() {
+	void getProfileById_validInput_success() {
 		User testUser = new User();
 		testUser.setPassword("testPassword");
 		testUser.setUsername("testUsername");
@@ -114,12 +114,12 @@ public class UserServiceIntegrationTest {
 	}
 
 	@Test
-	public void getProfileById_userNotFound_throwsException() {
+	void getProfileById_userNotFound_throwsException() {
 		assertThrows(ResponseStatusException.class, () -> userService.getProfileById(999L));
 	}
 
 	@Test
-	public void updateProfile_validInput_success() {
+	void updateProfile_validInput_success() {
 		User testUser = new User();
 		testUser.setPassword("testPassword");
 		testUser.setUsername("testUsername");
@@ -137,7 +137,7 @@ public class UserServiceIntegrationTest {
 	}
 
 	@Test
-	public void updateProfile_userNotFound_throwsException() {
+	void updateProfile_userNotFound_throwsException() {
 		UserPutDTO putDTO = new UserPutDTO();
 		putDTO.setBio("new bio");
 
@@ -145,7 +145,7 @@ public class UserServiceIntegrationTest {
 	}
 
 	@Test
-	public void updateProfile_invalidInput_throwsException() {
+	void updateProfile_invalidInput_throwsException() {
 		User testUser = new User();
 		testUser.setPassword("testPassword");
 		testUser.setUsername("testUsername");
@@ -158,11 +158,11 @@ public class UserServiceIntegrationTest {
 	}
 
 	@Test
-	public void loginUser_validInput_success() {
+	void loginUser_validInput_success() {
 		User testUser = new User();
 		testUser.setPassword("testPassword");
 		testUser.setUsername("testUsername");
-		User created = userService.createUser(testUser);
+		userService.createUser(testUser);
 
 		User loginAttempt = new User();
 		loginAttempt.setUsername("testUsername");
@@ -175,7 +175,7 @@ public class UserServiceIntegrationTest {
 	}
 
 	@Test
-	public void loginUser_userNotFound_throwsException() {
+	void loginUser_userNotFound_throwsException() {
 		User loginAttempt = new User();
 		loginAttempt.setUsername("missing");
 		loginAttempt.setPassword("password");
@@ -184,7 +184,7 @@ public class UserServiceIntegrationTest {
 	}
 
 	@Test
-	public void loginUser_passwordIncorrect_throwsException() {
+	void loginUser_passwordIncorrect_throwsException() {
 		User testUser = new User();
 		testUser.setPassword("testPassword");
 		testUser.setUsername("testUsername");
@@ -198,7 +198,7 @@ public class UserServiceIntegrationTest {
 	}
 
 	@Test
-	public void logoutUser_validInput_success() {
+	void logoutUser_validInput_success() {
 		User testUser = new User();
 		testUser.setPassword("testPassword");
 		testUser.setUsername("testUsername");
@@ -213,12 +213,12 @@ public class UserServiceIntegrationTest {
 	}
 
 	@Test
-	public void logoutUser_userNotFound_throwsException() {
+	void logoutUser_userNotFound_throwsException() {
 		assertThrows(ResponseStatusException.class, () -> userService.logoutUser(999L));
 	}
 
 	@Test
-	public void deleteUser_validInput_success() {
+	void deleteUser_validInput_success() {
 		User testUser = new User();
 		testUser.setPassword("testPassword");
 		testUser.setUsername("testUsername");
@@ -230,7 +230,7 @@ public class UserServiceIntegrationTest {
 	}
 
 	@Test
-	public void getEngagements_validInput_success() {
+	void getEngagements_validInput_success() {
 		User testUser = new User();
 		testUser.setPassword("testPassword");
 		testUser.setUsername("testUsername");
@@ -266,17 +266,22 @@ public class UserServiceIntegrationTest {
 	}
 
 	@Test
-	public void getEngagements_userNotFound_throwsException() {
+	void getEngagements_userNotFound_throwsException() {
 		User testUser = new User();
 		testUser.setPassword("testPassword");
 		testUser.setUsername("testUsername");
-		User created = userService.createUser(testUser);
 
-		assertThrows(ResponseStatusException.class, () -> userService.getEngagements(created.getToken(), 999L));
+		User created = userService.createUser(testUser);
+		String token = created.getToken();
+
+		assertThrows(
+			ResponseStatusException.class,
+			() -> userService.getEngagements(token, 999L)
+		);
 	}
 
 	@Test
-	public void getUsers_validInput_success() {
+	void getUsers_validInput_success() {
 		User firstUser = new User();
 		firstUser.setPassword("testPassword");
 		firstUser.setUsername("testUsername");
@@ -293,7 +298,7 @@ public class UserServiceIntegrationTest {
 	}
 
 	@Test
-	public void getByToken_validInput_success() {
+	void getByToken_validInput_success() {
 		User testUser = new User();
 		testUser.setPassword("testPassword");
 		testUser.setUsername("testUsername");
@@ -305,12 +310,12 @@ public class UserServiceIntegrationTest {
 	}
 
 	@Test
-	public void getByToken_userNotFound_throwsException() {
+	void getByToken_userNotFound_throwsException() {
 		assertThrows(ResponseStatusException.class, () -> userService.getByToken("missing-token"));
 	}
 
 	@Test
-	public void validateUserToken_validInput_success() {
+	void validateUserToken_validInput_success() {
 		User testUser = new User();
 		testUser.setPassword("testPassword");
 		testUser.setUsername("testUsername");
@@ -320,12 +325,12 @@ public class UserServiceIntegrationTest {
 	}
 
 	@Test
-	public void validateUserToken_NotFoundInDb_throwsException() {
+	void validateUserToken_NotFoundInDb_throwsException() {
 		assertThrows(ResponseStatusException.class, () -> userService.validateUserToken("missing-token"));
 	}
 
 	@Test
-	public void validateUserToken_NullOrEmpty_throwsException() {
+	void validateUserToken_NullOrEmpty_throwsException() {
 		assertThrows(ResponseStatusException.class, () -> userService.validateUserToken(null));
 	}
 }

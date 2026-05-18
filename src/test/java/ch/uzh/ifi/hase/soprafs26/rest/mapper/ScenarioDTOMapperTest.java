@@ -3,7 +3,6 @@ package ch.uzh.ifi.hase.soprafs26.rest.mapper;
 import org.junit.jupiter.api.Test;
 
 import ch.uzh.ifi.hase.soprafs26.constant.ScenarioStatus;
-import ch.uzh.ifi.hase.soprafs26.entity.Director;
 import ch.uzh.ifi.hase.soprafs26.entity.Scenario;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.scenariodto.ScenarioPostDTO;
@@ -13,10 +12,10 @@ import java.time.LocalDateTime;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class ScenarioDTOMapperTest {
+class ScenarioDTOMapperTest {
 
     @Test
-    public void testConvertEntityToScenarioGetDTO_success() {
+    void testConvertEntityToScenarioGetDTO_success() {
         Scenario scenario = new Scenario();
         scenario.setId(10L);
         scenario.setTitle("Scenario Title");
@@ -42,7 +41,7 @@ public class ScenarioDTOMapperTest {
     }
 
     @Test
-    public void testConvertScenarioPostDTOtoEntity_setsDirectorId_success() {
+    void testConvertScenarioPostDTOtoEntity_setsDirectorId_success() {
         ScenarioPostDTO scenarioPostDTO = new ScenarioPostDTO();
         scenarioPostDTO.setTitle("Scenario Title");
         scenarioPostDTO.setDescription("Scenario Description");
