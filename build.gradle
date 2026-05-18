@@ -76,6 +76,7 @@ test {
     useJUnitPlatform()
     testLogging.showStandardStreams = true
     maxParallelForks = 1
+    finalizedBy jacocoTestReport
 }
 
 File secretPropsFile = file('./local.properties')
@@ -83,7 +84,7 @@ if (secretPropsFile.exists()) {
     Properties p = new Properties()
     p.load(new FileInputStream(secretPropsFile))
     p.each { name, value ->
-        ext[name] = value
+        ext[name.toString()] = value
     }
 }
 
