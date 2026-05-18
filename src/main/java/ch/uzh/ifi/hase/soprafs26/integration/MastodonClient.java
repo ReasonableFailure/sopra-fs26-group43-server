@@ -7,6 +7,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpMethod;
+import org.springframework.beans.factory.annotation.Autowired;
 
 
 import java.util.Map;
@@ -17,6 +18,7 @@ public class MastodonClient {
     private final WebClient.Builder webClientBuilder;
     private final RestTemplate restTemplate;
 
+    @Autowired
     public MastodonClient() {
         this(WebClient.builder(), new RestTemplate());
     }
